@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: #0a0a0b;
+  color: #e7e7ea;
+  font-feature-settings: "ss01", "cv11";
+}
+
+::selection {
+  background: #7c5cff;
+  color: #fff;
+}
+
+/* Custom scrollbars (dev-tool aesthetic) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: #0a0a0b;
+}
+*::-webkit-scrollbar-thumb {
+  background: #26262e;
+  border-radius: 6px;
+  border: 2px solid #0a0a0b;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #3a3a44;
+}
+
+/* Glassmorphism panel */
+.glass {
+  background: linear-gradient(180deg, rgba(28, 28, 34, 0.7), rgba(21, 21, 26, 0.7));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Subtle grid background */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+/* Flash on commit */
+.flash-on-render {
+  animation: flash 600ms ease-out 1;
+}
+
+/* Tag pill */
+.pill {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-bg-border bg-bg-elevated px-2 py-0.5 text-[11px] font-mono uppercase tracking-wider text-ink-muted;
+}
