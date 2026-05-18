@@ -1,3 +1,5 @@
+export type Track = "foundations" | "core";
+
 export type ModuleDef = {
   slug: string;
   title: string;
@@ -5,7 +7,101 @@ export type ModuleDef = {
   hook: string;
   /** The new bottleneck that this module's fix exposes — wired into the "what's next" callout. */
   next: string;
+  /** Which track this module belongs to. Defaults to "core". */
+  track?: Track;
 };
+
+/** Foundations — the prerequisites for the rest of the lab. */
+export const FOUNDATIONS: ModuleDef[] = [
+  {
+    slug: "f01-components",
+    title: "Components & JSX",
+    tag: "jsx",
+    hook: "Function components, JSX compiles to React.createElement, Fragments, and why <App/> is a value, not an instance.",
+    next: "Components alone are static. They need inputs.",
+    track: "foundations",
+  },
+  {
+    slug: "f02-props",
+    title: "Props & composition",
+    tag: "props",
+    hook: "Pass data down. Pass children through. Composition over configuration — the React way to extend a component.",
+    next: "Props change from above; what about state that lives inside?",
+    track: "foundations",
+  },
+  {
+    slug: "f03-state",
+    title: "State with useState",
+    tag: "state",
+    hook: "Where state lives, why setState is async, the stale-closure trap, lazy init, and the right level to put each piece.",
+    next: "State drives renders. But some work has to happen outside render.",
+    track: "foundations",
+  },
+  {
+    slug: "f04-effects",
+    title: "Effects with useEffect",
+    tag: "effects",
+    hook: "When effects run, why the deps array matters, cleanup, the StrictMode double-fire, and the patterns that aren't effects.",
+    next: "Effects react to changes. The user reacts to clicks.",
+    track: "foundations",
+  },
+  {
+    slug: "f05-events",
+    title: "Events & handlers",
+    tag: "events",
+    hook: "Synthetic events, event delegation, passing args to handlers, why React doesn't need addEventListener.",
+    next: "Events trigger renders. Renders produce UI from data shapes.",
+    track: "foundations",
+  },
+  {
+    slug: "f06-rendering",
+    title: "Rendering — conditional + lists",
+    tag: "render",
+    hook: "Short-circuit && pitfalls, the ternary, list keys (a teaser for Module 1), Fragments in lists.",
+    next: "Lists need stable, focused inputs. Forms are how we get them.",
+    track: "foundations",
+  },
+  {
+    slug: "f07-forms",
+    title: "Forms — controlled inputs",
+    tag: "forms",
+    hook: "Controlled vs uncontrolled, the value/onChange contract, working with checkboxes/selects/radios.",
+    next: "Some state isn't UI state — it's a value you read but don't render.",
+    track: "foundations",
+  },
+  {
+    slug: "f08-refs",
+    title: "Refs with useRef",
+    tag: "refs",
+    hook: "Mutable values that don't trigger re-renders. DOM access. Why a ref isn't state.",
+    next: "Drilling values through props gets ugly. Context flattens the path.",
+    track: "foundations",
+  },
+  {
+    slug: "f09-context",
+    title: "Context — passing data through the tree",
+    tag: "context",
+    hook: "createContext + Provider + useContext. The 're-renders all consumers' trap. The new <Context value> shorthand.",
+    next: "Once you reuse logic, you reach for hooks of your own.",
+    track: "foundations",
+  },
+  {
+    slug: "f10-custom-hooks",
+    title: "Custom hooks — extract & compose logic",
+    tag: "hooks",
+    hook: "When to extract a hook, naming (use-prefix), composition, returning tuples vs objects, generic typing.",
+    next: "All of this only works if your components obey the Rules of React.",
+    track: "foundations",
+  },
+  {
+    slug: "f11-rules",
+    title: "The Rules of React",
+    tag: "rules",
+    hook: "Pure renders, immutable state, hook order, no side effects in render. The contract the Compiler enforces statically.",
+    next: "You now have everything you need for Module 1 — Reconciliation.",
+    track: "foundations",
+  },
+];
 
 export const MODULES: ModuleDef[] = [
   {
@@ -187,4 +283,8 @@ export const MODULES: ModuleDef[] = [
   },
 ];
 
-export const moduleBySlug = (slug: string) => MODULES.find((m) => m.slug === slug);
+/** All modules, foundations first, then core. */
+export const ALL_MODULES: ModuleDef[] = [...FOUNDATIONS, ...MODULES];
+
+export const moduleBySlug = (slug: string) =>
+  ALL_MODULES.find((m) => m.slug === slug);

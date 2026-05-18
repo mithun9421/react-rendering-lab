@@ -38,6 +38,9 @@ function NavBar() {
         <span className="font-mono text-[13px] tracking-wider sm:text-sm">react-rendering-lab</span>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted sm:gap-3">
+        <Link href="/lab" className="text-ink-muted hover:text-ink">
+          Lab hub
+        </Link>
         <Link href="/lab/journey" className="text-ink-muted hover:text-ink">
           Journey
         </Link>
@@ -127,9 +130,17 @@ function LearningPaths() {
       <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <Path
           tone="info"
+          title="New to React · the Foundations"
+          time="~2 hrs"
+          for="you've written some JSX but want a real foundation"
+          steps={["F01 components", "F02 props · F03 state · F04 effects", "→ flows into Module 1"]}
+          cta={{ href: "/lab/f01-components", label: "Start at F01 →" }}
+        />
+        <Path
+          tone="info"
           title="Linear · the bottleneck chain"
           time="3-4 hrs"
-          for="learners taking it for the first time"
+          for="comfortable with React — go straight to the meat"
           steps={["Start at Module 1", "Keep clicking 'next bottleneck'", "Finish at the Incident Simulator"]}
           cta={{ href: "/lab/01-reconciliation", label: "Start at Module 1 →" }}
         />

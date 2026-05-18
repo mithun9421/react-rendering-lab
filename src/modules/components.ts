@@ -1,4 +1,7 @@
 import type { ComponentType } from "react";
+import F01Components from "./f01-components";
+import F02Props from "./f02-props";
+import F03State from "./f03-state";
 import Module01 from "./01-reconciliation";
 import Module02 from "./02-diffing";
 import Module03 from "./03-fiber";
@@ -26,6 +29,11 @@ import Module24 from "./24-security";
 import Module25 from "./25-incident-simulator";
 
 export const MODULE_COMPONENTS: Record<string, ComponentType> = {
+  // Foundations
+  "f01-components": F01Components,
+  "f02-props": F02Props,
+  "f03-state": F03State,
+  // Core
   "01-reconciliation": Module01,
   "02-diffing": Module02,
   "03-fiber": Module03,

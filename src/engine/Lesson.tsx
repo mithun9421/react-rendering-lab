@@ -1,10 +1,11 @@
 "use client";
 
-import { Children, Fragment, type ReactNode } from "react";
+import { Children, Fragment, useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { MODULES, moduleBySlug } from "@/modules/registry";
+import { ALL_MODULES, moduleBySlug } from "@/modules/registry";
 import { AdSlot } from "@/ads/AdSlot";
+import { useProgress } from "@/progress/store";
 
 /**
  * Insert one in-article ad after the 4th step.
@@ -38,15 +39,39 @@ export function Lesson({
   children: React.ReactNode;
 }) {
   const def = moduleBySlug(slug)!;
-  const idx = MODULES.findIndex((m) => m.slug === slug);
-  const prev = MODULES[idx - 1];
-  const next = MODULES[idx + 1];
+  const idx = ALL_MODULES.findIndex((m) => m.slug === slug);
+  const prev = ALL_MODULES[idx - 1];
+  const next = ALL_MODULES[idx + 1];
+  const isFoundation = def.track === "foundations";
+  const label = isFoundation
+    ? `Foundation ${slug.slice(1, 3)}`
+    : `Module ${String(idx - 11 + 1).padStart(2, "0")}`;
+
+  // Auto-mark lesson complete when the reader has scrolled past 80% of the article.
+  // Uses an IntersectionObserver on a sentinel near the bottom.
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const markComplete = useProgress((s) => s.markLessonComplete);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          markComplete(slug);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -20% 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [slug, markComplete]);
 
   return (
     <article className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 sm:px-6 sm:pt-10">
       <header className="mb-8 sm:mb-10">
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim sm:text-[11px]">
-          <span>Module {String(idx + 1).padStart(2, "0")}</span>
+          <span>{label}</span>
           <span>·</span>
           <span className="text-accent">{def.tag}</span>
         </div>
@@ -73,6 +98,11 @@ export function Lesson({
           className="rounded-lg border border-dashed border-bg-border bg-bg-subtle p-4"
         />
       </div>
+
+      {/* Sentinel for auto-complete detection — placed before the navigation so
+          completion fires when the user has read the lesson but not necessarily
+          clicked through. */}
+      <div ref={sentinelRef} aria-hidden className="h-px" />
 
       <nav className="mt-12 flex flex-col gap-3 border-t border-bg-border pt-6 text-sm sm:mt-16 sm:flex-row sm:items-center sm:justify-between">
         {prev ? (

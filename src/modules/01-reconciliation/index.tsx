@@ -7,6 +7,7 @@ import { TryIt } from "@/engine/TryIt";
 import { MetricsPanel } from "@/engine/MetricsPanel";
 import { BeforeAfter } from "@/engine/BeforeAfter";
 import { Callout } from "@/engine/Callout";
+import { Quiz } from "@/engine/Quiz";
 import { DiffTree, type DiffNode } from "@/viz/DiffTree";
 import { StockFeed } from "@/dashboard/StockFeed";
 import { useRenderCount } from "@/profiler/useRenderCount";
@@ -94,6 +95,35 @@ export default function Module01() {
         </p>
         <ReferenceIdentityDemo />
       </Step>
+
+      <Quiz
+        id="m1:keys"
+        prompt="A list re-orders. Which key strategy lets React reuse the existing fibers (and any local state in each row)?"
+        options={[
+          {
+            id: "a",
+            text: "key={index}",
+            rationale: "Positional identity. After reorder, slot 0 reuses the fiber for slot 0 — but the data at slot 0 changed. State migrates with position, not with data.",
+          },
+          {
+            id: "b",
+            text: "key={item.id} (stable, item-derived)",
+            correct: true,
+            rationale:
+              "The fiber follows the item, not the slot. Reorders become 'moves' rather than 'mutations.' Local state stays attached to the right row.",
+          },
+          {
+            id: "c",
+            text: "key={Math.random()}",
+            rationale: "Forces a remount of every row on every render. State is destroyed. This is what 'wrong' looks like.",
+          },
+          {
+            id: "d",
+            text: "No key — let React figure it out.",
+            rationale: "React falls back to index keys and warns in dev. Same problem as (a) plus a warning.",
+          },
+        ]}
+      />
 
       <Step n={6} kind="explain" title="Five anti-patterns that quietly bust reconciliation">
         <p>

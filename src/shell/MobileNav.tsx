@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
-import { MODULES } from "@/modules/registry";
+import { MODULES, FOUNDATIONS } from "@/modules/registry";
 
 /**
  * Mobile-first navigation. Two surfaces:
@@ -109,7 +109,30 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
                 <span>Interview · question bank</span>
                 <span aria-hidden>▸</span>
               </Link>
-              <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">Modules</p>
+              <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">Foundations</p>
+              <ul className="mb-3 space-y-0.5">
+                {FOUNDATIONS.map((m, i) => {
+                  const active = pathname?.includes(m.slug) ?? false;
+                  return (
+                    <li key={m.slug}>
+                      <Link
+                        href={`/lab/${m.slug}`}
+                        onClick={onClose}
+                        className={clsx(
+                          "flex items-center gap-3 rounded-md px-2.5 py-3 text-sm",
+                          active
+                            ? "bg-accent/15 text-accent"
+                            : "text-ink-muted active:bg-bg-elevated hover:bg-bg-elevated hover:text-ink"
+                        )}
+                      >
+                        <span className="w-8 font-mono text-[11px] text-ink-dim">F{String(i + 1).padStart(2, "0")}</span>
+                        <span className="flex-1 truncate">{m.title}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">Core · 25 modules</p>
               <ul className="space-y-0.5">
                 {MODULES.map((m, i) => {
                   const active = pathname?.includes(m.slug) ?? false;
@@ -125,7 +148,7 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
                             : "text-ink-muted active:bg-bg-elevated hover:bg-bg-elevated hover:text-ink"
                         )}
                       >
-                        <span className="w-6 font-mono text-[11px] text-ink-dim">{String(i + 1).padStart(2, "0")}</span>
+                        <span className="w-8 font-mono text-[11px] text-ink-dim">{String(i + 1).padStart(2, "0")}</span>
                         <span className="flex-1 truncate">{m.title}</span>
                       </Link>
                     </li>

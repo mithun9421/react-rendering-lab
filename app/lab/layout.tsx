@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MODULES } from "@/modules/registry";
+import { MODULES, FOUNDATIONS } from "@/modules/registry";
 import { ProfilerDock } from "@/profiler/ProfilerDock";
 import { MobileNav } from "@/shell/MobileNav";
 import { AdSlot } from "@/ads/AdSlot";
@@ -45,7 +45,23 @@ function DesktopSidebar() {
           <span>Interview · question bank</span>
           <span aria-hidden>▸</span>
         </Link>
-        <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">Modules</p>
+        <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">Foundations</p>
+        <ul className="mb-3 space-y-0.5">
+          {FOUNDATIONS.map((m, i) => (
+            <li key={m.slug}>
+              <Link
+                href={`/lab/${m.slug}`}
+                className="group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-ink-muted hover:bg-bg-elevated hover:text-ink"
+              >
+                <span className="w-7 font-mono text-[10px] text-ink-dim group-hover:text-accent">
+                  F{String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="flex-1 truncate">{m.title}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">Core · 25 modules</p>
         <ul className="space-y-0.5">
           {MODULES.map((m, i) => (
             <li key={m.slug}>
@@ -53,7 +69,7 @@ function DesktopSidebar() {
                 href={`/lab/${m.slug}`}
                 className="group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-ink-muted hover:bg-bg-elevated hover:text-ink"
               >
-                <span className="w-5 font-mono text-[10px] text-ink-dim group-hover:text-accent">
+                <span className="w-7 font-mono text-[10px] text-ink-dim group-hover:text-accent">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="flex-1 truncate">{m.title}</span>
