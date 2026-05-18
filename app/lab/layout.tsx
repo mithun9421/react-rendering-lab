@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MODULES } from "@/modules/registry";
 import { ProfilerDock } from "@/profiler/ProfilerDock";
 import { MobileNav } from "@/shell/MobileNav";
+import { AdSlot } from "@/ads/AdSlot";
 
 export default function LabLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -54,6 +55,15 @@ function DesktopSidebar() {
           ))}
         </ul>
       </nav>
+
+      {/* Vertical ad slot — desktop sidebar only. Mobile drawer never shows ads. */}
+      <div className="border-t border-bg-border px-3 py-3">
+        <AdSlot
+          slotId={process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR_VERTICAL ?? ""}
+          format="vertical"
+          minHeight={240}
+        />
+      </div>
 
       <div className="border-t border-bg-border px-4 py-3 text-[10px] font-mono text-ink-dim">
         <p>Profiler: bottom dock</p>

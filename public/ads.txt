@@ -1,0 +1,9 @@
+# ads.txt — Authorized Digital Sellers
+# https://iabtechlab.com/ads-txt/
+#
+# Replace `pub-0000000000000000` with your Google AdSense publisher ID
+# (the number after `ca-` in `ca-pub-…`). Without this file at the site
+# root, AdSense will silently lower your CPM. After updating, give Google
+# 24h to recrawl.
+
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

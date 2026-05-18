@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MODULES } from "@/modules/registry";
+import { AdSlot } from "@/ads/AdSlot";
 
 export default function Landing() {
   return (
@@ -10,6 +11,16 @@ export default function Landing() {
       <Hero />
       <LearningPaths />
       <ModuleList />
+      {/* In-feed native ad — between substantive content blocks, the AdSense-preferred location */}
+      <section className="relative mx-auto max-w-6xl px-4 pb-10 sm:px-6">
+        <AdSlot
+          slotId={process.env.NEXT_PUBLIC_ADSENSE_SLOT_LANDING_INFEED ?? ""}
+          format="fluid"
+          layoutKey="-fb+5w+4e-db+86"
+          minHeight={140}
+          className="rounded-lg border border-bg-border bg-bg-panel p-4"
+        />
+      </section>
       <HowItWorks />
       <FAQ />
       <Footer />

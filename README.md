@@ -83,6 +83,41 @@ This is `v0.6`. All 25 modules + the Journey + landing page are elaborated for d
 - **Custom profiler dock** — FPS, render counts, commit timeline, top offenders. Collapsible on mobile.
 - **Mobile-first responsive** — drawer nav, collapsible dock, viz stacking, viewport meta.
 
+## Google AdSense (optional)
+
+The lab is monetisable without touching code. Placement is policy-safe and analysed in [`AD_PLACEMENT.md`](./AD_PLACEMENT.md) — TL;DR: the navbar is **not** an ad surface. Three slots only:
+
+- **Landing in-feed** — between the module grid and the FAQ.
+- **Lab sidebar (lg+)** — sticky vertical, never on mobile.
+- **In-article + end-of-lesson** — inside `<Lesson>`, after step 4 and after the navigation.
+
+### Setup
+
+1. Apply at [google.com/adsense](https://www.google.com/adsense). The lab&apos;s content (technical, original) is the kind AdSense approves quickly.
+2. Once approved, create four ad units in the dashboard:
+   - **Display · Fluid (in-feed)** — for the landing slot
+   - **Display · Vertical** — for the sidebar slot
+   - **In-article · Native** — for the in-article slot
+   - **In-article · Native** — for the end-of-lesson slot
+3. Copy your publisher ID + the four slot IDs into `.env.local`:
+
+   ```bash
+   cp .env.example .env.local
+   # then fill in NEXT_PUBLIC_ADSENSE_CLIENT_ID and the four slot IDs
+   ```
+
+4. Update `public/ads.txt` with the same publisher ID. Without ads.txt at the site root, AdSense down-bids your inventory.
+
+5. Deploy. The `<AdSenseLoader/>` only fires the AdSense script when the env var is present, so dev / preview deploys stay clean.
+
+### What you get
+
+| Page         | Slot                  | Format          | Expected share of revenue |
+| ------------ | --------------------- | --------------- | ------------------------- |
+| Landing      | in-feed (fluid)       | native          | ~70%                      |
+| Lab sidebar  | vertical (lg+ only)   | responsive      | ~25%                      |
+| Module page  | in-article + end      | native in-article | ~5%                     |
+
 ## License
 
 MIT.

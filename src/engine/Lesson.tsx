@@ -1,8 +1,34 @@
 "use client";
 
+import { Children, Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { MODULES, moduleBySlug } from "@/modules/registry";
+import { AdSlot } from "@/ads/AdSlot";
+
+/**
+ * Insert one in-article ad after the 4th step.
+ * If the lesson has fewer than 5 steps, render no in-article ad — the end-of-lesson
+ * slot below still fires.
+ */
+function interleaveAd(children: ReactNode): ReactNode {
+  const arr = Children.toArray(children);
+  if (arr.length < 5) return arr;
+  const ad = (
+    <div className="rounded-lg border border-dashed border-bg-border bg-bg-subtle p-3" key="__inarticle_ad">
+      <AdSlot
+        slotId={process.env.NEXT_PUBLIC_ADSENSE_SLOT_MODULE_INARTICLE ?? ""}
+        format="in-article"
+        minHeight={120}
+      />
+    </div>
+  );
+  return [
+    ...arr.slice(0, 4),
+    <Fragment key="__ad_wrap">{ad}</Fragment>,
+    ...arr.slice(4),
+  ];
+}
 
 export function Lesson({
   slug,
@@ -35,7 +61,18 @@ export function Lesson({
         <p className="mt-3 max-w-2xl text-sm text-ink-muted sm:text-base">{def.hook}</p>
       </header>
 
-      <div className="space-y-8 sm:space-y-10">{children}</div>
+      <div className="space-y-8 sm:space-y-10">{interleaveAd(children)}</div>
+
+      {/* End-of-lesson native ad slot — fires only after the reader scrolled the whole lesson.
+          This is the highest-quality impression we have; AdSense rewards it. */}
+      <div className="mt-12 sm:mt-16">
+        <AdSlot
+          slotId={process.env.NEXT_PUBLIC_ADSENSE_SLOT_MODULE_END ?? ""}
+          format="in-article"
+          minHeight={120}
+          className="rounded-lg border border-dashed border-bg-border bg-bg-subtle p-4"
+        />
+      </div>
 
       <nav className="mt-12 flex flex-col gap-3 border-t border-bg-border pt-6 text-sm sm:mt-16 sm:flex-row sm:items-center sm:justify-between">
         {prev ? (
