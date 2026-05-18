@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MODULES } from "@/modules/registry";
 import { AdSlot } from "@/ads/AdSlot";
+import { SiteFooter } from "@/shell/SiteFooter";
 
 export default function Landing() {
   return (
@@ -23,7 +24,7 @@ export default function Landing() {
       </section>
       <HowItWorks />
       <FAQ />
-      <Footer />
+      <SiteFooter />
     </main>
   );
 }
@@ -305,23 +306,3 @@ const Q = [
   },
 ];
 
-function Footer() {
-  return (
-    <footer className="relative mx-auto max-w-6xl border-t border-bg-border px-4 py-8 text-xs text-ink-dim sm:px-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="font-mono">react-rendering-lab · MIT · made with too many useEffects</span>
-        <div className="flex gap-3">
-          <a href="https://github.com/mithun9421/react-rendering-lab" target="_blank" rel="noreferrer" className="hover:text-ink">
-            GitHub
-          </a>
-          <Link href="/lab/journey" className="hover:text-ink">
-            Journey
-          </Link>
-          <Link href="/lab/01-reconciliation" className="hover:text-ink">
-            Module 1
-          </Link>
-        </div>
-      </div>
-    </footer>
-  );
-}

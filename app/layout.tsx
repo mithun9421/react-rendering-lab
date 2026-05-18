@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AdSenseLoader } from "@/ads/AdSenseLoader";
+import { CookieConsent } from "@/legal/CookieConsent";
 
 export const metadata: Metadata = {
   title: "React Rendering Lab",
@@ -21,7 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <AdSenseLoader />
       </head>
-      <body className="min-h-screen bg-bg text-ink antialiased">{children}</body>
+      <body className="min-h-screen bg-bg text-ink antialiased">
+        {children}
+        <CookieConsent />
+      </body>
     </html>
   );
 }
