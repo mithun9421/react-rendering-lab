@@ -124,7 +124,7 @@ function LearningPaths() {
       <p className="mt-1 text-sm text-ink-dim">
         Same content, different entry points. Pick the one that matches what you&apos;re here for.
       </p>
-      <div className="mt-4 grid gap-3 md:grid-cols-3">
+      <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <Path
           tone="info"
           title="Linear · the bottleneck chain"
@@ -143,10 +143,18 @@ function LearningPaths() {
         />
         <Path
           tone="warn"
+          title="Interview · Staff+ practice"
+          time="open-ended"
+          for="anyone prepping for a senior-or-higher round"
+          steps={["Pick a category", "Commit to an answer", "Read the model + score"]}
+          cta={{ href: "/lab/interview", label: "Start the question bank →" }}
+        />
+        <Path
+          tone="warn"
           title="Diagnostic · the Incident Simulator"
           time="open-ended"
-          for="interview prep / on-call practice"
-          steps={["Hit the simulator", "Get an incident", "Diagnose · fix · validate · score"]}
+          for="on-call practice"
+          steps={["Get an incident", "Diagnose · fix · validate", "New scenario · score it"]}
           cta={{ href: "/lab/25-incident-simulator", label: "Drop into on-call →" }}
         />
       </div>
