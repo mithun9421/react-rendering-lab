@@ -75,7 +75,7 @@ React DevTools shows render reasons after the fact. The lab needs overlays you c
 
 ## Status
 
-This is `v0.4` — all 25 modules ship real interactive content. No ComingSoon placeholders remain. See `PROGRESS.md` for the per-module build log.
+This is `v0.5`. All 25 modules ship real interactive content. The new `/lab/journey` route shows the SAME dashboard rendered six ways — each level adds one of the modules' fixes — fulfilling the "watch one codebase evolve" promise the brief opened with. See `VISION.md` for the honest audit of where we hit and missed.
 
 ### Global features
 

@@ -1,14 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 import { makeActivity, type Activity } from "./data";
 import { useRenderCount } from "@/profiler/useRenderCount";
 
-export function ActivityFeed({ size = 50 }: { size?: number }) {
+const ROW_H = 26;
+
+export function ActivityFeed({
+  size = 50,
+  virtualised = false,
+}: {
+  size?: number;
+  /** Module 10's fix applied to this surface. */
+  virtualised?: boolean;
+}) {
   useRenderCount("ActivityFeed");
   const [items, setItems] = useState<Activity[]>(() => makeActivity(size));
 
-  // Push a new item every ~2s.
   useEffect(() => {
     const i = setInterval(() => {
       setItems((prev) => [...makeActivity(1, Math.floor(Math.random() * 1e6)), ...prev].slice(0, size + 50));
@@ -20,17 +29,67 @@ export function ActivityFeed({ size = 50 }: { size?: number }) {
     <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
       <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
         <span className="font-mono uppercase tracking-widest text-ink-dim">activity</span>
-        <span className="font-mono text-ink-dim">{items.length} items</span>
+        <span className="font-mono text-ink-dim">
+          {items.length} items{virtualised ? " · windowed" : ""}
+        </span>
       </header>
-      <ul className="max-h-72 divide-y divide-bg-border overflow-y-auto">
-        {items.map((a) => (
-          <li key={a.id} className="px-3 py-1.5 text-xs">
-            <span className="font-mono text-accent">{a.user}</span>{" "}
-            <span className="text-ink-muted">{a.action}</span>
-            <span className="ml-2 font-mono text-ink-dim">{rel(a.t)}</span>
-          </li>
-        ))}
-      </ul>
+      {virtualised ? <Windowed items={items} /> : <Naive items={items} />}
+    </div>
+  );
+}
+
+function Naive({ items }: { items: Activity[] }) {
+  return (
+    <ul className="max-h-72 divide-y divide-bg-border overflow-y-auto">
+      {items.map((a) => (
+        <Row key={a.id} a={a} />
+      ))}
+    </ul>
+  );
+}
+
+function Windowed({ items }: { items: Activity[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [vh, setVh] = useState(288);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    setVh(el.clientHeight);
+    const on = () => setScrollTop(el.scrollTop);
+    el.addEventListener("scroll", on, { passive: true });
+    return () => el.removeEventListener("scroll", on);
+  }, []);
+
+  const start = Math.max(0, Math.floor(scrollTop / ROW_H) - 4);
+  const end = Math.min(items.length, start + Math.ceil(vh / ROW_H) + 8);
+  const visible = items.slice(start, end);
+
+  return (
+    <div ref={ref} className="max-h-72 overflow-y-auto">
+      <div style={{ height: items.length * ROW_H, position: "relative" }}>
+        <div style={{ transform: `translateY(${start * ROW_H}px)`, position: "absolute", left: 0, right: 0 }}>
+          {visible.map((a) => (
+            <Row key={a.id} a={a} fixedHeight />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Row({ a, fixedHeight }: { a: Activity; fixedHeight?: boolean }) {
+  return (
+    <div
+      style={fixedHeight ? { height: ROW_H } : undefined}
+      className={clsx("flex items-center justify-between border-b border-bg-border px-3 text-xs", !fixedHeight && "py-1.5")}
+    >
+      <span>
+        <span className="font-mono text-accent">{a.user}</span>{" "}
+        <span className="text-ink-muted">{a.action}</span>
+      </span>
+      <span className="font-mono text-ink-dim">{rel(a.t)}</span>
     </div>
   );
 }

@@ -93,6 +93,14 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
               One broken dashboard. Each module fixes one thing — and exposes the next bottleneck.
             </p>
             <nav className="flex-1 overflow-y-auto px-2 pb-6">
+              <Link
+                href="/lab/journey"
+                onClick={onClose}
+                className="mx-2 mb-3 flex items-center justify-between rounded-md border border-accent/40 bg-accent/5 px-3 py-3 text-sm text-accent hover:bg-accent/10"
+              >
+                <span>Journey · one codebase</span>
+                <span aria-hidden>▸</span>
+              </Link>
               <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">Modules</p>
               <ul className="space-y-0.5">
                 {MODULES.map((m, i) => {

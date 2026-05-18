@@ -46,6 +46,12 @@ export default function Landing() {
           >
             Begin Module 1 →
           </Link>
+          <Link
+            href="/lab/journey"
+            className="rounded-md border border-accent/40 bg-accent/5 px-4 py-3 text-center text-sm font-medium text-accent shadow-glass active:scale-95 sm:py-2.5 hover:bg-accent/10"
+          >
+            Watch the dashboard evolve ▸
+          </Link>
           <a
             href="https://react.dev/learn/render-and-commit"
             target="_blank"
