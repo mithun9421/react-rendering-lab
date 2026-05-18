@@ -8,7 +8,7 @@ This is not documentation. It is a debugging simulator + architecture lab + perf
 
 ## What's inside
 
-Fifteen modules wired into a single bottleneck chain:
+Twenty-five modules wired into a single bottleneck chain — extending from React rendering internals all the way to production incident response:
 
 | # | Module | What you fix | The next bottleneck it exposes |
 |---|---|---|---|
@@ -26,7 +26,17 @@ Fifteen modules wired into a single bottleneck chain:
 | 12 | Server Components | The `'use client'` boundary, zero-JS subtrees | reads done; what about writes? |
 | 13 | Server Actions + Optimistic UI | `useActionState`, `useFormStatus`, `useOptimistic` | reading resources directly in render |
 | 14 | `use()` hook | Suspending on a promise, conditional context | the cap on the streaming story |
-| 15 | Partial Prerendering | Static shell from CDN + dynamic Suspense holes | back to reconciliation with new eyes |
+| 15 | Partial Prerendering | Static shell from CDN + dynamic Suspense holes | where state lives across all this |
+| 16 | State Architecture at Scale | Prop drilling → context → split context → external store + selector | state changes still trigger paints |
+| 17 | Browser Rendering Pipeline | Style → layout → paint → composite (scaffolded) | rendering is fast when assets arrive |
+| 18 | Network & Data Fetching | Waterfalls, dedup, retry storms, CDN misses (scaffolded) | one team is solvable, a hundred isn't |
+| 19 | Microfrontend Architecture | Module Federation, runtime contracts (scaffolded) | the bundle is where the cost lives |
+| 20 | Build Systems & Bundling | Tree shaking, chunk splits, dynamic imports (scaffolded) | invisible if blind users can't reach it |
+| 21 | Accessibility Engineering | Focus traps, async states, screen-reader traversal (scaffolded) | reality drifts — observability tells you |
+| 22 | Observability & Diagnostics | RUM, OpenTelemetry, distributed traces (scaffolded) | observability surfaces leaks |
+| 23 | Memory & Leak Detection | Detached DOM, stale closures, timer leaks (scaffolded) | leaks are accidental, threats aren't |
+| 24 | Frontend Security | XSS, hydration injection, CSP, dependency compromise (scaffolded) | things still break in prod |
+| 25 | Production Incident Simulator | Live on-call playbook — diagnose, fix, validate, postmortem | take Architect Mode into your next interview |
 
 The cycle is the point. Frontend scaling isn't a ladder; it's the same five trade-offs, surfaced one at a time.
 
@@ -65,7 +75,15 @@ React DevTools shows render reasons after the fact. The lab needs overlays you c
 
 ## Status
 
-This is `v0.2`. All fifteen modules render and tell their story end-to-end. Deeper visualisations (full fiber walk replays, real streaming SSR demos, real React Compiler wiring, real PPR config) are slated. See `PROGRESS.md` for the build log and `TODO.md` for the remaining polish.
+This is `v0.3` — extended into a Staff+/Principal frontend systems simulator. All 25 module routes render. Deep implementations: Modules 1, 4 (with scheduler queue viz), 8 (with cache + retry), 10, 11-15, 16 (state architecture), 25 (incident simulator with 6-incident catalogue and playbook stages).
+
+Modules 17-24 use the `ComingSoon` fallback and exist in the registry as next-bottleneck waypoints. The chain is intact; the visualisations are slated. See `PROGRESS.md` and `TODO.md`.
+
+### Global features
+
+- **Architect Mode** — toggle in the profiler dock. Gates each module's "fix reveal" behind a reflection prompt (why, tradeoffs, next bottleneck). Persists in localStorage.
+- **Custom profiler dock** — FPS, render counts, commit timeline, top offenders. Collapsible on mobile.
+- **Mobile-first responsive** — drawer nav, collapsible dock, viz stacking, viewport meta.
 
 ## License
 

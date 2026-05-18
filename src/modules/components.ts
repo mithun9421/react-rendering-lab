@@ -14,6 +14,8 @@ import Module12 from "./12-server-components";
 import Module13 from "./13-server-actions";
 import Module14 from "./14-use-hook";
 import Module15 from "./15-partial-prerendering";
+import Module16 from "./16-state-architecture";
+import Module25 from "./25-incident-simulator";
 
 export const MODULE_COMPONENTS: Record<string, ComponentType> = {
   "01-reconciliation": Module01,
@@ -31,4 +33,7 @@ export const MODULE_COMPONENTS: Record<string, ComponentType> = {
   "13-server-actions": Module13,
   "14-use-hook": Module14,
   "15-partial-prerendering": Module15,
+  "16-state-architecture": Module16,
+  "25-incident-simulator": Module25,
+  // 17-24 use the ComingSoon fallback in app/lab/[module]/page.tsx
 };

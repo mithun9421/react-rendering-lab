@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { TryIt } from "@/engine/TryIt";
@@ -95,7 +95,19 @@ export default function Module01() {
         <ReferenceIdentityDemo />
       </Step>
 
-      <Step n={6} kind="next" title="You fixed reconciliation. Now the diff itself becomes the wall.">
+      <Step n={6} kind="fix" title="React 19 ergonomics: ref-as-prop and Context shorthand">
+        <p>
+          Two small wins that ship in React 19 and remove ten years of boilerplate from
+          identity-related code:
+        </p>
+        <RefAsPropDemo />
+        <p className="mt-4">
+          And providers no longer need <code>.Provider</code> — pass the value directly:
+        </p>
+        <ContextShorthandDemo />
+      </Step>
+
+      <Step n={7} kind="next" title="You fixed reconciliation. Now the diff itself becomes the wall.">
         <Callout tone="next" title="next bottleneck">
           Reconciliation is now cheap per-row. But the <strong>diffing algorithm</strong> still
           walks the entire tree on every state change — and its O(n) heuristics make some
@@ -160,6 +172,105 @@ function Child({ label, config }: { label: string; config: { ts: number } }) {
     <div className="rounded bg-bg-elevated px-3 py-2 font-mono text-xs">
       {label} · rendered <span className="text-accent-warn">{count}</span> times · config.ts=
       {config.ts}
+    </div>
+  );
+}
+
+/* ----------------- React 19 ref-as-prop demo ----------------- */
+
+/** React 19 lets you take `ref` directly as a prop. No forwardRef wrapper, no double signature. */
+function FancyInput({ ref, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { ref?: React.Ref<HTMLInputElement> }) {
+  return (
+    <input
+      ref={ref}
+      {...props}
+      className="w-full rounded-md border border-bg-border bg-bg-elevated px-3 py-2 font-mono text-sm placeholder:text-ink-dim focus:outline-none focus:ring-2 focus:ring-accent/40"
+    />
+  );
+}
+
+function RefAsPropDemo() {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div className="not-prose mt-3 grid gap-3 md:grid-cols-2">
+      <div className="rounded-lg border border-bg-border bg-bg-panel p-3">
+        <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+          live · click the button to focus
+        </p>
+        <FancyInput ref={ref} placeholder="type here…" />
+        <button
+          onClick={() => ref.current?.focus()}
+          className="mt-2 rounded-md bg-accent px-3 py-1.5 font-mono text-[11px] text-white"
+        >
+          focus FancyInput
+        </button>
+      </div>
+      <pre className="overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[10px] leading-relaxed">
+{`// React 18 — boilerplate
+const FancyInput = forwardRef<HTMLInputElement, Props>(
+  function FancyInput(props, ref) {
+    return <input ref={ref} {...props} />;
+  }
+);
+
+// React 19 — plain prop
+function FancyInput({ ref, ...props }: Props & {
+  ref?: React.Ref<HTMLInputElement>;
+}) {
+  return <input ref={ref} {...props} />;
+}`}
+      </pre>
+    </div>
+  );
+}
+
+/* ----------------- React 19 <Context value> shorthand ----------------- */
+
+const ThemeCtx = createContext<"dark" | "light">("dark");
+
+function ContextShorthandDemo() {
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  return (
+    <div className="not-prose mt-3 grid gap-3 md:grid-cols-2">
+      <div className="rounded-lg border border-bg-border bg-bg-panel p-3">
+        <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">live</p>
+        {/* React 19: <ThemeCtx value=...> (no .Provider) */}
+        <ThemeCtx value={theme}>
+          <ThemedSwatch />
+        </ThemeCtx>
+        <button
+          onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+          className="mt-3 rounded-md bg-accent px-3 py-1.5 font-mono text-[11px] text-white"
+        >
+          toggle theme ({theme})
+        </button>
+      </div>
+      <pre className="overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[10px] leading-relaxed">
+{`// React 18
+<ThemeCtx.Provider value={theme}>
+  <App />
+</ThemeCtx.Provider>
+
+// React 19
+<ThemeCtx value={theme}>
+  <App />
+</ThemeCtx>`}
+      </pre>
+    </div>
+  );
+}
+
+function ThemedSwatch() {
+  const t = useContext(ThemeCtx);
+  return (
+    <div
+      className="grid h-12 place-items-center rounded-md border border-bg-border font-mono text-xs"
+      style={{
+        background: t === "dark" ? "#15151a" : "#f4f4f6",
+        color: t === "dark" ? "#e7e7ea" : "#15151a",
+      }}
+    >
+      theme = {t}
     </div>
   );
 }

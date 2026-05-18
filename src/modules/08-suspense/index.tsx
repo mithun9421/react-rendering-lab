@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Component, Suspense, use, useState } from "react";
 import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
@@ -13,7 +13,7 @@ export default function Module08() {
       <Step n={1} kind="observe" title="Nested spinners or one coordinated load?">
         <p>
           Three components fetch three things. Either each shows its own spinner and the user
-          sees flicker for 300ms · 600ms · 800ms — or you hoist a boundary above all three and
+          sees flicker for 300ms · 600ms · 900ms — or you hoist a boundary above all three and
           show one coordinated skeleton. The trade is latency vs. cohesion.
         </p>
       </Step>
@@ -40,7 +40,66 @@ export default function Module08() {
         </p>
       </Step>
 
-      <Step n={4} kind="next" title="Async sorted out. Now: hydration cost.">
+      <Step n={4} kind="fix" title="cache() — request de-duplication, the right way">
+        <p>
+          Two siblings call <code>getUser(42)</code> in the same render. Without help they fire
+          two network requests. <code>cache()</code> from React memoizes the result by argument
+          identity for the lifetime of the request — one fetch, two readers.
+        </p>
+        <pre className="not-prose mt-3 overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[10px] leading-relaxed">
+{`import { cache } from "react";
+
+export const getUser = cache(async (id: number) => {
+  console.log("fetch", id); // logs ONCE even if called 5 times
+  const r = await fetch(\`/api/users/\${id}\`);
+  return r.json();
+});
+
+// In two sibling server components:
+const a = await getUser(42);  // hits the network
+const b = await getUser(42);  // returns the cached result`}
+        </pre>
+        <CacheDemo />
+      </Step>
+
+      <Step n={5} kind="fix" title="Suspense + ErrorBoundary retry — the real pairing">
+        <p>
+          Suspense handles <em>pending</em>. Error boundaries handle <em>rejected</em>. The
+          retry pattern below is the one production apps actually ship — reset the boundary,
+          drop the cached promise, re-suspend.
+        </p>
+        <ErrorRetryDemo />
+      </Step>
+
+      <Step n={6} kind="fix" title="React 19's finer-grained error callbacks">
+        <p>
+          <code>createRoot</code> and <code>hydrateRoot</code> grew three new callbacks. They
+          replace the &quot;everything is a console.error&quot; era:
+        </p>
+        <ul>
+          <li>
+            <code>onCaughtError(err, info)</code> — fires when an ErrorBoundary <em>catches</em>{" "}
+            the error. Use to log handled exceptions to your tracker.
+          </li>
+          <li>
+            <code>onUncaughtError(err, info)</code> — fires when nothing catches. Use to crash
+            the session and reload.
+          </li>
+          <li>
+            <code>onRecoverableError(err, info)</code> — fires for things React itself
+            recovered from (e.g. a hydration mismatch it retried). Useful as a health signal.
+          </li>
+        </ul>
+        <pre className="not-prose mt-3 overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[10px] leading-relaxed">
+{`hydrateRoot(document, <App />, {
+  onCaughtError(err, info)      { tracker.warn(err, info); },
+  onUncaughtError(err, info)    { tracker.crash(err, info); reloadSoon(); },
+  onRecoverableError(err, info) { tracker.info("react recovered", err); },
+});`}
+        </pre>
+      </Step>
+
+      <Step n={7} kind="next" title="Async sorted out. Now: hydration cost.">
         <Callout tone="next" title="next bottleneck">
           Even with perfect Suspense, hydrating non-interactive HTML wastes bandwidth and CPU.
           Module 9: ship JS only for the islands that need it.
@@ -49,6 +108,8 @@ export default function Module08() {
     </Lesson>
   );
 }
+
+/* ---------- waterfall demo ---------- */
 
 type Mode = "per" | "shared";
 
@@ -101,7 +162,6 @@ function Fetcher({ label, ms, tone }: { label: string; ms: number; tone: string 
 function SharedBoundary() {
   const [done, setDone] = useState(false);
   useState(() => {
-    // Resolves only after the slowest dep
     setTimeout(() => setDone(true), 900);
     return null;
   });
@@ -131,4 +191,148 @@ function SharedBoundary() {
       ))}
     </div>
   );
+}
+
+/* ---------- cache() demo (simulated, since `cache()` is RSC-only) ---------- */
+
+const inflight = new Map<number, { p: Promise<{ id: number; name: string }>; hits: number }>();
+
+function simulatedCached(id: number) {
+  const existing = inflight.get(id);
+  if (existing) {
+    existing.hits += 1;
+    return existing;
+  }
+  const rec = {
+    p: new Promise<{ id: number; name: string }>((res) => {
+      setTimeout(() => res({ id, name: `user-${id}` }), 700);
+    }),
+    hits: 1,
+  };
+  inflight.set(id, rec);
+  return rec;
+}
+
+function CacheDemo() {
+  const [run, setRun] = useState(0);
+  return (
+    <div className="not-prose mt-4">
+      <div className="mb-2 flex items-center gap-2 text-xs">
+        <button
+          onClick={() => {
+            inflight.clear();
+            setRun((r) => r + 1);
+          }}
+          className="rounded-md bg-accent px-3 py-1.5 font-mono text-[11px] text-white"
+        >
+          ↻ render two siblings, each calls getUser(42)
+        </button>
+      </div>
+      <Suspense
+        key={run}
+        fallback={
+          <div className="space-y-2">
+            <div className="h-3 w-2/3 animate-pulse rounded bg-bg-border" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-bg-border" />
+          </div>
+        }
+      >
+        <CachedSiblings />
+      </Suspense>
+    </div>
+  );
+}
+
+function CachedSiblings() {
+  const rec = simulatedCached(42);
+  const a = use(rec.p);
+  const b = use(rec.p);
+  return (
+    <div className="rounded-md border border-bg-border bg-bg-panel p-3 font-mono text-xs">
+      <div>sibling A read user: {a.name}</div>
+      <div>sibling B read user: {b.name}</div>
+      <div className="mt-2 text-accent-good">network calls: 1 · cache hits: {rec.hits - 1}</div>
+    </div>
+  );
+}
+
+/* ---------- Suspense + ErrorBoundary retry ---------- */
+
+let retryAttempt = 0;
+const retryPromiseCache = new Map<number, Promise<string>>();
+function flakyData(attempt: number) {
+  if (!retryPromiseCache.has(attempt)) {
+    retryPromiseCache.set(
+      attempt,
+      new Promise<string>((res, rej) => {
+        setTimeout(() => {
+          // fail the first attempt, succeed the second
+          if (attempt === 0) rej(new Error("network timeout (simulated)"));
+          else res(`payload v${attempt}`);
+        }, 500);
+      })
+    );
+  }
+  return retryPromiseCache.get(attempt)!;
+}
+
+function ErrorRetryDemo() {
+  const [key, setKey] = useState(0);
+  const reset = () => {
+    retryAttempt += 1;
+    retryPromiseCache.clear();
+    setKey((k) => k + 1);
+  };
+  return (
+    <div className="not-prose mt-3 rounded-lg border border-bg-border bg-bg-panel p-3">
+      <RetryErrorBoundary onReset={reset} key={key}>
+        <Suspense
+          fallback={
+            <div className="rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[11px] text-ink-muted">
+              fetching…
+            </div>
+          }
+        >
+          <FlakyChild />
+        </Suspense>
+      </RetryErrorBoundary>
+    </div>
+  );
+}
+
+function FlakyChild() {
+  const data = use(flakyData(retryAttempt));
+  return (
+    <div className="rounded-md border border-accent-good/40 bg-accent-good/10 p-3 font-mono text-xs">
+      ✓ {data}
+    </div>
+  );
+}
+
+class RetryErrorBoundary extends Component<{ children: React.ReactNode; onReset: () => void }, { err?: Error }> {
+  state: { err?: Error } = {};
+  static getDerivedStateFromError(err: Error) {
+    return { err };
+  }
+  render() {
+    if (this.state.err) {
+      return (
+        <div className="space-y-2">
+          <div className="rounded-md border border-accent-bad/40 bg-accent-bad/10 p-3 font-mono text-xs text-accent-bad">
+            ⨯ {this.state.err.message}
+          </div>
+          <button
+            onClick={() => {
+              this.setState({ err: undefined });
+              this.props.onReset();
+            }}
+            className="rounded-md bg-accent px-3 py-1.5 font-mono text-[11px] text-white"
+          >
+            retry (next attempt succeeds)
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }

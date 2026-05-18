@@ -58,7 +58,18 @@ export default function Module02() {
         </TryIt>
       </Step>
 
-      <Step n={3} kind="next" title="Diffing is cheap. Commit isn't.">
+      <Step n={3} kind="explain" title="A footnote: Custom Elements">
+        <p>
+          One quiet React 19 change with diff implications: <strong>Custom Elements</strong>{" "}
+          (Web Components) are now first-class. React used to set everything as an attribute,
+          which silently broke properties like <code>data</code> arrays. In 19 the renderer
+          checks the element&apos;s property descriptor and assigns properties when available.
+          This means <code>&lt;my-chart data={`{points}`}/&gt;</code> now reuses the same element
+          when <code>points</code> changes — instead of tearing down the DOM node on every update.
+        </p>
+      </Step>
+
+      <Step n={4} kind="next" title="Diffing is cheap. Commit isn't.">
         <Callout tone="next" title="next bottleneck">
           The diff phase is interruptible. The <strong>commit phase</strong> isn&apos;t — and
           everything that lands in commit (effects, refs, DOM mutations) runs in one

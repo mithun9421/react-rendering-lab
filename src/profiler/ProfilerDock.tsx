@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { useProfiler } from "./store";
 import { useFpsLoop } from "./useFpsLoop";
 import { CommitTimeline } from "./CommitTimeline";
+import { ArchitectModeToggle } from "@/engine/ArchitectGate";
 
 export function ProfilerDock() {
   useFpsLoop();
@@ -91,6 +92,7 @@ export function ProfilerDock() {
                 >
                   reset
                 </button>
+                <ArchitectModeToggle />
               </div>
               <CommitTimeline />
             </div>
@@ -121,6 +123,7 @@ export function ProfilerDock() {
         <DockStat label="Dropped" value={dropped} className={dropped > 0 ? "text-accent-warn" : "text-ink-muted"} />
         <DockStat label="Renders" value={totalRenders} />
         <DockStat label="Mem" value={mem ? `${mem}MB` : "—"} />
+        <ArchitectModeToggle />
 
         <div className="ml-auto flex items-center gap-3">
           {topOffenders.length > 0 && (

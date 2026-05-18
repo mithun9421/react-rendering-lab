@@ -6,6 +6,7 @@ import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { TryIt } from "@/engine/TryIt";
 import { MetricsPanel } from "@/engine/MetricsPanel";
+import { SchedulerQueue } from "@/viz/SchedulerQueue";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import { busy } from "@/lib/sim";
 import clsx from "clsx";
@@ -42,7 +43,23 @@ export default function Module04() {
         </div>
       </Step>
 
-      <Step n={3} kind="explain" title="What 'lane' actually does">
+      <Step n={3} kind="profile" title="See the queue, see the interrupt">
+        <p>
+          Five lanes, one CPU. The scheduler always pops from the highest non-empty lane. If a
+          higher-priority task arrives mid-flight, the lower-priority one is{" "}
+          <em>interrupted</em> — pushed back to its queue, finished later.
+        </p>
+        <div className="not-prose mt-3">
+          <SchedulerQueue />
+        </div>
+        <p className="mt-3">
+          Try this sequence: enqueue a <code>transition</code> (filter 8k items), wait for it to
+          start, then enqueue a <code>sync</code> (click handler). Watch the bar flash and the
+          transition slot returns to its queue.
+        </p>
+      </Step>
+
+      <Step n={4} kind="explain" title="What 'lane' actually does">
         <p>
           <code>startTransition</code> tags the wrapped update with TransitionLane. When the
           scheduler sees both a SyncLane (your keystroke) and a TransitionLane (your filtered
@@ -55,7 +72,7 @@ export default function Module04() {
         </p>
       </Step>
 
-      <Step n={4} kind="next" title="You yield between work units. Now you need to yield inside one.">
+      <Step n={5} kind="next" title="You yield between work units. Now you need to yield inside one.">
         <Callout tone="next" title="next bottleneck">
           Concurrency yields between fibers. But if a single component <em>itself</em> does
           12ms of work, that fiber is uninterruptible. Module 5 attacks the frame budget
