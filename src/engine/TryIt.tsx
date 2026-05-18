@@ -23,10 +23,10 @@ export function TryIt<K extends string>({
 
   return (
     <div className="overflow-hidden rounded-xl border border-bg-border bg-bg-panel">
-      <div className="flex items-center justify-between border-b border-bg-border bg-bg-subtle px-3 py-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 border-b border-bg-border bg-bg-subtle px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
           <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">try it</span>
-          <span className="font-mono text-xs">{title}</span>
+          <span className="truncate font-mono text-xs">{title}</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {knobs.map((k) => (

@@ -25,16 +25,16 @@ export function DiffTree({
 }) {
   return (
     <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
+      <header className="flex flex-col gap-2 border-b border-bg-border px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between">
         <span className="font-mono uppercase tracking-widest text-ink-dim">{title}</span>
-        <span className="flex items-center gap-3 font-mono text-[10px]">
+        <span className="flex flex-wrap items-center gap-2 font-mono text-[10px] sm:gap-3">
           <Legend label="kept" cls="bg-bg-elevated text-ink-muted" />
           <Legend label="moved" cls="bg-accent-info/20 text-accent-info" />
           <Legend label="added" cls="bg-accent-good/20 text-accent-good" />
           <Legend label="removed" cls="bg-accent-bad/20 text-accent-bad" />
         </span>
       </header>
-      <div className="grid grid-cols-2 gap-px bg-bg-border">
+      <div className="grid grid-cols-1 gap-px bg-bg-border sm:grid-cols-2">
         <Column title="Previous tree" items={before} />
         <Column title="Next tree" items={after} highlight />
       </div>

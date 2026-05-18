@@ -23,8 +23,8 @@ export function RscBoundary() {
 
   return (
     <div className="rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
-        <span className="font-mono uppercase tracking-widest text-ink-dim">component tree · click to flip the boundary</span>
+      <header className="flex flex-col gap-1 border-b border-bg-border px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between">
+        <span className="font-mono uppercase tracking-widest text-ink-dim">component tree · tap to flip</span>
         <span className="font-mono text-ink-dim">
           shipped JS:{" "}
           <span className={clientKb < totalKb / 2 ? "text-accent-good" : "text-accent-warn"}>
@@ -33,8 +33,10 @@ export function RscBoundary() {
           <span className="text-ink-dim"> / {totalKb.toFixed(1)} KB</span>
         </span>
       </header>
-      <div className="p-3">
-        <TreeNode node={tree} depth={0} onToggle={toggle} parentClient={false} />
+      <div className="overflow-x-auto p-3">
+        <div className="min-w-[280px]">
+          <TreeNode node={tree} depth={0} onToggle={toggle} parentClient={false} />
+        </div>
       </div>
       <footer className="border-t border-bg-border px-3 py-2 font-mono text-[10px] text-ink-dim">
         green = server component (zero JS) · purple = client component (ships to bundle) · grey = static (no JS regardless)
@@ -63,14 +65,14 @@ function TreeNode({
         whileTap={{ scale: 0.97 }}
         onClick={() => onToggle(node.id)}
         className={clsx(
-          "mb-1 flex w-full items-center justify-between rounded px-2 py-1 text-left font-mono text-xs",
+          "mb-1 flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-0.5 rounded px-2 py-1.5 text-left font-mono text-[11px] sm:flex-nowrap sm:py-1 sm:text-xs",
           isClient
             ? "bg-accent/15 text-accent"
             : node.jsKb === 0
             ? "bg-bg-elevated text-ink-muted"
             : "bg-accent-good/10 text-accent-good"
         )}
-        style={{ marginLeft: depth * 16 }}
+        style={{ marginLeft: depth * 12 }}
       >
         <span>
           <span aria-hidden className="mr-1">{isClient ? "●" : node.jsKb === 0 ? "○" : "◐"}</span>

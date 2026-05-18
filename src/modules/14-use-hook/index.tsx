@@ -158,7 +158,7 @@ function ConditionalContextDemo() {
       <AuthContext.Provider value={authed ? { user: "mithun" } : null}>
         <Greeting authed={authed} />
       </AuthContext.Provider>
-      <pre className="overflow-auto rounded-md border border-bg-border bg-bg-elevated p-2 font-mono text-[10px] leading-relaxed text-ink-muted">
+      <pre className="overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-2 font-mono text-[10px] leading-relaxed text-ink-muted">
 {`function Greeting({ authed }) {
   if (!authed) return <Guest/>;
   const { user } = use(AuthContext);  // legal — conditional read

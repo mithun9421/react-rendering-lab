@@ -64,7 +64,7 @@ export function HydrationOverlay() {
     <div className="rounded-lg border border-bg-border bg-bg-panel">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-bg-border px-3 py-2 text-xs">
         <span className="font-mono uppercase tracking-widest text-ink-dim">hydration mode</span>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {(["full", "progressive", "selective", "islands"] as Mode[]).map((m) => (
             <button
               key={m}

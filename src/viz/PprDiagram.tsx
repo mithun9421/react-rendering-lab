@@ -39,7 +39,7 @@ export function PprDiagram() {
 
   return (
     <div className="rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
+      <header className="flex flex-col gap-2 border-b border-bg-border px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between">
         <span className="font-mono uppercase tracking-widest text-ink-dim">PPR · request timeline</span>
         <div className="flex items-center gap-2">
           <span className="font-mono text-ink-dim">t = {Math.round(t)}ms</span>
@@ -53,7 +53,7 @@ export function PprDiagram() {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-px bg-bg-border">
+      <div className="grid grid-cols-1 gap-px bg-bg-border sm:grid-cols-2">
         <div className="bg-bg-panel p-3">
           <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">events</p>
           <ul className="space-y-1 font-mono text-[11px]">

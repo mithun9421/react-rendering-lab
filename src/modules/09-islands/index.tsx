@@ -57,7 +57,7 @@ function IslandsMap() {
 
   return (
     <div className="not-prose mt-3 rounded-lg border border-bg-border bg-bg-panel p-3">
-      <div className="mb-3 flex items-center gap-2 text-xs">
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
         <button
           onClick={() => setMode("all")}
           className={clsx(

@@ -11,6 +11,17 @@ body {
   background: #0a0a0b;
   color: #e7e7ea;
   font-feature-settings: "ss01", "cv11";
+  -webkit-tap-highlight-color: transparent;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+a,
+input,
+label,
+[role="button"] {
+  touch-action: manipulation;
 }
 
 ::selection {

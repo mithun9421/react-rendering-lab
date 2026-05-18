@@ -83,9 +83,9 @@ export function FiberTrace() {
 
   return (
     <div className="rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
+      <header className="flex flex-col gap-2 border-b border-bg-border px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between">
         <span className="font-mono uppercase tracking-widest text-ink-dim">fiber traversal · render phase</span>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => {
               setCursor(-1);

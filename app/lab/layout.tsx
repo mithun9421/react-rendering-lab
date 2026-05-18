@@ -1,22 +1,24 @@
 import Link from "next/link";
 import { MODULES } from "@/modules/registry";
 import { ProfilerDock } from "@/profiler/ProfilerDock";
+import { MobileNav } from "@/shell/MobileNav";
 
 export default function LabLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex min-h-screen flex-1 flex-col">
-        <main className="flex-1 overflow-auto">{children}</main>
+      <DesktopSidebar />
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <MobileNav />
+        <main className="flex-1 overflow-x-hidden">{children}</main>
         <ProfilerDock />
       </div>
     </div>
   );
 }
 
-function Sidebar() {
+function DesktopSidebar() {
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-bg-border bg-bg-subtle md:flex">
+    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-bg-border bg-bg-subtle lg:flex">
       <div className="border-b border-bg-border px-4 py-4">
         <Link href="/" className="flex items-center gap-2">
           <div className="size-2 rounded-full bg-accent animate-pulse_dot" />

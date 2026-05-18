@@ -25,19 +25,19 @@ export function Step({
 }) {
   const k = KINDS[kind];
   return (
-    <section className="grid grid-cols-[40px_1fr] gap-4">
+    <section className="grid grid-cols-[28px_1fr] gap-3 sm:grid-cols-[40px_1fr] sm:gap-4">
       <div className="flex flex-col items-center">
-        <div className={clsx("flex size-8 items-center justify-center rounded-full border border-bg-border bg-bg-panel font-mono text-xs", k.color)}>
+        <div className={clsx("flex size-7 items-center justify-center rounded-full border border-bg-border bg-bg-panel font-mono text-[11px] sm:size-8 sm:text-xs", k.color)}>
           {n}
         </div>
         <div className="mt-2 w-px flex-1 bg-bg-border" aria-hidden />
       </div>
-      <div className="pb-2">
-        <div className="mb-2 flex items-center gap-2">
+      <div className="min-w-0 pb-2">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
           <span className={clsx("pill !uppercase", k.color)}>
             <span aria-hidden>{k.emoji}</span> {k.label}
           </span>
-          <h2 className="text-base font-medium">{title}</h2>
+          <h2 className="text-[15px] font-medium leading-snug sm:text-base">{title}</h2>
         </div>
         <div className="prose prose-invert prose-sm max-w-none text-ink-muted prose-strong:text-ink prose-code:text-accent prose-code:before:content-none prose-code:after:content-none prose-code:rounded prose-code:bg-bg-elevated prose-code:px-1 prose-code:py-0.5">
           {children}

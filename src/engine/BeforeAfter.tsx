@@ -21,10 +21,10 @@ export function BeforeAfter({
 
   return (
     <div className="overflow-hidden rounded-xl border border-bg-border bg-bg-panel">
-      <div className="flex items-center justify-between border-b border-bg-border bg-bg-subtle px-3 py-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-bg-border bg-bg-subtle px-3 py-2">
+        <div className="flex min-w-0 items-center gap-2">
           <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">surface</span>
-          <span className="font-mono text-xs text-ink">{mode === "before" ? labelBefore : labelAfter}</span>
+          <span className="truncate font-mono text-xs text-ink">{mode === "before" ? labelBefore : labelAfter}</span>
         </div>
         <div className="flex rounded-md bg-bg-elevated p-0.5">
           <Toggle on={mode === "before"} color="bad" onClick={() => setMode("before")}>

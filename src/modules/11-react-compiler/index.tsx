@@ -44,7 +44,7 @@ export default function Module11() {
           The compiler analyses each component, identifies render-stable values, and inserts a
           per-component <code>useMemoCache</code> hook. Conceptually:
         </p>
-        <pre className="not-prose overflow-auto rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[11px]">
+        <pre className="not-prose overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[10px] leading-relaxed sm:text-[11px]">
 {`// you write
 function Profile({ user }) {
   const greeting = \`Hello, \${user.name}\`;
