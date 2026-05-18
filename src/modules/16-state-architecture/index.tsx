@@ -7,6 +7,7 @@ import { Callout } from "@/engine/Callout";
 import { TryIt } from "@/engine/TryIt";
 import { MetricsPanel } from "@/engine/MetricsPanel";
 import { ArchitectGate } from "@/engine/ArchitectGate";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import clsx from "clsx";
 
@@ -119,6 +120,55 @@ export default function Module16() {
           </div>
         </ArchitectGate>
       </Step>
+
+      <ArchitectNotes
+        framing="The architect's real question is 'when do you reach for context vs a store vs lifting?' and 'how does concurrent React change that answer?' Both are tied up with how component subscriptions work under the hood."
+        followUps={[
+          {
+            q: "Why doesn't React.memo prevent re-renders from context updates?",
+            a: "memo's shallow compare runs on PROPS. Context isn't a prop — it's a subscription. When a context value changes, every consumer's render gets queued regardless of memo wrapping. The fix: either split the context so consumers subscribe to a smaller slice, or move to a store with selectors via useSyncExternalStore. Practical rule: context for slow-changing values (theme, locale, auth user); stores for fast-changing or selectable state.",
+          },
+          {
+            q: "What is tearing? Why does useSyncExternalStore exist?",
+            a: "Tearing is when concurrent rendering reads an external store mid-render, then yields, the store updates, and the same render resumes and reads a different value — producing UI that's inconsistent within a single commit. Two halves of the same render see two different versions of the data. useSyncExternalStore solves this by guaranteeing a CONSISTENT snapshot for the entire render: it stamps the snapshot at the start of the render and re-reads it during commit to verify consistency. If the snapshot changed, React aborts and re-renders. External stores that bypass this hook (older Redux integrations, hand-rolled subscribers) can tear under concurrent React.",
+          },
+          {
+            q: "When does useReducer + context beat a third-party store?",
+            a: "When you don't need selector-based subscriptions and don't need cross-route persistence. useReducer + context is 100 lines, lives in your code, no dependency. Trade-off: every consumer re-renders on every dispatch. Acceptable when (a) consumers are few (<10), (b) updates are infrequent, (c) you don't want a runtime dependency. Reach for Zustand/Jotai when (a) consumers are many, (b) updates are frequent, (c) selectors save real renders. The architect wants to hear: 'I default to useReducer; I escalate when I measure a real cost.'",
+          },
+          {
+            q: "Server cache vs client state — give me an example where conflating them caused a bug.",
+            a: "The classic: you put fetched user data in Redux, then mutate it locally to reflect an optimistic update. You forget to invalidate. Next time the component mounts, Redux serves the stale optimistic value as if it were fresh server data. The user sees their own edit even though the server rejected it. The cleanup is conceptual: server data is a CACHE with key + freshness + invalidation; client state is what the USER is doing right now. Different lifecycles, different layers. React Query / SWR / RSC own the cache; stores own the client state.",
+          },
+          {
+            q: "How do you architect state for a multi-tab app where two tabs must stay in sync?",
+            a: "Three layers. (1) Server is the source of truth — always. (2) Cross-tab notification via BroadcastChannel or storage events to invalidate caches when another tab mutates. (3) Optimistic UI locally with reconciliation on server confirm. Avoid: trying to share a Zustand store directly across tabs — it doesn't work without explicit serialisation. Avoid: polling. The architect wants to hear about CRDTs only if the use case requires concurrent editing — otherwise BroadcastChannel + react-query is fine.",
+          },
+          {
+            q: "Why is the cart-count selector pattern faster than just reading the whole cart from context?",
+            a: "Selectors give you fine-grained subscriptions. With context, every consumer re-renders on any cart change. With useSyncExternalStore(subscribe, () => cart.count), only consumers of `cart.count` re-render when the count specifically changes. Adding an item flips the count; replacing item names doesn't. The render reduction at the header (which only displays count) is N:1 where N is the number of cart-mutation operations.",
+          },
+        ]}
+        pivots={[
+          { to: "Concurrent rendering + tearing (Module 4)", why: "Senior interviewers will pivot from 'how does Zustand work?' to 'what happens under concurrent React?'" },
+          { to: "Server cache (React Query / RSC)", why: "Once you say 'server cache', they'll probe for cache invalidation strategies." },
+          { to: "Multi-tab sync", why: "BroadcastChannel, SharedWorker, storage events." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Just use Redux for everything.",
+            why: "Lazy. Redux is one option; context, useReducer, Zustand, Jotai, server cache all have niches. Senior interviewers want to see your decision tree.",
+          },
+          {
+            phrase: "Context is for global state.",
+            why: "Imprecise. Context is for VALUES that need to be available deep in the tree without prop drilling. 'Global state' usually wants a store with selectors.",
+          },
+          {
+            phrase: "Tearing isn't a real problem.",
+            why: "Tells the architect you've never debugged a concurrent rendering bug. They'll dig in until you concede or articulate the mechanism.",
+          },
+        ]}
+      />
 
       <Step n={6} kind="next" title="State sorted. But state changes still pay the browser tax.">
         <Callout tone="next" title="next bottleneck">

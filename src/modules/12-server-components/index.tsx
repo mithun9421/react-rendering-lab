@@ -4,6 +4,7 @@ import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { RscBoundary } from "@/viz/RscBoundary";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 
 export default function Module12() {
   return (
@@ -104,6 +105,55 @@ export default async function Page() {
           </li>
         </ul>
       </Step>
+
+      <ArchitectNotes
+        framing="RSC is the topic where junior answers and senior answers diverge most. Senior probes the build-time / run-time split, the wire format, and the boundary's actual semantics — not just 'use client at the top.'"
+        followUps={[
+          {
+            q: "Describe the RSC wire format. What actually crosses the network?",
+            a: "Two things. (1) HTML — the rendered output of the server tree, streamed in chunks. (2) The RSC payload — a custom serialised format describing the React element tree, including references to Client Components by module ID + props (props serialised as JSON or special markers for non-JSON values like dates, maps, server-side promises). It's NOT JSON top-to-bottom — there's a chunk-id-prefixed protocol. The client runtime knows how to interpret references like `$L1` as 'load Client Component with module ID 1.' This is what lets a Server Component render a Client Component while the Client Component's JS lives in a separate, lazy-loaded chunk.",
+          },
+          {
+            q: "What happens at BUILD time vs RUNTIME for an RSC + Client Component tree?",
+            a: "Build time: the bundler walks the import graph from the route entry, identifies modules with `'use client'`, splits them into client chunks with a server-side proxy/reference stub. RSC files don't ship to the client at all — their imports either become server-only or are blocked at build (e.g. importing `fs` from a Client Component is rejected). Runtime: a request hits the route, the server walks the RSC tree, calls each component's async function, streams the result. When it encounters a Client Component reference, it emits a placeholder pointing to the client chunk and streams the props alongside. The browser receives both, hydrates the Client Components in place.",
+          },
+          {
+            q: "Can a Server Component re-render? What triggers it?",
+            a: "Each request is a fresh server render — there's no in-process re-render of a Server Component within a session. To 'refresh' a Server Component's output, you trigger a re-fetch of the route (or a Server Action calling revalidatePath/revalidateTag), and Next.js (or your RSC host) re-renders the route on the server and streams the new payload. The client runtime then reconciles the new RSC payload into the existing tree without remounting Client Components that didn't change. This is the magic — server output changes, client state preserved.",
+          },
+          {
+            q: "Why can't a Server Component use useState? Walk me through what would break.",
+            a: "useState requires a fiber's memoizedState linked list and a dispatcher to push updates to. Both live in the client renderer. On the server there's no fiber that persists between requests — the server renders once and discards the tree. So useState would have nowhere to write to and no way to trigger a re-render. The architectural decision is clean: Server Components are stateless, request-scoped; state lives behind the 'use client' boundary where the renderer can manage it.",
+          },
+          {
+            q: "How does data fetching parallelise across Server Components?",
+            a: "If you `await` two queries sequentially in the same component (`const a = await fetchA(); const b = await fetchB();`), they're serial. Use Promise.all to parallelise. If two SIBLING Server Components each fetch, they run in parallel automatically — the server can render them concurrently up to the point where awaits block. For data shared across siblings, hoist the fetch to the parent and pass results down, or use `cache()` so both children calling getUser(id) collapse into one fetch.",
+          },
+          {
+            q: "What's the cost model? How do I reason about 'should this be a Server or Client component'?",
+            a: "Three dimensions. (1) Does it need state, effects, browser APIs, or event handlers? If yes, Client. (2) Does it have a large library dependency that you don't want on the client bundle? If yes, prefer Server. (3) Is it interactive but small (a like button)? Client, as a leaf — the rest of the tree stays Server. The 'push use client to the leaves' rule operationalises this: maximise Server up the tree, minimise Client at the leaves. Bundle math: the closer 'use client' is to the leaves, the less JS ships.",
+          },
+        ]}
+        pivots={[
+          { to: "Server Actions (Module 13)", why: "Symmetric writes; expect 'OK we read on the server — how do we mutate?'" },
+          { to: "Streaming SSR (Module 7)", why: "RSC streams; the natural pivot is to the wire-level streaming behaviour." },
+          { to: "Cache invalidation", why: "'How do you trigger a re-render of a Server Component?' is the canonical follow-up." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Server Components are just SSR.",
+            why: "Wrong vocabulary. SSR renders the whole tree on the server then hydrates everything. RSC keeps the Server tree on the server permanently — those components never ship as JS. Conflating the two is a senior-interview red flag.",
+          },
+          {
+            phrase: "I always make everything a Client Component for safety.",
+            why: "Throws away RSC's main benefit (zero client JS for server-renderable parts). Architect wants to hear 'I default to Server and opt into Client at leaves.'",
+          },
+          {
+            phrase: "useState doesn't work on the server.",
+            why: "Technically true but unsatisfying. The architect wants 'because there's no persistent fiber across requests' — show the why, not the rule.",
+          },
+        ]}
+      />
 
       <Step n={7} kind="next" title="Reads are solved. What about writes?">
         <Callout tone="next" title="next bottleneck">

@@ -6,6 +6,7 @@ import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { TryIt } from "@/engine/TryIt";
 import { MetricsPanel } from "@/engine/MetricsPanel";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import { busy } from "@/lib/sim";
 import clsx from "clsx";
@@ -123,6 +124,55 @@ function Profile({ user }) {
           turns on, your code was relying on a re-render the compiler correctly elided.
         </p>
       </Step>
+
+      <ArchitectNotes
+        framing="They're checking whether you treat the Compiler as a faith move ('it just works') or as a static analysis with concrete preconditions you can name."
+        followUps={[
+          {
+            q: "What does the compiler actually emit? Walk me through one transformed component.",
+            a: "It inserts a `useMemoCache(n)` hook at the top of each function — a fixed-size array (n = number of cacheable expressions in this component). For every memoisable expression (a derived value, a JSX element subtree, a callback), it emits an if-block: if any dependency changed since the last render, recompute and store in the cache slot; else read the slot. Conceptually: every render either reuses cached slots or refills them based on Object.is comparisons against the previous render's input identity. The runtime contract is just 'pure deps in, cached value out' — same as useMemo, but automatically inserted and exhaustive.",
+          },
+          {
+            q: "How does the compiler decide what to memoise vs what to skip?",
+            a: "Static analysis. It models which JS expressions can be safely cached based on the Rules of React: pure, immutable inputs, no side effects in render. If it sees a violation (a mutation, a Math.random in render, an impure hook return), it bails on that file and emits identity transforms — your code runs unmemoised. The linter then flags those bails so you can fix them. The contract is: obey the rules → get memoised; break them → silently uncompiled + lint shouts.",
+          },
+          {
+            q: "When does the Compiler hurt performance?",
+            a: "Rarely, but yes. The cache array adds a small per-render overhead (size n, n reads, n writes on the first render). For trivially cheap components, the bookkeeping costs more than the work it saves. The Compiler team has done benchmarks; net is a small positive across realistic apps. The edge case is a tight render loop in a tiny component — measure it. For typical app code, the wins from auto-memoised list rows + cached children swamp the bookkeeping cost.",
+          },
+          {
+            q: "I have a third-party component library that's not Compiler-clean. What happens?",
+            a: "Three options: (1) Compiler bails on that file alone — your codebase is still mostly compiled, library is uncompiled, no breakage. (2) Your own components that call that library are still compiled — the library's impurity doesn't infect your code unless you import an impure HOC. (3) For the impure library, add `'use no memo'` at the top of any file where you wrap it, to be explicit. The architecture treats compilation as a file-level opt-in/out; it doesn't need whole-app purity to start paying off.",
+          },
+          {
+            q: "If the Compiler memoises everything, do I still need React.memo or useMemo manually?",
+            a: "Rarely, but yes. The Compiler can't reason about: (a) values from refs (mutable), (b) external stores accessed via useSyncExternalStore (the SELECTOR has to be stable — Compiler doesn't memoise external state derivation), (c) context fan-out (the Compiler caches reads, not subscriptions). And `useTransition` / `useDeferredValue` aren't replaced — they're priority hints, orthogonal to memoisation. So: drop manual memo for normal derived values; keep it where the input lives outside React's tracking.",
+          },
+          {
+            q: "How is the Compiler different from inlining manual useMemos everywhere?",
+            a: "Two ways. (1) It's exhaustive — it caches every cacheable expression, including JSX subtrees and inline callbacks, which is impractical to do by hand. (2) Its cache is keyed precisely on the syntactic inputs the expression reads, not on a hand-typed deps array. exhaustive-deps lint catches the cases where humans get the deps array wrong; the Compiler doesn't need a deps array at all because it derives them. Net effect: better-than-human-quality memoisation with zero ergonomic cost.",
+          },
+        ]}
+        pivots={[
+          { to: "Rules of React (F11)", why: "Compiler depends on them; architect will probe if you can name them." },
+          { to: "Server Components", why: "Pure-by-construction is a related move; they may ask 'how do RSC + Compiler interact?'" },
+          { to: "Concurrent rendering", why: "Compiler memoisation enables more aggressive transition + Suspense use; expect to discuss interactions." },
+        ]}
+        dontSay={[
+          {
+            phrase: "The Compiler is a magic black box.",
+            why: "It's a Babel/SWC plugin doing static analysis. Saying 'magic' signals you haven't read the docs.",
+          },
+          {
+            phrase: "I just turn it on and forget useMemo exists.",
+            why: "Partially true but lazy. The architect wants to hear about the bail conditions (refs, external state, impure hooks) where you DO still think.",
+          },
+          {
+            phrase: "It's slower because it adds bookkeeping.",
+            why: "Net it's faster on realistic apps; the bookkeeping cost is dwarfed by the avoided re-renders. Saying 'slower' suggests you didn't measure.",
+          },
+        ]}
+      />
 
       <Step n={7} kind="next" title="So your client renders are free. What still isn't?">
         <Callout tone="next" title="next bottleneck">

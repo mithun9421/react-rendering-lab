@@ -5,6 +5,7 @@ import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { Quiz } from "@/engine/Quiz";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 
 export default function F02Props() {
   return (
@@ -223,6 +224,43 @@ function Parent() {
             id: "d",
             text: "Use Object.freeze on props.",
             rationale: "React doesn't freeze; it relies on the contract. Freezing in dev catches violations but isn't the fix.",
+          },
+        ]}
+      />
+
+      <ArchitectNotes
+        framing="They're testing whether you understand props as the data-flow contract — and whether composition vs configuration is muscle memory, not memorised theory."
+        followUps={[
+          {
+            q: "Walk me through what happens when a parent passes a new object literal as a prop on every render. How does it affect the child?",
+            a: "Each render produces a fresh object, so the prop reference changes every time. If the child is a plain function component, React still re-runs it — the parent rendered, so the child renders. If the child is wrapped in React.memo, the memo's shallow Object.is check sees the new reference and treats it as 'changed' — memo gains you nothing. The fix is to give the object stable identity: useMemo with primitive deps, hoist out of render, or rely on the Compiler. The deeper point: prop identity is the contract React uses for change detection. Unstable identity makes memo and downstream comparisons lie.",
+          },
+          {
+            q: "When does children-as-prop become a perf problem?",
+            a: "Rarely. children is just another prop — receiving it doesn't trigger rendering of its content until the parent renders. The misconception is that wrapping content in a Provider or context-emitting parent forces children to re-render; it doesn't, because children's elements were created by the GRANDPARENT, not the wrapper. So `<Provider><BigTree/></Provider>` only re-renders BigTree when the grandparent renders. This pattern is actually a performance OPTIMIZATION — passing children through a context provider isolates the cost.",
+          },
+          {
+            q: "Why are `key` and `ref` excluded from props the component receives?",
+            a: "They serve framework-internal purposes — key is reconciliation identity, ref is imperative-handle plumbing. Forwarding them as props would be ambiguous (does setting key on the child do what you mean?) and would expose React internals to user code. React strips them at the JSX boundary; the component sees a clean props object. If you need the value for your own logic, pass it as a separate prop (`<Row key={id} id={id}/>`). React 19's ref-as-prop change exposes ref through a destructurable prop — but only by your explicit opt-in via the function signature.",
+          },
+          {
+            q: "Composition or configuration — when is each right?",
+            a: "Configuration (lots of props) is right when the shape is bounded and known. Tooltip with title/placement/offset is a fine configuration target. Composition (children + sub-components) is right when the content is open-ended or when the caller knows things you don't. A Card with `body: string` is configuration; with `children: ReactNode` is composition. The litmus test: if you find yourself adding `customXXX?: ReactNode` props as escape hatches, you're paying for the wrong choice — refactor to composition.",
+          },
+        ]}
+        pivots={[
+          { to: "TypeScript inference with destructured props", why: "Senior devs will write a Component<Props> signature on the whiteboard and check you can read it." },
+          { to: "Render props vs hooks", why: "Render props are a composition pattern; they'll probe whether you can articulate when each is the right tool today (almost always: hooks)." },
+          { to: "Forwarding refs in a design system", why: "Real-world tie-in to React 19's ref-as-prop." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Props are React's way of passing data — like attributes in HTML.",
+            why: "Surface-level; doesn't engage with identity, immutability, or the one-way flow. Lift to the data-flow contract instead.",
+          },
+          {
+            phrase: "I always spread props to be safe.",
+            why: "Spreading without thinking forwards onClick/style/etc. that you didn't mean to. Senior interviewers prefer 'I destructure what I forward; spread is a tool, not a default.'",
           },
         ]}
       />

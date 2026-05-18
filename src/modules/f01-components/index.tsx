@@ -5,6 +5,7 @@ import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { TryIt } from "@/engine/TryIt";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 
 export default function F01Components() {
   return (
@@ -198,6 +199,43 @@ function Row() {
           </li>
         </ul>
       </Step>
+
+      <ArchitectNotes
+        framing="They're testing whether you can talk about JSX as compiled output, not framework magic — and whether you understand the cost model (elements are cheap, fibers are not)."
+        followUps={[
+          {
+            q: "What's the actual cost of returning a deeply nested JSX tree on every render?",
+            a: "Creating elements is cheap — they're plain objects, allocated and GC'd every render. The cost is downstream: the reconciler comparing each element to the previous tree's fibers, and the commit phase applying DOM mutations. For a typical component the element-creation overhead is sub-microsecond; the reconciliation work is what shows up in profiles. Concretely: don't worry about element allocation; worry about whether your tree is reconciliation-friendly (stable types, stable keys).",
+          },
+          {
+            q: "Why don't React docs recommend createElement directly?",
+            a: "Three reasons. (1) JSX is readable — it mirrors the tree shape, which is the mental model. (2) JSX gives you compile-time validation of props from TS types; createElement loses that. (3) Tooling (formatters, linters, codemods) treats JSX as a first-class citizen. The cases for raw createElement are narrow: dynamic element types where you'd build a string, or libraries that need to produce trees without a JSX compiler. Otherwise, JSX every time.",
+          },
+          {
+            q: "If components are just functions, what does React actually own — and what do you own?",
+            a: "You own the function body. React owns: (1) the fiber that wraps your function — its identity, position in the tree, alternate pointer, effect tags; (2) the call schedule — when and how often your function runs; (3) the hooks list attached to the fiber via call order. The contract: you write a pure function, React decides when to call it and what to do with the return value. Break purity and React's scheduling assumptions break too.",
+          },
+          {
+            q: "What happens when you render the same component element twice — `<Card/>` rendered in two slots?",
+            a: "Two different fibers, two different state slots, two different effect schedules. The element objects from `<Card/>` look identical but they're allocated separately; React assigns each its own position in the tree. State and effects are per-fiber, so each Card has its own. This is why you don't 'instantiate' components — you describe slots, and React owns the instances.",
+          },
+        ]}
+        pivots={[
+          { to: "Reconciliation + keys (Module 1)", why: "JSX produces elements; how those become fibers under reorders is the natural follow-up." },
+          { to: "Server Components", why: "If a Server Component returns JSX, none of it ships as JS — they want to see you understand the boundary." },
+          { to: "React.memo vs Compiler", why: "They'll probe whether you understand element creation isn't the cost — render cost is." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Components are like classes that get instantiated on render.",
+            why: "Function components have no instance you can hold. React tracks the fiber, not your function. Saying 'instance' invites confusion with class components (which DID have one).",
+          },
+          {
+            phrase: "JSX is virtual DOM.",
+            why: "JSX is just syntax for `createElement`. The 'virtual DOM' mental model is from React's marketing days — modern React talks about fibers, not vDOM. Senior interviewers will probe deeper if you say 'vDOM'.",
+          },
+        ]}
+      />
 
       <Step n={8} kind="next" title="Components alone are static. They need inputs.">
         <Callout tone="next" title="next foundation">

@@ -8,6 +8,7 @@ import { MetricsPanel } from "@/engine/MetricsPanel";
 import { BeforeAfter } from "@/engine/BeforeAfter";
 import { Callout } from "@/engine/Callout";
 import { Quiz } from "@/engine/Quiz";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { DiffTree, type DiffNode } from "@/viz/DiffTree";
 import { StockFeed } from "@/dashboard/StockFeed";
 import { useRenderCount } from "@/profiler/useRenderCount";
@@ -192,6 +193,51 @@ export default function Module01() {
         </p>
         <ContextShorthandDemo />
       </Step>
+
+      <ArchitectNotes
+        framing="They're testing whether you understand identity as the contract — keys, refs, and prop-object identity all belong in the same conceptual bucket."
+        followUps={[
+          {
+            q: "Walk me through exactly what changes when you switch from `key={index}` to `key={item.id}` on a sortable list.",
+            a: "Before: React reconciles position-by-position. After a sort, position 3 still has 'key=3' but the data at position 3 is now `items[3]`, which used to be at position 1. React reuses the position-3 fiber, calls the same component instance with new props. Internal state (focus, in-place edit flag, animation state) stays attached to position 3. After: each fiber's key is the item id. After a sort, React matches old fiber 'key=banana' to new fiber 'key=banana' — wherever they are — and moves the DOM node. The internal state moves with the data. This is what 'fiber identity follows the key' literally means.",
+          },
+          {
+            q: "When is index keying actually correct?",
+            a: "When (1) the list is append-only or unchanging in identity, AND (2) items have no per-row state. A static product list rendered from a SSR response that never reorders client-side is fine with index keys. The moment ANY reordering, insertion, or deletion mid-list is possible, you need stable id keys. The rule of thumb in code review: see `key={index}` → ask 'can this list ever reorder?' If yes, it's a bug waiting to happen.",
+          },
+          {
+            q: "Why doesn't React.memo + index keys 'fix' this?",
+            a: "Because the index-key problem isn't about whether the row re-renders — it's about which fiber gets reused. memo controls 'do I re-execute this component for new props?' but the fiber that holds the state has already been wrongly matched. The row's internal state (an in-place edit flag, for example) belongs to position 3, not to item 'banana'. memo can't fix mis-attribution.",
+          },
+          {
+            q: "What's the cost of a Compiler-optimised render with stable keys vs without?",
+            a: "Compiler memoises return values keyed on input identity. With stable keys AND stable prop objects, the Compiler skips most of your render bodies on uneventful re-renders. With unstable keys, the Compiler can't help — the fibers are wrong even before memo kicks in. Compiler is necessary but not sufficient for fast lists. Order of operations: (1) get keys right, (2) get prop identity right, (3) let the Compiler do the rest.",
+          },
+          {
+            q: "How does this scale to 10,000 rows? When do you stop fixing reconciliation and start virtualising?",
+            a: "Reconciliation is roughly O(n) in elements. For 10k rows, even cheap per-row work compounds. The crossover where 'fix the keys' stops being enough is usually ~500-1000 visible rows. Beyond that, the right answer is virtualisation (Module 10) — render only what's on screen. Stable keys still matter inside the windowed slice, but the absolute work drops 50× because you're rendering 30 rows instead of 10,000.",
+          },
+        ]}
+        pivots={[
+          { to: "Diffing algorithm internals (Module 2)", why: "Natural follow-up — they want to hear about the O(n) heuristics and the type-stable invariant." },
+          { to: "Fiber alternate trees (Module 3)", why: "If you mention 'fiber identity', expect 'and what IS a fiber, exactly?'" },
+          { to: "React Compiler (Module 11)", why: "If you justify a memo manually, they'll ask 'how does the Compiler change this answer?'" },
+        ]}
+        dontSay={[
+          {
+            phrase: "React.memo fixes re-renders.",
+            why: "memo prevents prop-equal re-renders. It doesn't fix unstable identity, doesn't help with key mistakes, doesn't survive new function/object props. Frame it as 'memo gates re-execution; it does NOT fix the input it's gating against.'",
+          },
+          {
+            phrase: "I always use Math.random for keys.",
+            why: "Forces a remount of every row every render. State destroyed. The architect will assume you've never debugged a focus-loss bug.",
+          },
+          {
+            phrase: "The virtual DOM compares trees.",
+            why: "Vague. React compares fibers (alternate vs current) via the reconciliation algorithm. 'Virtual DOM' was 2014 marketing; senior interviewers expect 'reconciliation' and 'fibers' as the vocabulary.",
+          },
+        ]}
+      />
 
       <Step n={9} kind="next" title="You fixed reconciliation. Now the diff itself becomes the wall.">
         <Callout tone="next" title="next bottleneck">

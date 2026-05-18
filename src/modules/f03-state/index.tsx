@@ -6,6 +6,7 @@ import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { Quiz } from "@/engine/Quiz";
 import { TryIt } from "@/engine/TryIt";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 
 export default function F03State() {
   return (
@@ -197,6 +198,51 @@ const fullName = \`\${first} \${last}\`;`}
             id: "d",
             text: "Move the sorting to the parent.",
             rationale: "Doesn't change anything — the question of state vs derived is the same one level up.",
+          },
+        ]}
+      />
+
+      <ArchitectNotes
+        framing="They're probing whether you understand setState as scheduling (not async I/O), and whether you can name where state actually lives in the fiber."
+        followUps={[
+          {
+            q: "Is `setState` asynchronous?",
+            a: "Careful — it's not async in the sense of returning a Promise or going to the network. It's synchronous in that it returns immediately. The 'async' confusion comes from two things: (1) the current render's closure still sees the OLD value after setState returns, because closures captured at render time; (2) the new render runs later, batched with other setStates in the same handler. The accurate phrasing: 'setState schedules a new render. Reading the captured `count` after won't show the update.' If you need the latest value mid-handler, use the updater form `setCount(c => c + 1)`.",
+          },
+          {
+            q: "Where does the state value actually live? It's not on the component function.",
+            a: "On the fiber. Specifically, the fiber's `memoizedState` is a linked list of hook records — useState gets one node per call, in hook-call order. The node stores the current value, a pending-updates queue, and the dispatcher. The component function is recreated every render; the fiber persists. That's why hook order matters — React indexes into the linked list by call order, not by name. Conditional hooks would mis-align the list and you'd read the wrong slot.",
+          },
+          {
+            q: "Why does the updater form `setCount(c => c + 1)` compose correctly when three calls in a row don't?",
+            a: "The value form `setCount(count + 1)` reads `count` from the current render's closure — frozen at render time. Three calls all see the same value. The updater form receives the LATEST pending state from the queue: first call's `c` is the current state; second call's `c` is what the first call would produce; third's is what the second would. They compose. Same reason functional reducers compose in Redux. Rule of thumb: if your next state depends on the previous, use the updater form.",
+          },
+          {
+            q: "When would you reach for useReducer instead of useState?",
+            a: "Three conditions trigger me: (1) the state shape has multiple coupled fields that change together (e.g. `{ status, error, data }` for a fetch); (2) there are 3+ ways to update — a reducer's action vocabulary documents them in one place; (3) child handlers want to dispatch without taking the setState as a prop. useReducer also pairs with useContext for cross-tree dispatch without props drilling. Beyond that, useState is fine and reads more naturally.",
+          },
+          {
+            q: "Talk me through what happens when StrictMode double-fires setState.",
+            a: "StrictMode in dev re-runs the function body of components to surface impurities. It also intentionally invokes setStates' updater function twice for the same reason — to catch updaters that aren't pure. Your updater should be pure: `c => c + 1` is fine, `c => { localStorage.set(c); return c+1; }` runs twice and writes twice. The fix isn't to disable StrictMode — it's to keep updaters pure and move side effects to handlers or effects.",
+          },
+        ]}
+        pivots={[
+          { to: "useReducer + dispatch", why: "Natural extension when state shape grows." },
+          { to: "useSyncExternalStore", why: "External-store integration; the bridge for non-React stores like Zustand." },
+          { to: "Tearing in concurrent mode", why: "Senior interviewers test if you know what tearing is and why useSyncExternalStore exists." },
+        ]}
+        dontSay={[
+          {
+            phrase: "useState is asynchronous.",
+            why: "It returns synchronously. The confusion is between 'returns immediately' (sync) and 'effect visible later' (rendered next tick). Use the latter framing.",
+          },
+          {
+            phrase: "Just put everything in useState.",
+            why: "Derived values shouldn't be state. Stored derived state goes out of sync. The architect wants to hear 'state when the value is independent input; derived when it's a function of state.'",
+          },
+          {
+            phrase: "useState is the same as useReducer with one action.",
+            why: "Conceptually fine; the architect will pivot to 'so why do we have both?' and probe whether you can describe when each reads better.",
           },
         ]}
       />
