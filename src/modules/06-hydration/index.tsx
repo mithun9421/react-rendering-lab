@@ -32,7 +32,39 @@ export default function Module06() {
         </ul>
       </Step>
 
-      <Step n={4} kind="next" title="Even islands wait for HTML">
+      <Step n={4} kind="explain" title="Hydration mismatches — the most common production bug">
+        <p>
+          A mismatch means: the HTML the server rendered doesn&apos;t match what the client
+          would have rendered on first pass. When it happens, React 19 invalidates a chunk of
+          the tree and re-renders it client-side, costing time + visible flicker.
+        </p>
+        <p>The four classic causes:</p>
+        <ul>
+          <li>
+            <code>Date.now()</code> / <code>Math.random()</code> in render — server and client run
+            at different instants. Render-stable values only.
+          </li>
+          <li>
+            <code>typeof window !== &quot;undefined&quot;</code> branches — pure poison, different
+            DOM on each side. Use <code>useEffect</code> + a <code>useState(false)</code> flag.
+          </li>
+          <li>
+            Locale-sensitive formatting (<code>toLocaleString</code>) — server in UTC, browser in
+            local. Pass a stable preformatted string from the server or render client-only.
+          </li>
+          <li>
+            Auth-conditional UI rendered at module load time — server saw an unauthenticated user,
+            the client cookie says otherwise. Tag the boundary with{" "}
+            <code>suppressHydrationWarning</code> only if you control both sides.
+          </li>
+        </ul>
+        <p>
+          React 19&apos;s <code>onRecoverableError</code> (Module 8) surfaces these — wire it
+          into your error tracker so the mismatches don&apos;t hide.
+        </p>
+      </Step>
+
+      <Step n={5} kind="next" title="Even islands wait for HTML">
         <Callout tone="next" title="next bottleneck">
           Hydration can&apos;t start until the byte arrives. Streaming SSR (Module 7) sends the
           shell first and lets each Suspense boundary stream in its own chunk.

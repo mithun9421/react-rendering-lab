@@ -72,7 +72,36 @@ export default function Module03() {
         </p>
       </Step>
 
-      <Step n={6} kind="next" title="Fiber gives React the ability to yield. But plain setState doesn't use it.">
+      <Step n={6} kind="explain" title="Common interview questions, and the one-line answers">
+        <ul>
+          <li>
+            <strong>Why does React need fiber at all?</strong> To break rendering into chunks
+            the scheduler can pause, resume, and abort. Without it, every render is a single
+            synchronous walk you can&apos;t interrupt.
+          </li>
+          <li>
+            <strong>What&apos;s the alternate tree?</strong> A double-buffered version of the
+            current fiber tree. The render phase mutates the alternate; commit swaps it in.
+            That&apos;s how React can throw away in-progress work without corrupting the live UI.
+          </li>
+          <li>
+            <strong>Why are hooks order-dependent?</strong> Each fiber stores its hook state as
+            a linked list. The order of hook calls maps to positions in that list. Conditional
+            hooks break the mapping and the next render reads someone else&apos;s state.
+          </li>
+          <li>
+            <strong>Why do refs not trigger re-renders?</strong> Refs are stored on the fiber,
+            not on the hook state. Mutating a ref doesn&apos;t enqueue an update.
+          </li>
+          <li>
+            <strong>What runs in the passive-effect phase?</strong> <code>useEffect</code>{" "}
+            callbacks. They are <em>scheduled</em> during commit but executed on the next
+            macrotask — so they don&apos;t delay the paint.
+          </li>
+        </ul>
+      </Step>
+
+      <Step n={7} kind="next" title="Fiber gives React the ability to yield. But plain setState doesn't use it.">
         <Callout tone="next" title="next bottleneck">
           The walker is interruptible, the priorities are surgical, but <code>setState</code>{" "}
           still renders synchronously by default. Module 4 introduces concurrent APIs that

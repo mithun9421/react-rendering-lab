@@ -72,7 +72,34 @@ export default function Module04() {
         </p>
       </Step>
 
-      <Step n={5} kind="next" title="You yield between work units. Now you need to yield inside one.">
+      <Step n={5} kind="explain" title="When transitions don't help">
+        <p>
+          <code>startTransition</code> only helps if the work it wraps is interruptible
+          render-phase work. It does <em>not</em>:
+        </p>
+        <ul>
+          <li>
+            <strong>Yield inside a single component</strong>. If <code>computeFilter()</code>{" "}
+            takes 200ms in one component, wrapping its result-setting <em>state</em> in a
+            transition doesn&apos;t help — the work still runs synchronously when that
+            component renders. Time-slice the work itself (Module 5).
+          </li>
+          <li>
+            <strong>Help with effects</strong>. <code>useEffect</code> callbacks aren&apos;t
+            part of the lane system; they run after commit regardless.
+          </li>
+          <li>
+            <strong>Help with the network</strong>. Transitions are CPU schedulers, not network
+            schedulers. For request prioritisation see Module 18.
+          </li>
+        </ul>
+        <p>
+          The rule: <code>startTransition</code> for &quot;this state update is allowed to be
+          stale.&quot; Everything else is a different tool.
+        </p>
+      </Step>
+
+      <Step n={6} kind="next" title="You yield between work units. Now you need to yield inside one.">
         <Callout tone="next" title="next bottleneck">
           Concurrency yields between fibers. But if a single component <em>itself</em> does
           12ms of work, that fiber is uninterruptible. Module 5 attacks the frame budget

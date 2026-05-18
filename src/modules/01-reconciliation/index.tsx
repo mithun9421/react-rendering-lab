@@ -95,7 +95,63 @@ export default function Module01() {
         <ReferenceIdentityDemo />
       </Step>
 
-      <Step n={6} kind="fix" title="React 19 ergonomics: ref-as-prop and Context shorthand">
+      <Step n={6} kind="explain" title="Five anti-patterns that quietly bust reconciliation">
+        <p>
+          Even with stable keys, these patterns will undo your work. Each one shows up
+          weekly in code review:
+        </p>
+        <ul>
+          <li>
+            <strong>Generated keys</strong> — <code>key=&#123;Math.random()&#125;</code>,{" "}
+            <code>key=&#123;Date.now()&#125;</code>. Forces a remount every render. Free
+            real-world example: someone wanted to &quot;force a re-render&quot; and stuck a uuid
+            on a wrapper.
+          </li>
+          <li>
+            <strong>Object/array literals in props</strong> —{" "}
+            <code>style=&#123;&#123; padding: 8 &#125;&#125;</code> and{" "}
+            <code>items=&#123;[1,2,3]&#125;</code> create new identities every render. Anything
+            with <code>React.memo</code> below treats them as &quot;changed.&quot;
+          </li>
+          <li>
+            <strong>Inline event handlers</strong> —{" "}
+            <code>onClick=&#123;() =&gt; doX(id)&#125;</code>. Same story. Either hoist + bind
+            with <code>useCallback</code>, or push the id into the click target via{" "}
+            <code>data-*</code> and read in a single delegated handler.
+          </li>
+          <li>
+            <strong>Nesting keyed lists in the wrong place</strong> — wrapping a keyed list in a
+            div that doesn&apos;t need to exist forces the parent diff to compare wrappers, not
+            children. Result: the diff helps less than you think.
+          </li>
+          <li>
+            <strong>Defining components inside render</strong>. Every parent render produces a
+            new component <em>function</em>, so the diff sees a new type → unmount everything.
+            Almost always accidental; very destructive. Move the inner component out.
+          </li>
+        </ul>
+      </Step>
+
+      <Step n={7} kind="explain" title="When NOT to memoize">
+        <p>
+          The lab is built around the cost of <em>unstable identity</em>. But memoization has
+          a cost too — every <code>useMemo</code> / <code>useCallback</code> stores a closure,
+          and each comparison runs every render. Skip it when:
+        </p>
+        <ul>
+          <li>The component is cheap and shallow. A one-line component reading two primitives
+            is faster to re-render than to memoize.
+          </li>
+          <li>The parent re-renders less often than the child is interacted with — e.g. a
+            top-level layout. Memo here adds bookkeeping for ~zero saved work.
+          </li>
+          <li>You ship the Compiler (Module 11). It memoises every pure component
+            automatically. Manual <code>useMemo</code> on top is just noise.
+          </li>
+        </ul>
+      </Step>
+
+      <Step n={8} kind="fix" title="React 19 ergonomics: ref-as-prop and Context shorthand">
         <p>
           Two small wins that ship in React 19 and remove ten years of boilerplate from
           identity-related code:
@@ -107,7 +163,7 @@ export default function Module01() {
         <ContextShorthandDemo />
       </Step>
 
-      <Step n={7} kind="next" title="You fixed reconciliation. Now the diff itself becomes the wall.">
+      <Step n={9} kind="next" title="You fixed reconciliation. Now the diff itself becomes the wall.">
         <Callout tone="next" title="next bottleneck">
           Reconciliation is now cheap per-row. But the <strong>diffing algorithm</strong> still
           walks the entire tree on every state change — and its O(n) heuristics make some

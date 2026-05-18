@@ -58,7 +58,55 @@ export default function Module02() {
         </TryIt>
       </Step>
 
-      <Step n={3} kind="explain" title="A footnote: Custom Elements">
+      <Step n={3} kind="explain" title="The conditional wrapper trap — same logic, different tree">
+        <p>
+          A common refactor: wrap a tree in a panel only when a side condition is true. Done
+          carelessly, this looks like a one-line change and causes a full subtree teardown:
+        </p>
+        <pre className="not-prose mt-3 overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[10px] leading-relaxed">
+{`// BAD — different element types at the root of the same branch
+{isExpanded
+  ? <section className="big"><Inner/></section>
+  : <Inner/>}
+
+// → React sees <section> vs <Inner>, treats them as different types,
+//   destroys + remounts the whole subtree. Inner loses local state.
+
+// GOOD — same wrapper type both branches; toggle a class
+<section className={isExpanded ? "big" : "small"}>
+  <Inner/>
+</section>`}
+        </pre>
+        <p>
+          The fix is to keep the root element <em>type</em> stable and let attributes vary.
+          Same component identity, no remount.
+        </p>
+      </Step>
+
+      <Step n={4} kind="explain" title="Why the diff isn't O(n³): the two heuristics, made concrete">
+        <p>
+          The general tree-edit distance problem is O(n³). React skips it with two assumptions
+          we already met. To make them concrete:
+        </p>
+        <ul>
+          <li>
+            <strong>Hash by type, position-by-position.</strong> If <code>tree[i].type ===
+            prev[i].type</code>, reuse the fiber and reconcile props. Otherwise destroy.
+          </li>
+          <li>
+            <strong>Inside a children array, hash by key.</strong> If <code>keys</code> match,
+            the matched fibers reorder rather than remount. This is why keys are mandatory in
+            lists.
+          </li>
+        </ul>
+        <p>
+          That&apos;s it. Two rules, applied recursively. The reason it&apos;s O(n) is that{" "}
+          <em>you</em>, the developer, provide the &quot;moves&quot; for free via stable types
+          and keys — the algorithm never has to search for them.
+        </p>
+      </Step>
+
+      <Step n={5} kind="explain" title="A footnote: Custom Elements">
         <p>
           One quiet React 19 change with diff implications: <strong>Custom Elements</strong>{" "}
           (Web Components) are now first-class. React used to set everything as an attribute,
@@ -69,7 +117,7 @@ export default function Module02() {
         </p>
       </Step>
 
-      <Step n={4} kind="next" title="Diffing is cheap. Commit isn't.">
+      <Step n={6} kind="next" title="Diffing is cheap. Commit isn't.">
         <Callout tone="next" title="next bottleneck">
           The diff phase is interruptible. The <strong>commit phase</strong> isn&apos;t — and
           everything that lands in commit (effects, refs, DOM mutations) runs in one

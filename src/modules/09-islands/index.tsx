@@ -39,7 +39,36 @@ export default function Module09() {
         </p>
       </Step>
 
-      <Step n={3} kind="next" title="Less to hydrate. But the lists you kept are huge.">
+      <Step n={3} kind="explain" title="When islands hurt — the cross-island state trap">
+        <p>
+          Islands are a bet that your interactive bits don&apos;t need to know about each
+          other. The bet loses when:
+        </p>
+        <ul>
+          <li>
+            Two islands need to share state. You end up reinventing a global store (window
+            event bus, custom element <code>postMessage</code>) — and now the &quot;simple
+            island&quot; isn&apos;t simple.
+          </li>
+          <li>
+            One island&apos;s outcome should re-render another island. Without a runtime
+            integration layer, you&apos;re forced to push state through URL params or
+            cookies — slow and clumsy compared to React state.
+          </li>
+          <li>
+            The page transition needs to feel like an SPA. Islands by default re-load the
+            full page on navigation. View transitions help, but they aren&apos;t free.
+          </li>
+        </ul>
+        <p>
+          The pragmatic ceiling: islands work great for content sites with a few interactive
+          widgets (Astro, Eleventy, Marko). For full SPAs they fight you. Module 12 (Server
+          Components) is the React-native version of the same idea — keep the static parts
+          server-only without paying the cross-island integration cost.
+        </p>
+      </Step>
+
+      <Step n={4} kind="next" title="Less to hydrate. But the lists you kept are huge.">
         <Callout tone="next" title="next bottleneck">
           The feed and chart are still rendered with thousands of items. Module 10 closes the
           loop with windowing — and then we&apos;re back at reconciliation keys, which is why

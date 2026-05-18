@@ -75,7 +75,7 @@ React DevTools shows render reasons after the fact. The lab needs overlays you c
 
 ## Status
 
-This is `v0.5`. All 25 modules ship real interactive content. The new `/lab/journey` route shows the SAME dashboard rendered six ways — each level adds one of the modules' fixes — fulfilling the "watch one codebase evolve" promise the brief opened with. See `VISION.md` for the honest audit of where we hit and missed.
+This is `v0.6`. All 25 modules + the Journey + landing page are elaborated for depth. The `/lab/journey` route walks the same dashboard through **eleven** evolving stages with growing surface area — stocks → search → notifications → chat → products → settings → recommendations. Each module has anti-patterns, interview-grade depth, and worked examples. See `VISION.md` for the honest audit.
 
 ### Global features
 

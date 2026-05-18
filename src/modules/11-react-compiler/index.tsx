@@ -94,7 +94,37 @@ function Profile({ user }) {
         </ul>
       </Step>
 
-      <Step n={6} kind="next" title="So your client renders are free. What still isn't?">
+      <Step n={6} kind="explain" title="When the compiler is wrong — debug, opt-out, escape">
+        <p>
+          The compiler is conservative — when it can&apos;t prove purity, it leaves the
+          component uncompiled. Sometimes it&apos;s wrong about a real impurity (a mutation
+          that&apos;s actually safe) and you want to <em>force</em> compilation. Sometimes
+          it&apos;s right but you want manual control. The escape hatches:
+        </p>
+        <ul>
+          <li>
+            <code>&apos;use no memo&apos;</code> directive at the top of a file or component — tells the
+            compiler to skip this code entirely. Use when a hook lies about deps and the
+            compiler is correctly leaving it alone.
+          </li>
+          <li>
+            <code>useMemoCache</code> directly — undocumented; not the API to reach for. If
+            you need this, you have a deeper problem.
+          </li>
+          <li>
+            <code>eslint-plugin-react-compiler</code> — lints code that the compiler will
+            skip. When it shouts at a file, fix the file or add <code>&apos;use no memo&apos;</code>;
+            don&apos;t pretend the file is being memoised when it isn&apos;t.
+          </li>
+        </ul>
+        <p className="text-ink-muted">
+          Sanity check: the compiler doesn&apos;t change behaviour, only frequency. If your
+          tests pass uncompiled, they pass compiled. If a test fails only when compilation
+          turns on, your code was relying on a re-render the compiler correctly elided.
+        </p>
+      </Step>
+
+      <Step n={7} kind="next" title="So your client renders are free. What still isn't?">
         <Callout tone="next" title="next bottleneck">
           Compiler memoisation makes pure client work nearly free. But you&apos;re still shipping
           the code for that work to the browser. <strong>Server Components</strong> let you do

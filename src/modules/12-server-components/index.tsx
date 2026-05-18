@@ -53,7 +53,59 @@ export default function Module12() {
         </p>
       </Step>
 
-      <Step n={5} kind="next" title="Reads are solved. What about writes?">
+      <Step n={5} kind="explain" title="Passing client components through server — the children trick">
+        <p>
+          A common confusion: &quot;if I&apos;m a server component, can I render a client
+          component as a child?&quot; Yes — and there&apos;s a powerful variant. A server
+          component can <em>compose</em> a client component, AND pass another server component
+          as <code>children</code> through it. The client component never sees the server
+          subtree as JS; it just renders the React elements it was handed.
+        </p>
+        <pre className="not-prose mt-3 overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[10px] leading-relaxed">
+{`// Server Component
+export default async function Page() {
+  const article = await db.articles.find(id);
+
+  return (
+    <ClientShell>            {/* purple — runs in browser */}
+      <ArticleBody {...article}/>  {/* green — server-rendered, passed as children */}
+    </ClientShell>
+  );
+}`}
+        </pre>
+        <p>
+          Result: <code>ClientShell</code> gets interactivity, <code>ArticleBody</code> ships
+          zero JS even though it&apos;s nested inside an interactive parent. This is the move
+          that makes layouts feel snappy.
+        </p>
+      </Step>
+
+      <Step n={6} kind="explain" title="What RSC can NOT do (and the workarounds)">
+        <ul>
+          <li>
+            <strong>Subscribe to anything.</strong> No <code>useEffect</code>, no
+            <code>useState</code>. RSC renders once per request — there is no &quot;state&quot;
+            on the server. Push subscriptions down to a small client leaf.
+          </li>
+          <li>
+            <strong>Read context defined in a client component.</strong> RSC can read context
+            <em>only</em> if the context itself is server-safe (no React hooks on the value).
+            For client-only context, the boundary has to be flipped.
+          </li>
+          <li>
+            <strong>Use browser-only globals.</strong> <code>document</code>, <code>localStorage</code>{" "}
+            don&apos;t exist. The compiler error is fast; the trap is when a dependency uses
+            them at import time — gate it behind dynamic import.
+          </li>
+          <li>
+            <strong>Re-fetch on its own.</strong> RSC is request-scoped. To &quot;refresh the
+            data,&quot; you need a Server Action that calls <code>revalidatePath</code> (Module
+            13) or a route-level <code>revalidate</code> hint.
+          </li>
+        </ul>
+      </Step>
+
+      <Step n={7} kind="next" title="Reads are solved. What about writes?">
         <Callout tone="next" title="next bottleneck">
           Server Components let the server <em>render</em>. But the page still posts to API
           routes for mutations. Server Actions kill that boilerplate: write an async function

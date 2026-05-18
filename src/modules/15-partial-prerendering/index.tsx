@@ -50,7 +50,58 @@ export default function Module15() {
         <p>Everything else stays in the prerendered shell.</p>
       </Step>
 
-      <Step n={5} kind="next" title="The lab's loop closes here">
+      <Step n={5} kind="explain" title="PPR vs SSG vs ISR vs SSR — when to pick which">
+        <ul>
+          <li>
+            <strong>SSG</strong> (Static Site Generation) — render at build time, ship pure HTML.
+            Use when content is identical for every user and changes &lt; once per deploy.
+            Docs sites, marketing pages.
+          </li>
+          <li>
+            <strong>ISR</strong> (Incremental Static Regeneration) — SSG + a TTL. Regenerates on
+            demand. Use when content has personalisation by URL but not by user. Blog posts,
+            product listings.
+          </li>
+          <li>
+            <strong>SSR</strong> (full Server-Side Rendering) — render on every request. Use
+            when the entire page depends on user state. Banking app, admin console.
+          </li>
+          <li>
+            <strong>PPR</strong> (Partial Prerendering) — the page is mostly SSG but with{" "}
+            <code>&lt;Suspense&gt;</code> holes filled per-request. Use when most of the page is
+            static but a small dynamic strip (user greeting, cart count, live price) needs to
+            be fresh. The right answer for most consumer apps in 2026.
+          </li>
+        </ul>
+        <p>
+          Heuristic: how much of the page is truly user-specific? &lt;5% → SSG with a small PPR
+          hole. 5-40% → PPR. &gt;40% → full SSR or RSC streaming. The wrong choice is to use SSR
+          everywhere because PPR is &quot;new&quot; — you pay origin latency on every byte for
+          no benefit.
+        </p>
+      </Step>
+
+      <Step n={6} kind="explain" title="The PPR gotchas no one warns you about">
+        <ul>
+          <li>
+            <strong>Cookie reads infect the boundary.</strong> A server component that reads a
+            cookie via <code>cookies()</code> forces the entire boundary it&apos;s in to be
+            dynamic. Push cookie reads as deep as possible.
+          </li>
+          <li>
+            <strong>Search params are dynamic too.</strong> Same rule. If your page reads
+            <code>?utm_source</code> at the top level, the whole page becomes dynamic — your
+            shell isn&apos;t cached.
+          </li>
+          <li>
+            <strong>Cache invalidation is your job.</strong> Calling <code>revalidatePath()</code>{" "}
+            from a Server Action busts only the prerendered shell — the dynamic chunks
+            re-fetch per request anyway. Get the granularity right.
+          </li>
+        </ul>
+      </Step>
+
+      <Step n={7} kind="next" title="The lab's loop closes here">
         <Callout tone="next" title="back to the beginning">
           You started with a client app that re-rendered the world on every tick. You end with
           a hybrid model where most of the page is cached HTML and only the genuinely dynamic
