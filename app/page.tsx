@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MODULES } from "@/modules/registry";
 import { AdSlot } from "@/ads/AdSlot";
 import { SiteFooter } from "@/shell/SiteFooter";
+import { PendingLink } from "@/shell/PendingLink";
 
 export default function Landing() {
   return (
@@ -43,13 +44,13 @@ function NavBar() {
         <a href="https://github.com/mithun9421/react-rendering-lab" target="_blank" rel="noreferrer" className="text-ink-muted hover:text-ink">
           GitHub
         </a>
-        <span className="pill">v0.6 · alpha</span>
-        <Link
+        <span className="pill">v0.7 · alpha</span>
+        <PendingLink
           href="/lab/01-reconciliation"
           className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white shadow-glass active:scale-95 hover:brightness-110"
         >
           Start the lab →
-        </Link>
+        </PendingLink>
       </div>
     </nav>
   );
@@ -77,24 +78,24 @@ function Hero() {
       </p>
 
       <div className="mt-6 flex flex-col gap-2.5 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-3">
-        <Link
+        <PendingLink
           href="/lab/01-reconciliation"
           className="rounded-md bg-accent px-4 py-3 text-center text-sm font-medium text-white shadow-glass active:scale-95 sm:py-2.5 hover:brightness-110"
         >
           Begin Module 1 →
-        </Link>
-        <Link
+        </PendingLink>
+        <PendingLink
           href="/lab/journey"
           className="rounded-md border border-accent/40 bg-accent/5 px-4 py-3 text-center text-sm font-medium text-accent shadow-glass active:scale-95 sm:py-2.5 hover:bg-accent/10"
         >
           Watch the dashboard evolve ▸
-        </Link>
-        <Link
+        </PendingLink>
+        <PendingLink
           href="/lab/25-incident-simulator"
           className="rounded-md border border-bg-border bg-bg-panel px-4 py-3 text-center text-sm text-ink active:scale-95 sm:py-2.5 hover:bg-bg-elevated"
         >
           Jump to the incident simulator
-        </Link>
+        </PendingLink>
       </div>
 
       <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
