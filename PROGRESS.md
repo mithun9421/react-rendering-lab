@@ -81,4 +81,5 @@ src/
 - [ ] Should we record render traces and let learners "replay"? (Yes — design `TraceRecorder` in profiler.)
 
 ## Session log
-- 2026-05-18 — Project scaffolded. PROGRESS.md created.
+- 2026-05-18 — Project scaffolded. PROGRESS.md created. Bootstrapped Next.js 15 + React 19, custom profiler dock, teaching engine, 10 modules wired (Module 1 deep, 2-10 narrative). Pushed to GitHub `mithun9421/react-rendering-lab`.
+- 2026-05-18 (cont.) — Added Modules 11-15: React Compiler (auto memoization sim), Server Components (interactive `'use client'` toggler), Server Actions + useOptimistic/useActionState/useFormStatus (real wired action), `use()` hook (Suspense + conditional context + ErrorBoundary), Partial Prerendering (request-timeline animation). All 15 routes green. TODO.md updated with remaining polish items.

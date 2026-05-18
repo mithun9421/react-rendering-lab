@@ -76,7 +76,42 @@ export const MODULES: ModuleDef[] = [
     title: "Virtualization",
     tag: "windowing",
     hook: "Render 50 rows out of 50,000. DOM-node count, memory, scroll FPS — all measured live.",
-    next: "And now you're back to thinking about reconciliation keys. The loop closes.",
+    next: "All this hand-tuned memoization — what if the compiler did it for you?",
+  },
+  {
+    slug: "11-react-compiler",
+    title: "React Compiler",
+    tag: "auto-memo",
+    hook: "What useMemo, useCallback and React.memo become obsolete for — and where you still need to think.",
+    next: "Even with perfect client renders, the network still owns first paint. Enter Server Components.",
+  },
+  {
+    slug: "12-server-components",
+    title: "Server Components",
+    tag: "rsc",
+    hook: "Zero-JS for the parts of your tree that don't need it. The `'use client'` line is the new architectural boundary.",
+    next: "Read-only RSC is half the story. Mutations need a server boundary too.",
+  },
+  {
+    slug: "13-server-actions",
+    title: "Server Actions + Optimistic UI",
+    tag: "actions",
+    hook: "`'use server'`, `useActionState`, `useOptimistic`, `useFormStatus` — the new way to do mutations without an API layer.",
+    next: "Server can produce data. The client needs a way to read it directly in render.",
+  },
+  {
+    slug: "14-use-hook",
+    title: "use() — read in render",
+    tag: "use-api",
+    hook: "Reading promises and context inline. The building block that makes Suspense and RSC click.",
+    next: "And the cap on the streaming story: static shell + dynamic holes, prerendered.",
+  },
+  {
+    slug: "15-partial-prerendering",
+    title: "Partial Prerendering",
+    tag: "ppr",
+    hook: "Streaming SSR + ISR + edge cache rolled into one shipping model. The far end of the journey.",
+    next: "You've seen the whole loop. Time to go back to reconciliation with new eyes.",
   },
 ];
 

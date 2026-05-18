@@ -8,7 +8,7 @@ This is not documentation. It is a debugging simulator + architecture lab + perf
 
 ## What's inside
 
-Ten modules wired into a single bottleneck chain:
+Fifteen modules wired into a single bottleneck chain:
 
 | # | Module | What you fix | The next bottleneck it exposes |
 |---|---|---|---|
@@ -21,7 +21,12 @@ Ten modules wired into a single bottleneck chain:
 | 07 | Streaming SSR | Shell first, Suspense chunks streamed in | data waterfalls in your tree |
 | 08 | Suspense architecture | Boundary placement & backpressure | hydrating non-interactive HTML is waste |
 | 09 | Island architecture | Ship JS only for interactive pieces | remaining lists are still huge |
-| 10 | Virtualization | Render visible rows only | which brings you back to reconciliation keys |
+| 10 | Virtualization | Render visible rows only | hand-tuned memo — what if the compiler did it? |
+| 11 | React Compiler | Auto memoization, the death of `useMemo`/`useCallback` | client renders are free, but you still ship the code |
+| 12 | Server Components | The `'use client'` boundary, zero-JS subtrees | reads done; what about writes? |
+| 13 | Server Actions + Optimistic UI | `useActionState`, `useFormStatus`, `useOptimistic` | reading resources directly in render |
+| 14 | `use()` hook | Suspending on a promise, conditional context | the cap on the streaming story |
+| 15 | Partial Prerendering | Static shell from CDN + dynamic Suspense holes | back to reconciliation with new eyes |
 
 The cycle is the point. Frontend scaling isn't a ladder; it's the same five trade-offs, surfaced one at a time.
 
@@ -60,7 +65,7 @@ React DevTools shows render reasons after the fact. The lab needs overlays you c
 
 ## Status
 
-This is `v0.1`. All ten modules render and tell their story; deeper visualisations (full fiber walk replays, real streaming SSR demos, ReactFlow-based dependency graphs) are slated. See `PROGRESS.md` for the build log and the next pass.
+This is `v0.2`. All fifteen modules render and tell their story end-to-end. Deeper visualisations (full fiber walk replays, real streaming SSR demos, real React Compiler wiring, real PPR config) are slated. See `PROGRESS.md` for the build log and `TODO.md` for the remaining polish.
 
 ## License
 
