@@ -28,14 +28,14 @@ Twenty-five modules wired into a single bottleneck chain — extending from Reac
 | 14 | `use()` hook | Suspending on a promise, conditional context | the cap on the streaming story |
 | 15 | Partial Prerendering | Static shell from CDN + dynamic Suspense holes | where state lives across all this |
 | 16 | State Architecture at Scale | Prop drilling → context → split context → external store + selector | state changes still trigger paints |
-| 17 | Browser Rendering Pipeline | Style → layout → paint → composite (scaffolded) | rendering is fast when assets arrive |
-| 18 | Network & Data Fetching | Waterfalls, dedup, retry storms, CDN misses (scaffolded) | one team is solvable, a hundred isn't |
-| 19 | Microfrontend Architecture | Module Federation, runtime contracts (scaffolded) | the bundle is where the cost lives |
-| 20 | Build Systems & Bundling | Tree shaking, chunk splits, dynamic imports (scaffolded) | invisible if blind users can't reach it |
-| 21 | Accessibility Engineering | Focus traps, async states, screen-reader traversal (scaffolded) | reality drifts — observability tells you |
-| 22 | Observability & Diagnostics | RUM, OpenTelemetry, distributed traces (scaffolded) | observability surfaces leaks |
-| 23 | Memory & Leak Detection | Detached DOM, stale closures, timer leaks (scaffolded) | leaks are accidental, threats aren't |
-| 24 | Frontend Security | XSS, hydration injection, CSP, dependency compromise (scaffolded) | things still break in prod |
+| 17 | Browser Rendering Pipeline | Phases viz, layout-thrashing demo, transform vs top/left, layer count | pipeline is fast — when assets arrive |
+| 18 | Network & Data Fetching | Live waterfall chart, dedup, retry backoff + circuit breaker | one team is solvable, a hundred isn't |
+| 19 | Microfrontend Architecture | Federation dep graph, version mismatch simulator, runtime contracts | the bundle is where the cost lives |
+| 20 | Build Systems & Bundling | Interactive treemap with tree-shake / split / swap / dead-code toggles | invisible if blind users can't reach it |
+| 21 | Accessibility Engineering | Live focus path, DOM-vs-AOM, focus-trap modal demo | reality drifts — observability tells you |
+| 22 | Observability & Diagnostics | Live Web Vitals from PerformanceObserver, distributed trace flame | observability surfaces leaks |
+| 23 | Memory & Leak Detection | Live heap chart, 4 leak triggers, retention-path diagram | leaks are accidental, threats aren't |
+| 24 | Frontend Security | XSS playground, CSP comparison, secure-by-construction patterns | things still break in prod |
 | 25 | Production Incident Simulator | Live on-call playbook — diagnose, fix, validate, postmortem | take Architect Mode into your next interview |
 
 The cycle is the point. Frontend scaling isn't a ladder; it's the same five trade-offs, surfaced one at a time.
@@ -75,9 +75,7 @@ React DevTools shows render reasons after the fact. The lab needs overlays you c
 
 ## Status
 
-This is `v0.3` — extended into a Staff+/Principal frontend systems simulator. All 25 module routes render. Deep implementations: Modules 1, 4 (with scheduler queue viz), 8 (with cache + retry), 10, 11-15, 16 (state architecture), 25 (incident simulator with 6-incident catalogue and playbook stages).
-
-Modules 17-24 use the `ComingSoon` fallback and exist in the registry as next-bottleneck waypoints. The chain is intact; the visualisations are slated. See `PROGRESS.md` and `TODO.md`.
+This is `v0.4` — all 25 modules ship real interactive content. No ComingSoon placeholders remain. See `PROGRESS.md` for the per-module build log.
 
 ### Global features
 

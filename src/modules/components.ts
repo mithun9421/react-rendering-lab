@@ -15,6 +15,14 @@ import Module13 from "./13-server-actions";
 import Module14 from "./14-use-hook";
 import Module15 from "./15-partial-prerendering";
 import Module16 from "./16-state-architecture";
+import Module17 from "./17-browser-pipeline";
+import Module18 from "./18-network-data";
+import Module19 from "./19-microfrontends";
+import Module20 from "./20-build-bundle";
+import Module21 from "./21-accessibility";
+import Module22 from "./22-observability";
+import Module23 from "./23-memory-leaks";
+import Module24 from "./24-security";
 import Module25 from "./25-incident-simulator";
 
 export const MODULE_COMPONENTS: Record<string, ComponentType> = {
@@ -34,6 +42,13 @@ export const MODULE_COMPONENTS: Record<string, ComponentType> = {
   "14-use-hook": Module14,
   "15-partial-prerendering": Module15,
   "16-state-architecture": Module16,
+  "17-browser-pipeline": Module17,
+  "18-network-data": Module18,
+  "19-microfrontends": Module19,
+  "20-build-bundle": Module20,
+  "21-accessibility": Module21,
+  "22-observability": Module22,
+  "23-memory-leaks": Module23,
+  "24-security": Module24,
   "25-incident-simulator": Module25,
-  // 17-24 use the ComingSoon fallback in app/lab/[module]/page.tsx
 };
