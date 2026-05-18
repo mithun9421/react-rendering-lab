@@ -11,7 +11,17 @@ export function SiteFooter() {
   return (
     <footer className="relative mx-auto max-w-6xl border-t border-bg-border px-4 py-6 text-xs text-ink-dim sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="font-mono">react-rendering-lab · MIT · made with too many useEffects</span>
+        <span className="font-mono">
+          react-rendering-lab · MIT · built by{" "}
+          <a
+            href="https://github.com/mithun9421"
+            target="_blank"
+            rel="noreferrer"
+            className="text-ink hover:text-accent"
+          >
+            @mithun9421
+          </a>
+        </span>
         <nav className="flex flex-wrap gap-3">
           <Link href="/about" className="hover:text-ink">
             About

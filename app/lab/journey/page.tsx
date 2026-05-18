@@ -7,6 +7,7 @@ import { Dashboard, type DashboardProps } from "@/dashboard/Dashboard";
 import { useProfiler } from "@/profiler/store";
 import { CodeDiff } from "@/viz/CodeDiff";
 import { StageTour, type TourStep } from "@/viz/StageTour";
+import { ProfilerWrap } from "@/profiler/ProfilerWrap";
 
 type Stage = {
   level: number;
@@ -801,7 +802,9 @@ function StagePanel({ stage, dimmed, highlighted }: { stage: Stage; dimmed?: boo
         <span className="font-mono text-[10px] text-accent">{stage.module}</span>
       </div>
       <div className="p-3">
-        <Dashboard {...stage.patch} />
+        <ProfilerWrap id={`journey:${stage.level.toString().padStart(2, "0")}`}>
+          <Dashboard {...stage.patch} />
+        </ProfilerWrap>
       </div>
     </div>
   );

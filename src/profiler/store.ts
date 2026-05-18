@@ -15,6 +15,11 @@ export type CommitEvent = {
   fibers: number;
   /** was this an "urgent" lane or a transition? */
   lane: "urgent" | "transition" | "idle";
+  /** when present, from React's <Profiler> API — actualDuration / baseDuration in ms */
+  actualDuration?: number;
+  baseDuration?: number;
+  /** mount vs update phase per Profiler's onRender phase arg */
+  phase?: "mount" | "update" | "nested-update";
 };
 
 type ProfilerState = {
@@ -66,6 +71,9 @@ export const useProfiler = create<ProfilerState>((set) => ({
         label: c.label,
         fibers: c.fibers,
         lane: c.lane,
+        actualDuration: c.actualDuration,
+        baseDuration: c.baseDuration,
+        phase: c.phase,
       };
       const next = s.commits.length > 240 ? s.commits.slice(-200) : s.commits;
       return { commits: [...next, evt] };

@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { useProfiler } from "./store";
 import { useFpsLoop } from "./useFpsLoop";
 import { CommitTimeline } from "./CommitTimeline";
+import { TraceTools } from "./TraceTools";
 import { ArchitectModeToggle } from "@/engine/ArchitectGate";
 
 export function ProfilerDock() {
@@ -21,11 +22,25 @@ export function ProfilerDock() {
   // Mobile: collapsed by default. On lg+ the desktop layout always shows the full dock.
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const commits = useProfiler((s) => s.commits);
   const totalRenders = Object.values(renders).reduce((a, b) => a + b, 0);
   const topOffenders = Object.entries(renders)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4);
   const fpsColor = fps >= 55 ? "text-accent-good" : fps >= 40 ? "text-accent-warn" : "text-accent-bad";
+
+  // React Profiler API stats — only present when ProfilerWrap is mounted somewhere
+  const recentProfiled = commits.slice(-30).filter((c) => c.actualDuration != null);
+  const avgActual =
+    recentProfiled.length === 0
+      ? 0
+      : recentProfiled.reduce((a, c) => a + (c.actualDuration ?? 0), 0) / recentProfiled.length;
+  const avgBase =
+    recentProfiled.length === 0
+      ? 0
+      : recentProfiled.reduce((a, c) => a + (c.baseDuration ?? 0), 0) / recentProfiled.length;
+  const savedPct =
+    avgBase === 0 ? 0 : Math.max(0, Math.round((1 - avgActual / avgBase) * 100));
 
   return (
     <aside className="glass sticky bottom-0 left-0 right-0 z-30 mt-auto border-t border-bg-border">
@@ -93,6 +108,7 @@ export function ProfilerDock() {
                   reset
                 </button>
                 <ArchitectModeToggle />
+                <TraceTools />
               </div>
               <CommitTimeline />
             </div>
@@ -117,12 +133,28 @@ export function ProfilerDock() {
           <button onClick={reset} className="rounded border border-bg-border px-2 py-1 font-mono text-ink-muted hover:text-ink">
             Reset
           </button>
+          <TraceTools />
         </div>
 
         <DockStat label="FPS" value={fps} className={fpsColor} />
         <DockStat label="Dropped" value={dropped} className={dropped > 0 ? "text-accent-warn" : "text-ink-muted"} />
         <DockStat label="Renders" value={totalRenders} />
         <DockStat label="Mem" value={mem ? `${mem}MB` : "—"} />
+        {recentProfiled.length > 0 && (
+          <>
+            <DockStat
+              label="actual"
+              value={`${avgActual.toFixed(1)}ms`}
+              className={avgActual < 4 ? "text-accent-good" : avgActual < 16 ? "text-accent-warn" : "text-accent-bad"}
+            />
+            <DockStat label="base" value={`${avgBase.toFixed(1)}ms`} />
+            <DockStat
+              label="memo saved"
+              value={`${savedPct}%`}
+              className={savedPct > 50 ? "text-accent-good" : savedPct > 10 ? "text-accent-warn" : "text-ink-muted"}
+            />
+          </>
+        )}
         <ArchitectModeToggle />
 
         <div className="ml-auto flex items-center gap-3">

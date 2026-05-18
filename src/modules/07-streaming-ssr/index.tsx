@@ -4,6 +4,7 @@ import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { StreamChunks } from "@/viz/StreamChunks";
+import { RealStreamChunks } from "@/viz/RealStreamChunks";
 
 export default function Module07() {
   return (
@@ -23,7 +24,25 @@ export default function Module07() {
         </div>
       </Step>
 
-      <Step n={3} kind="explain" title="renderToPipeableStream / renderToReadableStream">
+      <Step n={3} kind="profile" title="A real streamed response — your own server, your own bytes">
+        <p>
+          The viz above was simulated for predictability. This one is real — it calls the lab&apos;s
+          own <code>/api/stream</code> route. The endpoint returns a <code>ReadableStream</code>{" "}
+          that emits seven newline-delimited JSON chunks at scripted intervals over ~1.4s. The
+          client reads the body with <code>reader.read()</code> in a loop and appends each chunk
+          as it arrives.
+        </p>
+        <p>
+          Wall-clock times in the right column are <em>actual</em> server-to-client latencies,
+          not animation. Refresh under DevTools&apos; Network throttling to see how the timing
+          shifts.
+        </p>
+        <div className="not-prose mt-3">
+          <RealStreamChunks />
+        </div>
+      </Step>
+
+      <Step n={4} kind="explain" title="renderToPipeableStream / renderToReadableStream">
         <p>
           The server-side API yields chunks as Suspense boundaries resolve. The client uses an
           inline runtime to swap fallbacks for real HTML in place. Crucially: the <em>hydration</em>{" "}
@@ -32,7 +51,7 @@ export default function Module07() {
         </p>
       </Step>
 
-      <Step n={4} kind="fix" title="React 19 — assets and metadata join the stream">
+      <Step n={5} kind="fix" title="React 19 — assets and metadata join the stream">
         <p>
           The streaming renderer doesn&apos;t just emit your component HTML. React 19 also
           hoists three categories of tag from anywhere in your tree into the document head, in
@@ -72,7 +91,7 @@ export default function Module07() {
         </pre>
       </Step>
 
-      <Step n={5} kind="fix" title="Preloading APIs — tell the stream what's coming">
+      <Step n={6} kind="fix" title="Preloading APIs — tell the stream what's coming">
         <p>
           Even with streaming, the browser still discovers assets sequentially. React 19 ships
           three imperative APIs that emit early hints into the stream:
@@ -98,7 +117,7 @@ export default function Module07() {
         </p>
       </Step>
 
-      <Step n={6} kind="next" title="You shipped chunks. But waterfalls live in your tree.">
+      <Step n={7} kind="next" title="You shipped chunks. But waterfalls live in your tree.">
         <Callout tone="next" title="next bottleneck">
           A streamed boundary still has to wait for its data. If component A fetches X and child
           B fetches Y after mount, you&apos;ve serialised round-trips. Module 8 designs Suspense
