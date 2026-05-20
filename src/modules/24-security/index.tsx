@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TryIt } from "@/engine/TryIt";
 
 export default function Module24() {
@@ -106,6 +107,47 @@ const tokenStore = (() => {
 })();`}
         </pre>
       </Step>
+
+      <ArchitectNotes
+        framing="Security questions probe whether you treat XSS, CSRF, and token storage as ARCHITECTURAL concerns — defended at multiple layers, not patched at incident time."
+        followUps={[
+          {
+            q: "Walk me through how React 'escapes by default' and where it stops.",
+            a: "JSX text interpolation (`{x}`) escapes special characters before insertion into the DOM. `<div>{userInput}</div>` is safe for any string. The escape STOPS at: (1) dangerouslySetInnerHTML — explicit opt-out, you're on your own. (2) `href={userInput}` — React doesn't sanitize URL protocols; `javascript:...` runs on click. (3) Hydration: if the server-rendered HTML contains user input that wasn't escaped server-side, React just hydrates the existing nodes — it doesn't re-escape. (4) Server Components that compose user input into raw strings before JSX wrapping. The architect tests if you can name these four explicitly.",
+          },
+          {
+            q: "Strict Content-Security-Policy — what does the production header look like?",
+            a: "`Content-Security-Policy: script-src 'nonce-{random}' 'strict-dynamic'; object-src 'none'; base-uri 'none'; require-trusted-types-for 'script'`. (1) Nonce: server generates fresh value per response, every script tag has `nonce={value}`. Inline scripts without the nonce don't run. (2) strict-dynamic: scripts loaded BY a nonced script inherit trust — no need to nonce every transitive dep. (3) object-src 'none': blocks <object>, <embed> exploits. (4) base-uri 'none': prevents <base> hijacking of relative URLs. (5) Trusted Types: requires DOM APIs to use a TrustedTypes policy, catches XSS via dangerouslySetInnerHTML at the API boundary.",
+          },
+          {
+            q: "Token storage — access token in memory, refresh token in HTTP-only cookie. Why?",
+            a: "Access tokens (short-lived JWTs) in memory: any XSS that exfiltrates them is bounded by token TTL. If stored in localStorage, they survive page reload AND XSS reads them in clear — credential theft is permanent. Refresh tokens (longer-lived) in HTTP-only cookie: JS can't read them, so XSS can't steal. Only the server reads them on refresh. The architecture: short access in memory, long refresh in HTTP-only cookie, refresh flow swaps them. The architect may probe: 'why not refresh tokens in localStorage too?' Answer: localStorage isn't HTTP-only; XSS reads it; refresh tokens get exfiltrated, attacker has long-lived access.",
+          },
+          {
+            q: "Hydration-time injection — what is it and how do you prevent it?",
+            a: "Server SSRs the page, encodes initial data into the HTML (`<script id='__NEXT_DATA__'>{...JSON...}</script>`). If user input flows into that JSON without escaping, the user controls the script tag content — XSS via JSON injection. Prevention: (1) serialize via a library that escapes < / > inside JSON (Next.js does this). (2) Validate the schema on the client BEFORE hydration — if the shape's wrong, refuse to hydrate. (3) Use Trusted Types to require schema-validated objects, not raw JSON parsing. The architect tests: 'why is this MORE dangerous than other XSS?' Answer: it executes before page is interactive, before client-side mitigations boot.",
+          },
+          {
+            q: "Dependency compromise — what's your supply chain strategy?",
+            a: "(1) Lockfile committed, lockfile-only PRs reviewed carefully. (2) Renovate or Dependabot on schedule with explicit allowlist of minor-version auto-merges; majors require human review. (3) npm audit / `pnpm audit` in CI; fail on high/critical. (4) Subresource Integrity hashes for CDN-loaded scripts. (5) For high-trust orgs: a private npm proxy that caches packages, scans them, and blacklists known-bad. (6) For build-time deps: pin them tighter than runtime deps — a compromised Webpack plugin can backdoor every build. The architect cares about the LAYERED model: lockfile + audit + scan + SRI + private proxy.",
+          },
+        ]}
+        pivots={[
+          { to: "Trusted Types", why: "Edge of strict CSP, may probe whether you've shipped it." },
+          { to: "OWASP Top 10 for SPAs", why: "Common framework for security conversations." },
+          { to: "Server Actions + CSRF (Module 13)", why: "Per-deployment action IDs prevent classic CSRF." },
+        ]}
+        dontSay={[
+          {
+            phrase: "React escapes everything, so we're safe from XSS.",
+            why: "React escapes JSX text. It does NOT escape href URLs, dangerouslySetInnerHTML, server-rendered raw HTML, or hydration JSON. The architect will list the gaps you missed.",
+          },
+          {
+            phrase: "Store tokens in localStorage for simplicity.",
+            why: "XSS reads localStorage. Use in-memory access tokens + HTTP-only cookie refresh tokens.",
+          },
+        ]}
+      />
 
       <Step n={6} kind="next" title="You've covered the entire frontend systems surface.">
         <Callout tone="next" title="end of the systems arc">

@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { INCIDENTS, pickIncident, type Incident, type Hypothesis } from "./incidents";
 
 type Stage = "intake" | "diagnose" | "fix" | "validate" | "postmortem";
@@ -103,6 +104,47 @@ export default function Module25() {
           <li><strong>Postmortem</strong> — capture the next bottleneck. Every fix exposes one.</li>
         </ol>
       </Step>
+
+      <ArchitectNotes
+        framing="The incident module is where you prove you can REASON UNDER PRESSURE. The architect tests for a structured playbook, not just 'I'd debug it.'"
+        followUps={[
+          {
+            q: "Walk me through your incident playbook — minute by minute.",
+            a: "T+0: page acknowledged. T+1: read the alert + first metric. Form ONE hypothesis. Write it down (private channel) so it's tracked. T+2: validate or invalidate via dashboards. Don't fix yet. T+5: if hypothesis confirmed, ship the minimum-blast-radius fix; if invalidated, form next hypothesis. T+10: even if not fixed, post status update to stakeholders — 'investigating cause Y, ETA 15 min.' T+20: regroup if not resolved; escalate or pivot. The architect cares about the DISCIPLINE — many engineers reach for fixes before validating the cause.",
+          },
+          {
+            q: "How do you tell the difference between a CPU spike caused by frontend vs backend?",
+            a: "Look at the dock: FPS dropping but renders/sec flat suggests the cost is OUTSIDE React (browser pipeline, third-party scripts). FPS flat but renders climbing suggests a render-storm bug. Network panel tells you if backend latency increased; if responses are fast but the page is sluggish, frontend owns the problem. Server traces (if you have OpenTelemetry) close the loop — if backend p95 is unchanged, it's frontend. The architect probes whether you can ARTICULATE the signal, not just 'I'd check the metrics.'",
+          },
+          {
+            q: "Retry storm — your frontend amplifies an outage. How do you mitigate WITHOUT a deploy?",
+            a: "(1) Feature-flag the retry-heavy code path to off. (2) If no flag: push an emergency CDN config that returns a 429 from the affected endpoint, forcing the client into max-backoff. (3) Telemetry-driven: have your error tracker tell the frontend 'origin is degraded' via a polled flag, gating client retries. The architect tests if you've thought about the kill-switch DESIGN beforehand — incident time is too late to add one.",
+          },
+          {
+            q: "Production incident — you ship a fix. How do you verify it worked?",
+            a: "Three layers. (1) Synthetic: a healthcheck route exercises the bug; if it passes, the fix is technically working. (2) RUM: the metric that flagged the incident (FPS, error rate, INP) returns to baseline. (3) Sample sessions: review actual user sessions in your replay tool (FullStory, LogRocket) post-fix; do they reproduce the bug? Only when all three are green do you mark resolved. The architect probes for the discipline of NOT calling resolution until prod metrics confirm.",
+          },
+          {
+            q: "After an incident, what's the postmortem hygiene?",
+            a: "(1) Timeline: minute-by-minute from detection to resolution, blameless. (2) Root cause: not 'a junior pushed a bad commit' — that's not a cause, it's a symptom. The cause is 'our CI didn't catch X' or 'we have no perf regression guard.' (3) Action items: a process change, an automated check, an alert that would have caught it. (4) Communicate: blast the postmortem widely so other teams benefit. The architect tests if you understand postmortems are LEARNING events, not blame events.",
+          },
+        ]}
+        pivots={[
+          { to: "Retry strategy (Module 18)", why: "Most frontend incidents involve retry behaviour." },
+          { to: "Observability (Module 22)", why: "Without RUM/traces you're blind during incidents." },
+          { to: "Feature flags + kill switches", why: "Senior incident response requires kill-switch design BEFORE the incident." },
+        ]}
+        dontSay={[
+          {
+            phrase: "I'd start by rolling back the deploy.",
+            why: "Sometimes right, sometimes wrong. The architect tests whether you validate the hypothesis FIRST. Rollbacks are a tool, not a reflex.",
+          },
+          {
+            phrase: "I'd add console.log and redeploy.",
+            why: "Adds risk during incidents. Use existing telemetry, sourcemapped errors, replay. New deploys during incidents are last-resort.",
+          },
+        ]}
+      />
 
       <Step n={4} kind="next" title="You finished the lab. Read it backwards.">
         <Callout tone="next" title="end of the journey">

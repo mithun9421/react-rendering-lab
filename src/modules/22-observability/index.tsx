@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 
 type Span = { id: number; name: string; start: number; dur: number; kind: "frontend" | "backend" };
 
@@ -87,6 +88,47 @@ observer.observe({ type: "measure", buffered: true });`}
           finish even after the page is gone.
         </p>
       </Step>
+
+      <ArchitectNotes
+        framing="Observability is the senior topic where 'I add console.log' and 'I instrument three signals against a budget' get sorted. The architect tests whether you can articulate sampling, sourcemaps, and the FE-BE trace bridge."
+        followUps={[
+          {
+            q: "What's the three-signals model for frontend observability?",
+            a: "(1) Metrics: numeric time-series — Web Vitals, custom timings, error rate, request count. Aggregable, cheap to store. (2) Logs: structured events — user action, error, warning. Searchable but expensive at volume. (3) Traces: per-request causal chains spanning frontend + backend — fetch X started here, backend processed for 200ms, response returned, frontend rendered in 30ms. Connected via traceparent header. Senior interviewers want all three named; juniors usually skip traces.",
+          },
+          {
+            q: "Walk me through the INP measurement strategy in production.",
+            a: "Subscribe to `PerformanceObserver({ type: 'event', buffered: true, durationThreshold: 16 })`. For each event entry, INP candidate = entry.duration. Track the LONGEST event across the session (or p98 if you have many). Send via `navigator.sendBeacon()` on visibilitychange/pagehide to your RUM endpoint with sessionId + url + INP value. Compare against the Web Vitals threshold (200ms good, 500ms poor). The architect may probe: 'why sendBeacon and not fetch?' Answer: navigation cancels fetch, sendBeacon survives.",
+          },
+          {
+            q: "Sourcemaps in production — host them, hide them, or destroy them?",
+            a: "Host them, with auth. Without sourcemaps, error reports show minified line:column — useless. Solution: upload sourcemaps to your error tracker (Sentry, Datadog) at deploy time so symbolication happens server-side; do NOT serve sourcemaps publicly (they expose your code). For Webpack/Vite/Turbopack: `sourcemap: 'hidden'` mode emits the file but doesn't reference it from the JS. The architect tests whether you've thought about the source-code-leak trade-off.",
+          },
+          {
+            q: "Distributed tracing — how does the trace bridge frontend → backend?",
+            a: "OpenTelemetry standard: generate a `traceparent` header `00-{traceId}-{spanId}-01`. The frontend's fetch call sends it. Backend reads it, opens a child span with that parent, executes, closes. Both spans land in your trace store (Datadog, Honeycomb, Tempo). UI shows them in one flame graph. For RSC, the server can generate the traceId before render so frontend SPANs inherit it. The architect may probe: 'what about Server Action latency?' Answer: same mechanism — Action's POST carries traceparent, the handler creates a span.",
+          },
+          {
+            q: "Real User Monitoring (RUM) vs synthetic — when each?",
+            a: "RUM samples real sessions, biased toward your actual user distribution (devices, locations, networks). Honest but noisy. Synthetic runs scripted journeys at fixed intervals from controlled environments — clean baselines, easy to compare PRs, but ignores real-world variability. Use both. RUM tells you what your USERS experience; synthetic tells you what CHANGED. Senior interviewers test if you can articulate the gap.",
+          },
+        ]}
+        pivots={[
+          { to: "Web Vitals (LCP, INP, CLS)", why: "Concrete metrics they'll probe." },
+          { to: "Error boundaries + onCaughtError", why: "Reporting layer integration." },
+          { to: "Session replay (FullStory, LogRocket)", why: "The architect may probe trade-offs vs privacy." },
+        ]}
+        dontSay={[
+          {
+            phrase: "We use Google Analytics for everything.",
+            why: "GA is a metric layer, not full observability. Missing traces, missing detailed errors, missing performance API integration. The architect wants to hear the full three-signals model.",
+          },
+          {
+            phrase: "INP is just FID renamed.",
+            why: "INP measures the LONGEST interaction in the session, not just the first. Different semantics, harder bar.",
+          },
+        ]}
+      />
 
       <Step n={7} kind="next" title="You can see the problems. Now you have to find the leaks.">
         <Callout tone="next" title="next bottleneck">

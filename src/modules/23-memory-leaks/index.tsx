@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TryIt } from "@/engine/TryIt";
 
 export default function Module23() {
@@ -97,6 +98,47 @@ function getCached(key, fn) {
           </li>
         </ol>
       </Step>
+
+      <ArchitectNotes
+        framing="Memory questions probe whether you can read a heap snapshot and name retention paths concretely — not just 'cleanups in useEffect.'"
+        followUps={[
+          {
+            q: "Walk me through the 3-snapshot heap technique.",
+            a: "(1) Take snapshot A at a baseline. (2) Perform the suspected leak action (open + close a modal 10 times, navigate between routes). (3) Take snapshot B. (4) Force GC (DevTools button). (5) Take snapshot C. (6) In DevTools, Compare C vs A — anything STILL there is retained across the action and survives GC. Filter by your component class names or 'Detached' to find DOM leaks. The architect tests if you've ACTUALLY done this; many seniors haven't.",
+          },
+          {
+            q: "Detached DOM nodes — what makes them stick around?",
+            a: "Something in JS holds a reference. The most common culprits: (1) Event listener registered to window/document, closure references the detached subtree. (2) Interval/timeout callback never cleared, closure pins the component. (3) An external library's subscription (websocket, IntersectionObserver) never unsubscribed. (4) React Query cache containing JSX from a closure. The architect may probe: 'how do you find which one?' Answer: in the heap snapshot, click the detached object → 'Retainers' panel shows the chain from GC root to the object. Walk it backwards.",
+          },
+          {
+            q: "How does StrictMode help find memory leaks?",
+            a: "It double-invokes effects in dev: mount → cleanup → mount again. If your cleanup doesn't reverse the mount (interval still running, listener still attached), the second mount adds ANOTHER interval/listener on top of the first. After repeated mounts, you'd see N intervals firing. StrictMode catches this in dev before it ships. Disabling StrictMode silences the symptom but ships the leak. The architect tests whether you've ever encountered the StrictMode 'why is my interval firing twice?' question.",
+          },
+          {
+            q: "When do you need WeakRef or FinalizationRegistry?",
+            a: "Rare in app code; common in library code that caches large objects. WeakRef holds a reference that doesn't prevent GC. FinalizationRegistry fires a callback when an object IS collected. Use cases: (1) A cache where entries should auto-evict when nothing else references them. (2) Debugging instrumentation: log when a component is collected (to verify cleanup worked). (3) Subscription patterns where you DON'T want the subscription to keep the subscriber alive. For most React app code, useEffect + return cleanup is the right tool; WeakRef is plumbing for library authors.",
+          },
+          {
+            q: "Production memory leak — you can't reproduce locally. How do you debug?",
+            a: "Three signals from RUM. (1) `performance.memory.usedJSHeapSize` sampled every 10 seconds, sent to RUM. Compare cohorts over time on the dashboard. (2) Page lifetime: median session duration before crash/reload. (3) Specific suspicions: instrument detached-DOM count (querySelectorAll on a known-leak suspect, check if its size grows unbounded). Bisect via deploys — when did the memory growth start? Often correlates with a specific commit. The architect may probe: 'do you ship feature flags for memory bisects?' Answer: yes, when reproduction is impossible locally, ship a flag that disables the suspect feature and watch memory metrics.",
+          },
+        ]}
+        pivots={[
+          { to: "Effect cleanups (F04)", why: "Most leaks trace to missing cleanups." },
+          { to: "Observability (Module 22)", why: "How you SEE the leak in prod." },
+          { to: "useSyncExternalStore subscription pattern", why: "External stores must clean up — a common leak class." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Just disable StrictMode in dev.",
+            why: "Hides leaks instead of fixing them. The architect interprets this as 'I don't write idempotent cleanups.'",
+          },
+          {
+            phrase: "JS has garbage collection so leaks don't matter.",
+            why: "GC reclaims unreachable memory. Leaks are about REACHABLE memory that you no longer need — GC can't help you there.",
+          },
+        ]}
+      />
 
       <Step n={6} kind="next" title="Leaks are accidental. Some bytes are hostile.">
         <Callout tone="next" title="next bottleneck">
