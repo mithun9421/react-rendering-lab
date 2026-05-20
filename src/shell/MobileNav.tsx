@@ -17,7 +17,9 @@ import { MODULES, FOUNDATIONS } from "@/modules/registry";
  */
 export function MobileTopBar({ onOpen }: { onOpen: () => void }) {
   const pathname = usePathname();
-  const current = MODULES.find((m) => pathname?.includes(m.slug));
+  const current =
+    MODULES.find((m) => pathname === `/lab/${m.slug}`) ??
+    FOUNDATIONS.find((m) => pathname === `/lab/${m.slug}`);
 
   return (
     <header className="glass sticky top-0 z-40 flex items-center gap-2 border-b border-bg-border px-3 py-2 lg:hidden">
@@ -112,12 +114,13 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
               <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">Foundations</p>
               <ul className="mb-3 space-y-0.5">
                 {FOUNDATIONS.map((m, i) => {
-                  const active = pathname?.includes(m.slug) ?? false;
+                  const active = pathname === `/lab/${m.slug}`;
                   return (
                     <li key={m.slug}>
                       <Link
                         href={`/lab/${m.slug}`}
                         onClick={onClose}
+                        aria-current={active ? "page" : undefined}
                         className={clsx(
                           "flex items-center gap-3 rounded-md px-2.5 py-3 text-sm",
                           active
@@ -125,8 +128,11 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
                             : "text-ink-muted active:bg-bg-elevated hover:bg-bg-elevated hover:text-ink"
                         )}
                       >
-                        <span className="w-8 font-mono text-[11px] text-ink-dim">F{String(i + 1).padStart(2, "0")}</span>
+                        <span className={clsx("w-8 font-mono text-[11px]", active ? "text-accent" : "text-ink-dim")}>
+                          F{String(i + 1).padStart(2, "0")}
+                        </span>
                         <span className="flex-1 truncate">{m.title}</span>
+                        {active && <span aria-hidden className="size-1.5 rounded-full bg-accent" />}
                       </Link>
                     </li>
                   );
@@ -135,12 +141,13 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
               <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">Core · 25 modules</p>
               <ul className="space-y-0.5">
                 {MODULES.map((m, i) => {
-                  const active = pathname?.includes(m.slug) ?? false;
+                  const active = pathname === `/lab/${m.slug}`;
                   return (
                     <li key={m.slug}>
                       <Link
                         href={`/lab/${m.slug}`}
                         onClick={onClose}
+                        aria-current={active ? "page" : undefined}
                         className={clsx(
                           "flex items-center gap-3 rounded-md px-2.5 py-3 text-sm",
                           active
@@ -148,8 +155,11 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
                             : "text-ink-muted active:bg-bg-elevated hover:bg-bg-elevated hover:text-ink"
                         )}
                       >
-                        <span className="w-8 font-mono text-[11px] text-ink-dim">{String(i + 1).padStart(2, "0")}</span>
+                        <span className={clsx("w-8 font-mono text-[11px]", active ? "text-accent" : "text-ink-dim")}>
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
                         <span className="flex-1 truncate">{m.title}</span>
+                        {active && <span aria-hidden className="size-1.5 rounded-full bg-accent" />}
                       </Link>
                     </li>
                   );
