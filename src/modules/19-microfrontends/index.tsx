@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TryIt } from "@/engine/TryIt";
 
 type Team = {
@@ -106,6 +107,47 @@ new ModuleFederationPlugin({
           </li>
         </ul>
       </Step>
+
+      <ArchitectNotes
+        framing="Microfrontends is the question where 'I worked at a small startup' and 'I worked at a 200-team org' answers diverge most. The architect wants to know if you can articulate WHY orgs reach for MFE and what governance it requires."
+        followUps={[
+          {
+            q: "What's the case for microfrontends? What's the case against?",
+            a: "For: team autonomy — independent deploys, independent versions, independent risk. At 5+ engineering teams shipping to the same surface, coordination tax exceeds runtime overhead. Against: complexity. Each team has to govern shared dependencies (React version, design system, auth tokens). Runtime contracts replace compile-time TypeScript. Version drift creates compatibility matrices. The rule: MFE is an ORG problem solved with TECH, not a TECH problem. Reach for it when team-level deploy autonomy is the actual constraint.",
+          },
+          {
+            q: "Module Federation — what does `singleton: true` do at runtime?",
+            a: "It tells the runtime: 'multiple remotes may import this package; ensure ONLY ONE instance exists.' At runtime, the first remote to load the package writes it to a shared registry. Subsequent remotes see the registry and reuse the existing instance. Without singleton, each remote gets its own copy of React (40KB×N), AND React's internals break — hooks bound to one React don't work with another React's reconciler. The architect may probe: 'what if singletons collide on version mismatch?' Answer: with strictVersion: true, runtime throws; without, runtime accepts the first version and silently shims (bad).",
+          },
+          {
+            q: "How do you ship a BREAKING change to a shared dependency across 8 teams?",
+            a: "Deprecation policy. (1) Announce: at version N, X is deprecated. (2) Bump to N+1 with X removed; mark MAJOR. (3) All consumers update at their own pace within the deprecation window (typically 3 months for non-critical, 6+ for foundational). (4) During the window, the host runtime supports BOTH versions side-by-side via Module Federation's version negotiation. (5) Drop legacy after window. The architect tests if you understand that breaking changes in MFE need TIME — they're not Tuesday-deploys, they're quarter-long migrations.",
+          },
+          {
+            q: "Runtime contract testing — what does it look like?",
+            a: "Each remote exposes a manifest declaring: what modules it exports, what versions of shared deps it requires, what props each module expects. CI in the HOST repo pulls latest remotes' manifests, type-checks the integration, runs an e2e suite against the integrated app. CI in the REMOTE repo type-checks against the host's expected interface (typically published as a TypeScript types package). Breaking a remote without updating the type package = CI red, can't deploy. The architect may probe: 'what tools?' Answer: @module-federation/typescript-plugin generates types from remote manifests, then host CI type-checks them.",
+          },
+          {
+            q: "When MFE is the wrong choice — give me a specific scenario.",
+            a: "A 4-person team building a single-app product. The supposed benefit (independent deploys) is meaningless — they coordinate every release anyway. The cost (runtime contract, shared dep governance, version-skew debugging) is real. A monorepo with package boundaries gives the same modularity for free. The architect cares about the threshold: MFE pays off at ~3+ teams with independent release schedules. Below that, it's premature.",
+          },
+        ]}
+        pivots={[
+          { to: "Bundle math (Module 20)", why: "Shared singletons directly affect bundle sizes." },
+          { to: "Org chart vs architecture", why: "Conway's law conversation usually follows." },
+          { to: "Hot-loading remotes in dev", why: "DX side of MFE — they may probe how teams iterate." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Microfrontends are the future.",
+            why: "They're a 5+-team solution. Calling them universal signals you've only worked at small companies (or read the marketing).",
+          },
+          {
+            phrase: "Use iframes instead.",
+            why: "Iframes give true isolation but kill UX (no shared design, no shared auth tokens, no easy intra-iframe routing). Reserve for partners (third-party widgets); not for first-party teams.",
+          },
+        ]}
+      />
 
       <Step n={6} kind="next" title="Boundaries set. Now the bundle itself.">
         <Callout tone="next" title="next bottleneck">

@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TryIt } from "@/engine/TryIt";
 
 type Req = {
@@ -95,6 +96,47 @@ export function dedupedFetch(url: string): Promise<Response> {
         </ul>
         <RetrySim />
       </Step>
+
+      <ArchitectNotes
+        framing="Network questions probe whether you understand the frontend as a CACHE + RETRY system, not just 'fetch and render.' Senior devs talk about queueing, dedup, and the load-amplifier risk."
+        followUps={[
+          {
+            q: "What's the difference between a request waterfall and a parallel fetch?",
+            a: "Waterfall: each request depends on the previous (often because the consumer renders nested — fetch user → render component → fetch user's orders → render component → fetch order items). N round-trips. Parallel: all requests fire at once, total time = max(rtt). 1 round-trip wall-clock. The cure is moving fetches OUT of nested rendering and into a parent that issues them in parallel (Promise.all). RSC makes this natural: all queries can `await` at the top of the page, in parallel, before any rendering reads them.",
+          },
+          {
+            q: "How does request deduplication actually work, and where does it live?",
+            a: "Two-layer model. (1) In-flight dedup: a Map of `url → Promise`. If the same URL is requested while one is in flight, return the existing Promise instead of starting a new fetch. Lives in your fetch wrapper or the data library (React Query, SWR, RSC's cache()). (2) Result cache: stored response keyed by URL + freshness metadata. SWR/RQ keep this; vanilla fetch doesn't. The architect may probe: 'what about clone()?' — if multiple readers consume the body, you must `.clone()` before each read or only one gets the response.",
+          },
+          {
+            q: "Walk me through a production retry policy that doesn't make the outage worse.",
+            a: "Four ingredients. (1) Exponential backoff: delay = baseDelay × 2^attempt. (2) Jitter: delay × (0.5 + Math.random()) — without it every client retries in lockstep, amplifying load. (3) Max retries cap (3-5 typical). (4) Circuit breaker: after K consecutive failures across a shared cache key, OPEN the circuit — short-circuit subsequent calls locally for N seconds before half-open retry. This is the difference between a frontend that AMPLIFIES outages and one that ABSORBS them. The 9000 req/sec retry storm in the Module 25 simulator is what no-jitter looks like in production.",
+          },
+          {
+            q: "Stale-while-revalidate (SWR) — when is it wrong?",
+            a: "Wrong when freshness is a correctness constraint, not a UX preference. Showing a stale stock price for 5 seconds while revalidating is fine; showing stale account balance after a transfer can cause real-money confusion. The rule: SWR for content that's eventually consistent and rarely critical; network-first for reads where staleness is dangerous (after-write reads, regulated views). React Query and SWR libraries let you configure per-query — use the granularity.",
+          },
+          {
+            q: "How do you design data fetching that survives a slow 3G connection?",
+            a: "Five tactics. (1) Lower the critical-path query count — bundle related data in one endpoint or use RSC's `await Promise.all`. (2) Use Suspense + streaming so the shell paints before the data lands. (3) Set per-route stale-while-revalidate so navigations are instant. (4) Show optimistic UI for mutations — the user doesn't wait on the wire. (5) Set realistic timeouts (3-5s) and degrade gracefully. The architect tests if you can recite this without sounding like a SWR brochure — talk about what you'd skip on slow 3G that you'd ship on fiber.",
+          },
+        ]}
+        pivots={[
+          { to: "Incident simulator retry storm (Module 25)", why: "Concrete failure case — they'll ask to walk you through it." },
+          { to: "RSC parallel fetching (Module 12)", why: "RSC bypasses the waterfall problem by lifting fetches." },
+          { to: "Edge caching + CDN", why: "Where does the dedup conceptually live — client, edge, or origin?" },
+        ]}
+        dontSay={[
+          {
+            phrase: "Add an exponential backoff and call it a day.",
+            why: "Backoff WITHOUT jitter is still a thundering herd. The architect wants to hear jitter, max-retries, and circuit-breaker as the full package.",
+          },
+          {
+            phrase: "React Query handles it for me.",
+            why: "It handles common cases. The architect tests if you UNDERSTAND what RQ is doing (dedup, cache, retry, refocus refetch), not just that you import it.",
+          },
+        ]}
+      />
 
       <Step n={6} kind="next" title="One app — solved. A hundred apps — the wall.">
         <Callout tone="next" title="next bottleneck">

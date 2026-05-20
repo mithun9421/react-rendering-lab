@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TryIt } from "@/engine/TryIt";
 import { ArchitectGate } from "@/engine/ArchitectGate";
 
@@ -79,6 +80,47 @@ items.forEach((el, i) => (el.style.height = heights[i] + 10 + "px"));`}
         </p>
         <LayerCount />
       </Step>
+
+      <ArchitectNotes
+        framing="The pipeline question probes whether you can name the four phases and predict which CSS properties trigger which. Senior devs can sketch a layout-thrashing scenario without prompting."
+        followUps={[
+          {
+            q: "Walk me through the four pipeline phases for `element.style.left = '20px'`.",
+            a: "(1) Style: recalc match (which rules apply to this element). Position changed in inline style, only this element is affected. (2) Layout: geometry needs recompute — this element's position changed, and any element whose position depends on it (siblings in document flow). Worst case for left: cascades through subsequent layout neighbors. (3) Paint: the moved element and any uncovered/newly-covered regions repaint. (4) Composite: GPU stitches the painted layers. Total cost: typically 5-15ms for moderate trees, much more if layout cascades. Contrast: `transform: translateX(20px)` skips (1), (2), (3) — only composite, ~0.5ms.",
+          },
+          {
+            q: "What is layout thrashing concretely?",
+            a: "JS that interleaves DOM reads (offsetHeight, getBoundingClientRect, scrollTop) with DOM writes (style changes, classList) in a loop. Each read forces the browser to flush pending layout — synchronously, immediately — to give you a correct number. Each write invalidates layout for the next read. A loop of N items doing read-then-write becomes O(N) forced reflows. The fix: batch reads first, batch writes after. Or use IntersectionObserver / ResizeObserver to be notified, never reading from a loop.",
+          },
+          {
+            q: "Composite layers — when do you promote, and what's the cost?",
+            a: "Promote when you'll animate or scroll the element frequently — `will-change: transform`, `transform: translateZ(0)` (the GPU-promotion hack), `position: fixed` (sometimes), `<video>` (auto). Each layer eats GPU memory (proportional to layer area × 4 bytes per pixel) and adds a compositor stitch step. On a phone, 30+ promoted layers tanks battery and can crash. Promote what you ANIMATE; don't promote everything 'just in case.' Chrome DevTools → Layers panel shows you the count and their size.",
+          },
+          {
+            q: "Why is `transform` faster than `top/left` for animations?",
+            a: "transform skips layout entirely. The browser only re-composites the layer the transformed element belongs to. top/left changes the element's position in document flow, which can cascade to siblings — layout recomputes for the whole branch. On a tree with 10,000 elements, transform animates in 1ms; top/left can take 50ms. The catch: transform doesn't push other elements around, which sometimes is what you want. Then layout cost is unavoidable.",
+          },
+          {
+            q: "How do you debug a slow render in DevTools — what specifically do you look at?",
+            a: "Performance tab → Record a session. Look at the Main thread track. Three signals: (1) Long yellow blocks (scripting) tell you which JS is running — drill into specific function names. (2) Purple blocks (style + layout) indicate layout thrashing or massive reflows — check for nested `forced reflow` warnings. (3) Green blocks (paint) means many regions are repainting; if those are large, check `will-change` or composite layers. The architect may probe further: 'how do you correlate to a specific component?' Answer: User Timing API marks (`performance.mark`) bridged via React's internal Profiler.",
+          },
+        ]}
+        pivots={[
+          { to: "Time slicing (Module 5)", why: "Frame budget belongs to the pipeline; expect to discuss interaction." },
+          { to: "Composite layer overuse", why: "Will-change abuse is a classic anti-pattern." },
+          { to: "INP / Web Vitals (Module 22)", why: "INP is dominated by the pipeline phases after JS." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Just add will-change to make it faster.",
+            why: "Overpromoting tanks memory + can REDUCE perf. The architect wants targeted promotion of actually-animated elements.",
+          },
+          {
+            phrase: "Use requestAnimationFrame to fix layout thrashing.",
+            why: "rAF doesn't change phase semantics. The fix is batching reads/writes, not switching scheduling.",
+          },
+        ]}
+      />
 
       <Step n={7} kind="next" title="The pipeline is fast — when the bytes arrive.">
         <Callout tone="next" title="next bottleneck">

@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TryIt } from "@/engine/TryIt";
 
 export default function Module21() {
@@ -94,6 +95,47 @@ export default function Module21() {
           </li>
         </ul>
       </Step>
+
+      <ArchitectNotes
+        framing="A11y questions probe whether you treat accessibility as architecture vs lint-rule compliance. Senior interviewers test for the AOM mental model and the focus-management patterns."
+        followUps={[
+          {
+            q: "What's the difference between the DOM and the Accessibility Object Model (AOM)?",
+            a: "DOM is what JS manipulates. AOM is what assistive tech (screen readers, switch devices, voice control) READS — a parallel tree built by the browser from your DOM + ARIA + semantic tags. Each node has role + name + state + value. A `<div onClick>` has DOM presence but NO accessibility node (no role) — invisible to AT. A `<button>` has role='button', name='Save', state='enabled' — fully described. The architect tests if you can name three things AOM exposes that DOM doesn't (roles, names, states).",
+          },
+          {
+            q: "Focus management when a modal opens — walk me through the contract.",
+            a: "(1) Remember the trigger element so focus can return on close. (2) Move focus into the dialog (usually the first interactive or the dialog itself). (3) Trap focus inside the dialog: tab from last → first, shift-tab from first → last, intercept escape. (4) Apply `inert` to the rest of the page so AT doesn't traverse into hidden content. (5) On close, restore focus to the trigger. Skip any of these and a keyboard user is stranded — either focus escapes behind the overlay, or it returns to the wrong place. The architect may ask: 'how does React 19's inert prop affect this?' Answer: React supports the `inert` boolean prop natively now; you mark the rest-of-page tree with `<div inert>` to apply AT exclusion.",
+          },
+          {
+            q: "How do you announce async state to screen readers?",
+            a: "Live regions. `aria-live='polite'` for non-urgent updates ('Saved', 'Loading complete'). `aria-live='assertive'` (or `role='alert'`) for urgent ('Error', 'Time expiring'). The region must EXIST before the content changes — AT watches it for mutations. Common bug: people create the live region with the content already in it, then update it — AT doesn't announce because there was no MUTATION. The architect tests: 'what's wrong with assertive toasts?' Answer: assertive interrupts current speech; for non-critical toasts (success), use polite or no announcement.",
+          },
+          {
+            q: "Virtualised lists are widely-known a11y disasters. How do you fix one?",
+            a: "Three properties on the scroller. (1) `role='grid'` or `role='list'`. (2) `aria-rowcount={total}` — the FULL count, not the rendered count. (3) Per row: `aria-rowindex={position + 1}` (1-indexed in WAI-ARIA). Now AT announces 'item 50 of 10,000' correctly. The next problem: screen readers walk DOM, can't reach off-window rows. The fix is a complement, not a workaround — provide in-app search/filter UI. Cmd+F users miss content; in-app filter doesn't.",
+          },
+          {
+            q: "How do you test for keyboard accessibility — what's your workflow?",
+            a: "(1) Unplug the mouse. Navigate the page with Tab, Shift+Tab, Enter, Space, Esc, Arrow keys. (2) Verify visible focus indicator on every interactive element (focus-visible CSS). (3) Confirm focus order is left-to-right, top-to-bottom — `tabindex` should be 0 or unset, not positive. (4) Confirm focus traps on modals (described above). (5) Confirm escape closes overlays. The architect may probe: 'how do you automate this?' Answer: axe-core + @testing-library/react + jest-dom — interaction tests assert focus moves correctly.",
+          },
+        ]}
+        pivots={[
+          { to: "Portals + focus restoration", why: "Modals are the canonical focus-management example." },
+          { to: "Virtualisation a11y (Module 10)", why: "Aria-rowindex pattern." },
+          { to: "Form labels + error messages", why: "Common follow-up for forms-heavy products." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Lighthouse a11y score is 100, so we're good.",
+            why: "Lighthouse catches mechanical issues (missing alt, contrast). Real a11y bugs (focus traps, keyboard nav, screen-reader UX) require manual testing. The architect tests if you've ever USED a screen reader.",
+          },
+          {
+            phrase: "Just add ARIA roles.",
+            why: "The first rule of ARIA is don't use ARIA — use semantic HTML. ARIA fills gaps where semantic markup can't (custom widgets); using it as a substitute is wrong.",
+          },
+        ]}
+      />
 
       <Step n={7} kind="next" title="UX shipped to everyone. But how do you know it stays that way?">
         <Callout tone="next" title="next bottleneck">
