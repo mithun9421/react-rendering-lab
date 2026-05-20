@@ -3,6 +3,7 @@
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { PprDiagram } from "@/viz/PprDiagram";
 
 export default function Module15() {
@@ -100,6 +101,47 @@ export default function Module15() {
           </li>
         </ul>
       </Step>
+
+      <ArchitectNotes
+        framing="PPR is the convergence of streaming SSR + ISR + edge caching. The architect tests whether you understand the trade-offs against the simpler alternatives (full SSR, pure SSG)."
+        followUps={[
+          {
+            q: "Walk me through what happens on a PPR request, edge to origin.",
+            a: "(1) Request hits the edge CDN. (2) CDN serves the prerendered shell from cache — TTFB ~30ms. The shell is HTML with fallback skeletons for dynamic sections. (3) In parallel (kicked off by the same edge function or via a separate origin hit), origin renders the dynamic Suspense boundaries. (4) Origin streams the dynamic chunks back through the edge to the browser. (5) Browser receives the chunks, the inline runtime swaps fallbacks for real content. Net: 30ms TTFB + 500ms dynamic = 530ms full load, but LCP anchored to the 30ms shell paint.",
+          },
+          {
+            q: "What forces a Suspense boundary to be 'dynamic' in PPR?",
+            a: "Reading per-request data: `cookies()`, `headers()`, `searchParams`. Calling `noStore()` / `unstable_noStore()`. `fetch()` with `cache: 'no-store'` or `next.revalidate: 0`. Any of these inside a Suspense boundary marks it dynamic — it won't be prerendered. The architect may probe: 'what if you read cookies at the page level?' Answer: bad — the whole page becomes dynamic; nothing prerenders. Push cookie reads to the deepest Suspense boundary possible.",
+          },
+          {
+            q: "When is PPR the wrong answer?",
+            a: "(1) The whole page is user-specific — pure SSR is simpler. (2) The whole page is content-only with infrequent updates — pure SSG / ISR is simpler. PPR pays off when the page is MOSTLY static with a small dynamic strip (greeting, cart count, live price). Forcing PPR on a fully-static page just adds complexity. Forcing it on a fully-dynamic page yields a tiny prerendered shell. Match the tool to the data shape.",
+          },
+          {
+            q: "How does revalidation work in PPR?",
+            a: "Two revalidation flavors. (1) Path-based: `revalidatePath('/products/[id]')` from a Server Action busts the prerendered shell cache. Next regeneration fetches fresh data, rerenders the static part, re-caches. (2) Tag-based: `revalidateTag('products')` busts all caches tagged 'products'. Tag your fetch calls (`fetch(url, { next: { tags: ['products'] } })`) and the next request gets a fresh shell. Dynamic Suspense boundaries DON'T need invalidation — they re-fetch per request anyway.",
+          },
+          {
+            q: "PPR vs Edge SSR — when each?",
+            a: "Edge SSR renders the WHOLE page per request, at the edge. Fast (close to user), but each request pays the full render cost. PPR pre-renders the static parts ONCE at build time, serves them from CDN, only the dynamic strip pays per-request cost. PPR wins when the static parts are expensive to render (large content sections, complex layouts); Edge SSR wins when everything's tiny but personalised. For content-heavy + small-personalised pages (most consumer apps), PPR is the better trade.",
+          },
+        ]}
+        pivots={[
+          { to: "Streaming SSR (Module 7)", why: "PPR uses the same streaming primitive; expect to discuss the mechanism." },
+          { to: "Edge runtimes", why: "Senior interviewers probe whether you understand edge constraints." },
+          { to: "Cache invalidation strategies", why: "revalidatePath + revalidateTag are the answer to 'how do you ship a fix?'" },
+        ]}
+        dontSay={[
+          {
+            phrase: "PPR is the same as SSG with hydration.",
+            why: "SSG hydrates the whole page client-side; PPR streams dynamic chunks server-side. Different mechanism, different cost model.",
+          },
+          {
+            phrase: "Always use PPR.",
+            why: "It's overhead for fully-static or fully-dynamic pages. Match to the data shape.",
+          },
+        ]}
+      />
 
       <Step n={7} kind="next" title="The lab's loop closes here">
         <Callout tone="next" title="back to the beginning">
