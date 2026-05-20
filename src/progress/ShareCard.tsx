@@ -7,12 +7,20 @@ import { useProgress, levelOf, computeStreak } from "./store";
 /**
  * Generates a shareable progress card and surfaces the share + copy actions.
  *
- * The OG image is rendered by /api/og/card with stats as query params, so the
- * card is up-to-date the moment the user opens the share dialog. Twitter +
- * LinkedIn intent URLs preview the image automatically.
+ * Two URL forms here on purpose:
+ *   - `cardPath`  — relative path (`/api/og/card?...`). Used for the inline
+ *                   <img> preview so it always loads from the SAME origin
+ *                   the user is on (works locally, in preview deploys, and
+ *                   in production without depending on NEXT_PUBLIC_SITE_URL
+ *                   pointing at the right place).
+ *   - `cardAbs`   — absolute URL using the current origin in the browser
+ *                   (or NEXT_PUBLIC_SITE_URL as a server-side fallback).
+ *                   Used for the social share intent URLs because external
+ *                   crawlers (Twitter, LinkedIn) need a fully-qualified URL.
  */
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://react-rendering-lab.vercel.app";
+const FALLBACK_SITE =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://react-rendering-lab.vercel.app";
 
 export function ShareCard() {
   const completedLessons = useProgress((s) => s.completedLessons);
@@ -25,24 +33,35 @@ export function ShareCard() {
   const streak = computeStreak(visits);
   const lessons = Object.keys(completedLessons).length;
 
-  // Build OG card URL with stats as params
-  const cardUrl = new URL(`${SITE}/api/og/card`);
-  cardUrl.searchParams.set("level", String(level));
-  cardUrl.searchParams.set("xp", String(xp));
-  cardUrl.searchParams.set("streak", String(streak));
-  cardUrl.searchParams.set("lessons", String(lessons));
-  cardUrl.searchParams.set("track", "React Rendering Lab");
+  const params = new URLSearchParams({
+    level: String(level),
+    xp: String(xp),
+    streak: String(streak),
+    lessons: String(lessons),
+    track: "React Rendering Lab",
+  });
+
+  // Relative path: always works against the current origin.
+  const cardPath = `/api/og/card?${params.toString()}`;
+  // Absolute URL: uses window.location in the browser, falls back to env at
+  // SSR-time (which is fine because ShareCard only renders meaningfully on the
+  // client — hydrated check below).
+  const origin = typeof window !== "undefined" ? window.location.origin : FALLBACK_SITE;
+  const cardAbs = `${origin}${cardPath}`;
+  const siteAbs = origin;
 
   const shareText = `I'm at Level ${level} on React Rendering Lab — ${lessons}/36 lessons, ${streak}-day streak. Free interactive course covering React rendering, hydration, server components, and on-call incident response.`;
 
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     shareText
-  )}&url=${encodeURIComponent(SITE)}`;
-  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SITE)}`;
+  )}&url=${encodeURIComponent(siteAbs)}`;
+  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(siteAbs)}`;
+
+  const [imgError, setImgError] = useState(false);
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(`${shareText}\n${SITE}`);
+      await navigator.clipboard.writeText(`${shareText}\n${siteAbs}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -67,15 +86,30 @@ export function ShareCard() {
       </header>
 
       {/* Card preview */}
-      <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-elevated">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={cardUrl.toString()}
-          alt="Your React Rendering Lab progress card"
-          loading="lazy"
-          className="block w-full"
-          style={{ aspectRatio: "1200 / 630" }}
-        />
+      <div
+        className="relative overflow-hidden rounded-lg border border-bg-border bg-bg-elevated"
+        style={{ aspectRatio: "1200 / 630" }}
+      >
+        {!imgError ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={cardPath}
+            alt="Your React Rendering Lab progress card"
+            loading="lazy"
+            onError={() => setImgError(true)}
+            className="block h-full w-full"
+          />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
+            <p className="font-mono text-[11px] uppercase tracking-widest text-accent-warn">
+              preview unavailable
+            </p>
+            <p className="text-xs text-ink-muted">
+              The share buttons below still work — the image is generated server-side when X /
+              LinkedIn / your download fetches it.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -105,7 +139,7 @@ export function ShareCard() {
           {copied ? "✓ copied" : "⎘ copy text + link"}
         </button>
         <a
-          href={cardUrl.toString()}
+          href={cardAbs}
           download="react-rendering-lab-progress.png"
           className="rounded-md border border-bg-border bg-bg-panel px-3 py-1.5 font-mono text-[11px] text-ink-muted hover:text-ink"
         >
