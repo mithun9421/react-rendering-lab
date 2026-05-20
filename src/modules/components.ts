@@ -6,6 +6,10 @@ import F04Effects from "./f04-effects";
 import F05Events from "./f05-events";
 import F06Rendering from "./f06-rendering";
 import F07Forms from "./f07-forms";
+import F08Refs from "./f08-refs";
+import F09Context from "./f09-context";
+import F10CustomHooks from "./f10-custom-hooks";
+import F11Rules from "./f11-rules";
 import Module01 from "./01-reconciliation";
 import Module02 from "./02-diffing";
 import Module03 from "./03-fiber";
@@ -41,6 +45,10 @@ export const MODULE_COMPONENTS: Record<string, ComponentType> = {
   "f05-events": F05Events,
   "f06-rendering": F06Rendering,
   "f07-forms": F07Forms,
+  "f08-refs": F08Refs,
+  "f09-context": F09Context,
+  "f10-custom-hooks": F10CustomHooks,
+  "f11-rules": F11Rules,
   // Core
   "01-reconciliation": Module01,
   "02-diffing": Module02,
