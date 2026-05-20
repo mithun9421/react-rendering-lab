@@ -5,6 +5,7 @@ import { CookieConsent } from "@/legal/CookieConsent";
 import { RouteProgress } from "@/shell/RouteProgress";
 import { ProgressBoot } from "@/progress/ProgressBoot";
 import { AchievementToast } from "@/progress/AchievementToast";
+import { EntitlementBoot } from "@/entitlement/EntitlementBoot";
 
 export const metadata: Metadata = {
   title: "React Rendering Lab",
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-bg text-ink antialiased">
         <ProgressBoot />
+        <EntitlementBoot />
         <RouteProgress />
         {children}
         <AchievementToast />

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import clsx from "clsx";
+import { useEntitlement } from "@/entitlement/store";
 
 /**
  * Google AdSense ad slot.
@@ -40,6 +41,10 @@ export function AdSlot({ slotId, format = "fluid", layoutKey, className, minHeig
   const ref = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
   const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+  // Pro/Team users never see ads. Read from the entitlement store; before
+  // hydration we conservatively render the ad (free is the default).
+  const tier = useEntitlement((s) => s.tier);
+  const isPro = tier === "pro" || tier === "team";
 
   useEffect(() => {
     if (!client) return;
@@ -58,6 +63,7 @@ export function AdSlot({ slotId, format = "fluid", layoutKey, className, minHeig
 
   // No client ID → render nothing. Keeps dev preview clean.
   if (!client) return null;
+  if (isPro) return null;
 
   return (
     <div className={clsx("ad-slot relative w-full", className)} style={{ minHeight }} aria-hidden>

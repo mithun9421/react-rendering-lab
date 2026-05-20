@@ -131,6 +131,25 @@ export default function LabHub() {
           />
         </div>
 
+        <Link
+          href="/lab/daily"
+          className="mt-6 block rounded-xl border border-accent-warn/30 bg-accent-warn/5 p-4 transition hover:border-accent-warn/60"
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-accent-warn">
+              ◐ daily challenge · refresh midnight UTC
+            </span>
+            <span aria-hidden className="font-mono text-accent-warn">▸</span>
+          </div>
+          <h3 className="mt-2 text-sm font-medium text-ink">
+            One curated question per day · don&apos;t break the streak
+          </h3>
+          <p className="mt-1 text-[11px] text-ink-muted">
+            Same question for everyone. Correct answers count toward the &quot;Interview-ready&quot;
+            achievement and your daily streak.
+          </p>
+        </Link>
+
         <p className="mt-8 font-mono text-[11px] text-ink-dim">
           Knowledge checks are sprinkled inside the lessons themselves. Look for the{" "}
           <span className="rounded bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] text-accent">▦ quick check</span>{" "}

@@ -23,6 +23,9 @@ export function SiteFooter() {
           </a>
         </span>
         <nav className="flex flex-wrap gap-3">
+          <Link href="/pricing" className="hover:text-ink">
+            Pricing
+          </Link>
           <Link href="/about" className="hover:text-ink">
             About
           </Link>

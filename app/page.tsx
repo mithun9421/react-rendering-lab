@@ -44,10 +44,13 @@ function NavBar() {
         <Link href="/lab/journey" className="text-ink-muted hover:text-ink">
           Journey
         </Link>
+        <Link href="/pricing" className="text-ink-muted hover:text-ink">
+          Pricing
+        </Link>
         <a href="https://github.com/mithun9421/react-rendering-lab" target="_blank" rel="noreferrer" className="text-ink-muted hover:text-ink">
           GitHub
         </a>
-        <span className="pill">v0.7 · alpha</span>
+        <span className="pill">v0.9 · alpha</span>
         <PendingLink
           href="/lab/01-reconciliation"
           className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white shadow-glass active:scale-95 hover:brightness-110"
