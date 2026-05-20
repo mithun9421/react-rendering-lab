@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TryIt } from "@/engine/TryIt";
 
 export default function Module08() {
@@ -98,6 +99,47 @@ const b = await getUser(42);  // returns the cached result`}
 });`}
         </pre>
       </Step>
+
+      <ArchitectNotes
+        framing="Suspense is the only React primitive that's both a rendering mechanism AND a UX pattern. The architect tests if you can talk about both — the throw-a-promise mechanism, and the boundary-placement design."
+        followUps={[
+          {
+            q: "How does Suspense actually work? What does 'a component suspends' mean?",
+            a: "It THROWS a Promise. Literally — when use(promise) sees an unresolved promise, it throws it as if it were an exception. React's renderer is wrapped in a try/catch that catches Promises specifically. On catch, React: (a) records which Suspense boundary is the closest ancestor, (b) renders the boundary's fallback, (c) calls .then() on the promise, (d) re-renders the boundary when the promise resolves. It's the same control-flow trick error boundaries use — throwing as escape, with separate catch behaviour for Promises vs errors.",
+          },
+          {
+            q: "When do you put a Suspense boundary, and how do you choose granularity?",
+            a: "Three principles. (1) Granularity matches 'units that load together' — a profile card with avatar + name + bio loads as one unit, not three. (2) Above critical-path components for fast TTFB on slow data — wrap the slow widget in its own boundary so the rest renders. (3) BELOW navigation — the route shouldn't suspend on data; the page should. The architect wants to hear about user-facing design, not just throw-a-promise.",
+          },
+          {
+            q: "What's the difference between Suspense and a manual loading state?",
+            a: "Suspense COMPOSES across boundaries. A boundary catches any descendant's suspension. With manual `isLoading` state, every async component manages its own UI; you can't coordinate. Suspense ALSO interacts with transitions (keeps previous content visible during navigation), with streaming (each boundary is a flush point), and with selective hydration (each boundary is a hydration unit). Manual state gives you none of that. The architect cares: 'why is Suspense fundamentally different from a useState(isLoading)?' Composability across the system.",
+          },
+          {
+            q: "How does `cache()` interact with Suspense?",
+            a: "cache() de-duplicates the promise so multiple components reading the same key share one fetch. Without cache(): two siblings calling getUser(42) fire two requests, both suspend, the boundary waits for both. With cache(): one fetch, both siblings receive the same promise, the boundary waits once. Critical for Server Components where data is fetched per-component but you want to avoid N×duplicate queries. The architect may follow up: 'when does cache() NOT help?' — when calls happen across requests (cache is request-scoped).",
+          },
+          {
+            q: "Suspense fallback shows for 50ms then real content arrives — the user sees a flicker. How do you fix it?",
+            a: "Two options. (1) Wrap the navigation in startTransition — React shows the OLD content for up to ~500ms while the new tree loads, only swaps to fallback if it takes longer. The user sees a smooth swap. (2) Use a min-display-time pattern where the fallback uses CSS transitions to fade in/out, smoothing the swap. Pick (1) when the boundary represents a route change; pick (2) when it's a data refresh.",
+          },
+        ]}
+        pivots={[
+          { to: "Streaming SSR (Module 7)", why: "Suspense is what streaming flushes around." },
+          { to: "Error boundaries", why: "Same throw-as-escape mechanism, different catch behaviour." },
+          { to: "Transitions + Suspense", why: "Most senior questions land here — the interplay is the answer." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Suspense is just for loading states.",
+            why: "Loading states are the consumer surface. The mechanism (throw-a-promise + boundary catch) does much more — drives streaming, drives selective hydration, drives RSC.",
+          },
+          {
+            phrase: "Don't nest Suspense boundaries.",
+            why: "Nesting is intentional. The architect will probe whether you understand the nested-boundary semantics — innermost catches first.",
+          },
+        ]}
+      />
 
       <Step n={7} kind="next" title="Async sorted out. Now: hydration cost.">
         <Callout tone="next" title="next bottleneck">

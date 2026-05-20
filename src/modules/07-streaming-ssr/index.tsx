@@ -3,6 +3,7 @@
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { StreamChunks } from "@/viz/StreamChunks";
 import { RealStreamChunks } from "@/viz/RealStreamChunks";
 
@@ -116,6 +117,47 @@ export default function Module07() {
           fetch in parallel with the data fetch the boundary is waiting on.
         </p>
       </Step>
+
+      <ArchitectNotes
+        framing="Streaming SSR is the React 18+ moneyshot — the architect wants you to articulate the FLUSH model: shell first, boundaries later, all over the same response."
+        followUps={[
+          {
+            q: "How does renderToReadableStream differ from renderToString?",
+            a: "renderToString is sync — it walks the tree, produces ALL the HTML, returns it. If your tree has any await (data fetching, Suspense), it blocks. renderToReadableStream is async — it returns a stream that emits the shell immediately and additional chunks as Suspense boundaries resolve. The transport is HTTP chunked transfer-encoding; the renderer flushes whenever a boundary's data lands. The user paints the shell at ~30ms TTFB while the boundary chunks arrive over the next second.",
+          },
+          {
+            q: "What controls WHEN a chunk gets flushed?",
+            a: "Two events. (1) The shell is flushed as soon as the top-level render reaches the first Suspense boundary that can't yet resolve. Everything ABOVE that boundary is in the shell. (2) Each subsequent flush happens when a Suspense boundary's data lands (its async function resolves). React serialises the boundary's content + an inline `<script>` that swaps the fallback for the real HTML. The browser parses these scripts as they arrive; no full-page rerender, just in-place DOM patches.",
+          },
+          {
+            q: "How does selective hydration interact with streaming?",
+            a: "Selective hydration prioritises hydration based on user interaction, not source order. A streaming SSR response arrives chunks in source order (shell → top → bottom). Once chunks reach the client, hydration walks in document order BUT if the user clicks an element in a not-yet-hydrated chunk, React preempts and hydrates that subtree first. The architect cares: streaming controls when HTML arrives; selective hydration controls when JS attaches. Both run concurrently.",
+          },
+          {
+            q: "What does the Suspense boundary's fallback do during streaming?",
+            a: "Renders to HTML and sits there until the real content arrives via a later chunk. The fallback's HTML is in the shell. When the boundary's data resolves, React emits a chunk like `<template id='B:1'>...</template><script>$RC('S:1','B:1')</script>` — a hidden template with the real content, then a runtime call to replace the fallback's DOM with the template's children. The substitution is DOM-level, not a re-render. The architect may probe: 'what if the boundary errors?' Answer: error boundary kicks in, fallback's content stays.",
+          },
+          {
+            q: "What's the cost of having too many Suspense boundaries?",
+            a: "Each boundary is a flush point — overhead on the renderer + extra inline runtime calls on the client. For 200 Suspense boundaries on a page, you'll see network bytes from the runtime swap scripts compound to noticeable KB. Coarser boundaries (one per major section, not one per row) is the right granularity. The architect tests whether you've designed boundaries around 'units that fail or load together,' not 'every component.'",
+          },
+        ]}
+        pivots={[
+          { to: "Suspense architecture (Module 8)", why: "Streaming + Suspense are inseparable; expect to discuss boundary placement." },
+          { to: "Server Components (Module 12)", why: "RSC uses the same streaming primitives — discuss the wire format overlap." },
+          { to: "Partial Prerendering (Module 15)", why: "PPR = streaming + ISR; senior interviewers may probe the connection." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Streaming SSR is the same as Server Components.",
+            why: "Streaming SSR is HTML transport; RSC is a wire format AND a rendering model. They share primitives but solve different problems.",
+          },
+          {
+            phrase: "Streaming makes everything faster.",
+            why: "Streaming makes TTFB and FCP faster — sometimes at the cost of TTI (total interactive time). The trade is perception vs absolute; the architect wants to hear the trade-off, not the marketing line.",
+          },
+        ]}
+      />
 
       <Step n={7} kind="next" title="You shipped chunks. But waterfalls live in your tree.">
         <Callout tone="next" title="next bottleneck">

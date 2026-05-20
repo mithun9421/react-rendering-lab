@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TimeSlicingDemo } from "@/viz/FrameBudget";
 
 export default function Module05() {
@@ -64,6 +65,47 @@ export default function Module05() {
           </li>
         </ul>
       </Step>
+
+      <ArchitectNotes
+        framing="They're checking whether you understand the frame budget concretely (16.67ms ≈ 60fps; 8.33ms ≈ 120fps on modern devices) and can name specific techniques to respect it."
+        followUps={[
+          {
+            q: "What's the actual budget for JS work in a 60fps frame?",
+            a: "The frame budget is 16.67ms total, but JS doesn't get all of it. Subtract style recalc, layout, paint, composite — usually ~6-8ms on a mid-tier device. So your JS budget is roughly 8-10ms per frame for smooth interaction. The longtask threshold (50ms) is way above that — by the time you're flagged, you've already missed 3+ frames. The architect wants concreteness: 'I aim for ≤8ms of JS per frame.'",
+          },
+          {
+            q: "How would you slice a 200ms sync computation without breaking it?",
+            a: "Three options. (1) `scheduler.postTask({ priority: 'user-visible' })` with a generator pattern — yield every ~5ms. (2) requestIdleCallback for non-critical work — let the browser pick when. (3) Move to a Web Worker if the work is genuinely parallel-safe (no DOM access). The choice depends on whether the work is single-shot or recurring, and whether it has DOM dependencies. For most React work, the answer is option 1 — postTask gives priority + cancellability.",
+          },
+          {
+            q: "Why does requestAnimationFrame block input?",
+            a: "rAF callbacks run in the 'animation frame callback' phase, before layout, before paint. If your rAF callback takes 30ms, the next frame can't paint until you're done. The user's click can't be processed until the rendering pipeline catches up. requestAnimationFrame is for visual updates timed to refresh; it's not a 'run this when idle' primitive. For idle work, use idleCallback or postTask with low priority.",
+          },
+          {
+            q: "How is React's scheduler different from `setTimeout(fn, 0)`?",
+            a: "setTimeout has a minimum delay (~4ms in many browsers due to throttling rules), runs at task priority (lower than microtask), and doesn't compose. React's scheduler uses MessageChannel internally for the same 'next macrotask' effect but with no delay floor. It also tracks per-task priorities (5 lanes) and supports cancellation. The architect may probe: 'why MessageChannel and not postTask?' Answer: postTask isn't universally supported; MessageChannel is the compatibility floor.",
+          },
+          {
+            q: "How do you measure long tasks in production?",
+            a: "PerformanceObserver with `type: 'longtask'`. Subscribe at app boot, log entries with duration + attribution to your RUM endpoint. The architect will follow up: 'what's a good budget?' Answer: alert at >50ms (the spec's longtask threshold), investigate at >100ms, page-on-call at >250ms. Trends matter more than individual events — a sustained 200ms p95 is way worse than occasional spikes.",
+          },
+        ]}
+        pivots={[
+          { to: "Concurrent rendering (Module 4)", why: "Time slicing is what makes concurrent rendering meaningful." },
+          { to: "Web Workers + OffscreenCanvas", why: "When time slicing isn't enough, parallelism is the next step." },
+          { to: "Real Web Vitals (Module 22)", why: "INP (Interaction to Next Paint) is the new Core Web Vital that long tasks blow." },
+        ]}
+        dontSay={[
+          {
+            phrase: "Just use setTimeout to make it async.",
+            why: "setTimeout doesn't 'make it async' — it schedules at task priority with a floor delay. The work still runs synchronously when its turn comes. Use scheduler.postTask or generator-yielding.",
+          },
+          {
+            phrase: "React handles time slicing automatically.",
+            why: "React time-slices BETWEEN fibers when in concurrent mode. Inside a single component's function body, you're on your own.",
+          },
+        ]}
+      />
 
       <Step n={6} kind="next" title="Client work isn't the problem if the page didn't paint yet">
         <Callout tone="next" title="next bottleneck">

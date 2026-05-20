@@ -3,6 +3,7 @@
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { DiffTree, type DiffNode } from "@/viz/DiffTree";
 import { TryIt } from "@/engine/TryIt";
 
@@ -116,6 +117,43 @@ export default function Module02() {
           when <code>points</code> changes — instead of tearing down the DOM node on every update.
         </p>
       </Step>
+
+      <ArchitectNotes
+        framing="They're checking whether you can explain WHY React's diff is O(n) without describing it as 'just compare two trees.' The answer hinges on the two heuristics and what breaks when you violate them."
+        followUps={[
+          {
+            q: "Why is React's diff algorithm O(n) and not O(n³)?",
+            a: "General tree-edit distance is O(n³). React skips it by making two assumptions: (1) two elements of different types produce different trees — so if the type changes, React tears down the subtree and rebuilds; no comparison needed. (2) Children of the same type can be matched by `key` — you provide the moves, React doesn't have to search for them. With both assumptions, every node is visited once and matched in constant time per visit. O(n).",
+          },
+          {
+            q: "What breaks if I wrap a component in a conditional that changes the wrapper type?",
+            a: "Full subtree teardown. `{isOpen ? <section><Inner/></section> : <Inner/>}` switches the root element type between `<section>` and `<Inner>`. React's same-type heuristic says 'different types → different trees,' so the entire subtree under `<Inner>` is destroyed and remounted. Internal state (focus, scroll position, in-place edit flags) is lost. The fix: keep the wrapper type stable, toggle a className or data attribute instead.",
+          },
+          {
+            q: "Custom Elements have specific diff behaviour in React 19. What changed?",
+            a: "React used to set everything as an attribute via setAttribute. That worked for HTML built-ins but broke Custom Elements' property setters — passing `data={array}` would stringify. React 19 inspects each element's property descriptors and uses property assignment when available, attribute setting when not. The diff implication: a `<my-chart data={points}/>` element now reuses the same DOM node when `points` changes — instead of treating it as a 'different element' on every update. Diff stays O(n); each update is just cheaper.",
+          },
+          {
+            q: "When does the same-type heuristic mislead you?",
+            a: "When you have two semantically-different components that happen to share a type. Two `<Card>` elements at different positions look identical to React's diff — same type, reuse the fiber. If one Card represents a 'user profile' and another a 'product summary,' their internal state could mistakenly migrate. The fix: distinct keys (`key='user'` vs `key='product'`) or distinct component types. Most cases are caught naturally by parent context; the bug bites with dynamic component types.",
+          },
+        ]}
+        pivots={[
+          { to: "Reconciliation keys (Module 1)", why: "The key heuristic is half of why diff is O(n)." },
+          { to: "Fiber alternate trees (Module 3)", why: "Diff produces the alternate; commit applies it." },
+          { to: "Custom Elements", why: "Brief React 19 callback that senior devs probe for currency." },
+        ]}
+        dontSay={[
+          {
+            phrase: "React uses Myers' diff or any specific diff algorithm.",
+            why: "React's diff is custom — not Myers, not LCS. It's a tree-walk with two heuristics. Naming a specific algorithm signals you read a 2015 blog post.",
+          },
+          {
+            phrase: "The diff is what makes React fast.",
+            why: "The diff is part of the story. Fibers, lanes, scheduling, and Compiler are the rest. Senior interviewers want to hear the full mechanism, not 'diff = fast.'",
+          },
+        ]}
+      />
 
       <Step n={6} kind="next" title="Diffing is cheap. Commit isn't.">
         <Callout tone="next" title="next bottleneck">

@@ -4,6 +4,7 @@ import { useDeferredValue, useMemo, useState, useTransition } from "react";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
+import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TryIt } from "@/engine/TryIt";
 import { MetricsPanel } from "@/engine/MetricsPanel";
 import { SchedulerQueue } from "@/viz/SchedulerQueue";
@@ -98,6 +99,47 @@ export default function Module04() {
           stale.&quot; Everything else is a different tool.
         </p>
       </Step>
+
+      <ArchitectNotes
+        framing="The architect wants to see whether you can articulate the difference between rendering priority (lanes/transitions) and rendering interruption (fiber yielding) — they're related but not the same."
+        followUps={[
+          {
+            q: "What does `startTransition` actually do at the scheduler level?",
+            a: "It tags any state updates queued inside the callback with TransitionLane (one of the 31 lanes). The scheduler treats TransitionLane work as preemptible: if a SyncLane update (a click, a keystroke) arrives mid-transition, the scheduler aborts the in-flight transition render, processes the urgent work first, then resumes the transition. The transition is what gives React the LICENSE to interrupt the work. Without it, the render runs to completion.",
+          },
+          {
+            q: "Why doesn't useTransition help with a single 200ms-blocking component?",
+            a: "Transitions yield BETWEEN fibers — between component renders within the tree. The scheduler checks `shouldYield()` after each fiber's work. If a single component takes 200ms inside its function body (heavy compute, sync loop), there's no yield point — the scheduler can't interrupt mid-function. The fix is time slicing the work inside that component (chunking with rAF/postTask), or moving it off the main thread (worker). Transitions handle the across-tree case; time slicing handles the within-component case.",
+          },
+          {
+            q: "useDeferredValue vs useTransition — when do you reach for which?",
+            a: "useTransition wraps an UPDATE site — 'this state setter is non-urgent.' You own the update. useDeferredValue wraps a READ site — 'render this value, but it's OK if I'm a frame behind.' You consume a prop you don't own. Use useTransition when YOU dispatch the update; use useDeferredValue when a parent passed you a prop and you want to make YOUR re-render off the critical path. They compose: parent uses transition on the update, child uses deferred value on the read.",
+          },
+          {
+            q: "What's the relationship between transitions and Suspense?",
+            a: "Transitions tell Suspense 'don't show a fallback for this update.' Normally, a Suspense boundary swaps to fallback the moment any descendant suspends. Inside a transition, Suspense keeps the previous content mounted and shows the fallback only if the transition takes more than ~500ms (configurable). This is what gives navigation a smooth feel — no flash to skeleton on every link click, only on actually-slow loads. The architect is testing whether you've used both together.",
+          },
+          {
+            q: "Can transitions starve? What if SyncLane updates keep arriving?",
+            a: "Yes. If high-priority lanes never empty, a transition can be delayed indefinitely — each retry gets preempted. React has internal anti-starvation: after a configurable timeout (~5s), a starving transition gets bumped to a higher priority. In practice you rarely hit it; if you do, you have an architectural problem (too many sync updates, or the transition should have been split). The architect may ask 'how would you debug a stuck transition?' — answer: profiler timeline + commit lane inspection.",
+          },
+        ]}
+        pivots={[
+          { to: "Fiber lanes + bitmask (Module 3)", why: "Transitions are syntactic sugar over a lane tag; expect to discuss the bitmask." },
+          { to: "Time slicing (Module 5)", why: "Natural extension — between vs within fibers." },
+          { to: "Suspense boundaries (Module 8)", why: "Transitions interact with Suspense fallback behavior." },
+        ]}
+        dontSay={[
+          {
+            phrase: "useTransition makes React render in parallel.",
+            why: "React is single-threaded. Transitions enable interruption, not parallelism. There's no second thread doing the deferred work.",
+          },
+          {
+            phrase: "Wrap everything in startTransition.",
+            why: "Urgent updates SHOULD be urgent. Wrapping every setState makes input feel laggy because the keystroke is now preemptible. Reserve transitions for genuinely-deferrable work.",
+          },
+        ]}
+      />
 
       <Step n={6} kind="next" title="You yield between work units. Now you need to yield inside one.">
         <Callout tone="next" title="next bottleneck">
