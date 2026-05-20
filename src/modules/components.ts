@@ -2,6 +2,10 @@ import type { ComponentType } from "react";
 import F01Components from "./f01-components";
 import F02Props from "./f02-props";
 import F03State from "./f03-state";
+import F04Effects from "./f04-effects";
+import F05Events from "./f05-events";
+import F06Rendering from "./f06-rendering";
+import F07Forms from "./f07-forms";
 import Module01 from "./01-reconciliation";
 import Module02 from "./02-diffing";
 import Module03 from "./03-fiber";
@@ -33,6 +37,10 @@ export const MODULE_COMPONENTS: Record<string, ComponentType> = {
   "f01-components": F01Components,
   "f02-props": F02Props,
   "f03-state": F03State,
+  "f04-effects": F04Effects,
+  "f05-events": F05Events,
+  "f06-rendering": F06Rendering,
+  "f07-forms": F07Forms,
   // Core
   "01-reconciliation": Module01,
   "02-diffing": Module02,
