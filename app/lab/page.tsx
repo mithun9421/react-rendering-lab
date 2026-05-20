@@ -9,6 +9,7 @@ import { QUESTIONS } from "@/modules/interview/questions";
 import { computeStreak, levelOf, useProgress } from "@/progress/store";
 import { SiteFooter } from "@/shell/SiteFooter";
 import { AchievementsGallery } from "@/progress/AchievementsGallery";
+import { ShareCard } from "@/progress/ShareCard";
 
 /**
  * The lab hub — five buckets with live progress.
@@ -155,6 +156,10 @@ export default function LabHub() {
           <span className="rounded bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] text-accent">▦ quick check</span>{" "}
           card.
         </p>
+
+        <div className="mt-12">
+          <ShareCard />
+        </div>
 
         <div className="mt-12">
           <AchievementsGallery />

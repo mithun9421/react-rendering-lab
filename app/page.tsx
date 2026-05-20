@@ -105,11 +105,31 @@ function Hero() {
       </div>
 
       <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat n="25" l="modules" />
-        <Stat n="9" l="visualisations" />
+        <Stat n="36" l="lessons" />
+        <Stat n="47" l="interview Qs" />
         <Stat n="6" l="incident scenarios" />
         <Stat n="100%" l="client-side · open source" />
       </dl>
+
+      <Link
+        href="/lab/daily"
+        className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent-warn/30 bg-accent-warn/[0.06] p-4 transition hover:border-accent-warn/60"
+      >
+        <div className="min-w-0">
+          <div className="font-mono text-[10px] uppercase tracking-widest text-accent-warn">
+            ◐ daily challenge · refreshes midnight UTC
+          </div>
+          <h3 className="mt-1 truncate text-sm font-medium text-ink">
+            One curated React / systems question per day — don&apos;t break the streak.
+          </h3>
+        </div>
+        <span
+          aria-hidden
+          className="rounded-md bg-accent-warn px-3 py-1.5 font-mono text-[11px] text-bg"
+        >
+          take today&apos;s →
+        </span>
+      </Link>
     </section>
   );
 }
