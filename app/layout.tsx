@@ -4,6 +4,7 @@ import { AdSenseLoader } from "@/ads/AdSenseLoader";
 import { CookieConsent } from "@/legal/CookieConsent";
 import { RouteProgress } from "@/shell/RouteProgress";
 import { ProgressBoot } from "@/progress/ProgressBoot";
+import { AchievementToast } from "@/progress/AchievementToast";
 
 export const metadata: Metadata = {
   title: "React Rendering Lab",
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ProgressBoot />
         <RouteProgress />
         {children}
+        <AchievementToast />
         <CookieConsent />
       </body>
     </html>
