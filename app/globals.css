@@ -2,8 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * shadcn design tokens — dark-only. HSL values chosen to land on the existing
+ * lab palette (#0a0a0b background, #7c5cff accent, #26262e borders).
+ * Both new shadcn components AND legacy bg-bg-panel / text-accent / etc.
+ * classes work side by side.
+ */
 :root {
   color-scheme: dark;
+
+  /* Surface tokens */
+  --background: 240 10% 4%;          /* #0a0a0b */
+  --foreground: 240 6% 91%;          /* #e7e7ea */
+  --card: 240 10% 9%;                /* #15151a */
+  --card-foreground: 240 6% 91%;
+  --popover: 240 9% 11%;             /* #1c1c22 */
+  --popover-foreground: 240 6% 91%;
+
+  /* Brand / interactive */
+  --primary: 252 100% 68%;           /* #7c5cff */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 8% 16%;           /* #26262e */
+  --secondary-foreground: 240 6% 91%;
+  --muted: 240 8% 14%;
+  --muted-foreground: 240 6% 63%;    /* #9a9aa6 */
+  --accent: 252 100% 68%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 348 100% 68%;       /* #ff5c7a */
+  --destructive-foreground: 0 0% 100%;
+
+  /* Lines / focus */
+  --border: 240 9% 16%;
+  --input: 240 8% 14%;
+  --ring: 252 100% 68%;
+
+  /* Chart palette — reused for visualizations */
+  --chart-1: 252 100% 68%;
+  --chart-2: 197 100% 68%;
+  --chart-3: 158 67% 55%;
+  --chart-4: 41 100% 67%;
+  --chart-5: 14 100% 68%;
+
+  --radius: 0.625rem;
 }
 
 html,
