@@ -3,6 +3,7 @@ import { MODULES } from "@/modules/registry";
 import { AdSlot } from "@/ads/AdSlot";
 import { SiteFooter } from "@/shell/SiteFooter";
 import { PendingLink } from "@/shell/PendingLink";
+import { ContinueReadingBanner } from "@/progress/ContinueReadingBanner";
 
 export default function Landing() {
   return (
@@ -10,6 +11,7 @@ export default function Landing() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[320px] bg-[radial-gradient(ellipse_at_top,rgba(124,92,255,0.18),transparent_60%)] sm:h-[420px]" />
 
       <NavBar />
+      <ContinueReadingBanner variant="sticky" />
       <Hero />
       <LearningPaths />
       <ModuleList />

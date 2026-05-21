@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ALL_MODULES, moduleBySlug } from "@/modules/registry";
 import { AdSlot } from "@/ads/AdSlot";
 import { useProgress } from "@/progress/store";
+import { useReadingTracker } from "@/progress/useReadingTracker";
 
 /**
  * Insert one in-article ad after the 4th step.
@@ -48,6 +49,9 @@ export function Lesson({
     : `Module ${String(idx - 11 + 1).padStart(2, "0")}`;
 
   // Auto-mark lesson complete when the reader has scrolled past 80% of the article.
+  // Track scroll position so we can resume on return.
+  useReadingTracker(slug);
+
   // Uses an IntersectionObserver on a sentinel near the bottom.
   const sentinelRef = useRef<HTMLDivElement>(null);
   const markComplete = useProgress((s) => s.markLessonComplete);

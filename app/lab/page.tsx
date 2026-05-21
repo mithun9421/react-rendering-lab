@@ -10,6 +10,7 @@ import { computeStreak, levelOf, useProgress } from "@/progress/store";
 import { SiteFooter } from "@/shell/SiteFooter";
 import { AchievementsGallery } from "@/progress/AchievementsGallery";
 import { ShareCard } from "@/progress/ShareCard";
+import { ContinueReadingBanner } from "@/progress/ContinueReadingBanner";
 
 /**
  * The lab hub — five buckets with live progress.
@@ -60,6 +61,8 @@ export default function LabHub() {
             localStorage — clear it anytime.
           </p>
         </header>
+
+        <ContinueReadingBanner variant="inline" />
 
         <StatsRow
           level={level}
