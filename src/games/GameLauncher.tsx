@@ -1,9 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Grid3x3, Sparkles, ChevronRight, Heart, Flower2, LayoutGrid, CircleDot } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import {
+  CircleDot,
+  Flower2,
+  Grid3x3,
+  Heart,
+  LayoutGrid,
+  Moon,
+  Sparkles,
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useTicTacToe } from "./ticTacToeStore";
 import { useG2048 } from "./g2048Store";
@@ -11,129 +18,102 @@ import { useMemoryGame } from "./memoryStore";
 import { useMinesweeper } from "./minesweeperStore";
 import { useSlidePuzzle } from "./slidePuzzleStore";
 import { useConnect4 } from "./connect4Store";
+import { useLightsOut } from "./lightsOutStore";
 import { useLauncher, type GameId } from "./launcherStore";
 
 type GameMeta = {
   id: GameId;
   name: string;
-  tagline: string;
   iconBg: string;
   Icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
-  /** Per-game small live status, e.g. "X · 3" or "score · 124". */
-  useStatus: () => { line: string; resumeable: boolean };
+  useResumeable: () => boolean;
 };
 
-function useTicTacToeStatus() {
-  const score = useTicTacToe((s) => s.score);
+function useTicTacToeResumeable() {
   const board = useTicTacToe((s) => s.board);
   const status = useTicTacToe((s) => s.status);
-  const resumeable = status === "playing" && board.some((c) => c !== null);
-  return {
-    line: `wins · ${score.x} · losses · ${score.o}`,
-    resumeable,
-  };
+  return status === "playing" && board.some((c) => c !== null);
 }
-function useG2048Status() {
-  const score = useG2048((s) => s.score);
-  const best = useG2048((s) => s.best);
+function useG2048Resumeable() {
   const status = useG2048((s) => s.status);
   const tiles = useG2048((s) => s.tiles);
-  return {
-    line: `score · ${score} · best · ${best}`,
-    resumeable: status === "playing" && tiles.length > 2,
-  };
+  return status === "playing" && tiles.length > 2;
 }
-function useMemoryStatus() {
-  const moves = useMemoryGame((s) => s.moves);
-  const matches = useMemoryGame((s) => s.matches);
-  const bestMoves = useMemoryGame((s) => s.bestMoves);
+function useMemoryResumeable() {
   const status = useMemoryGame((s) => s.status);
-  return {
-    line: `moves · ${moves}${bestMoves > 0 ? ` · best · ${bestMoves}` : ""}`,
-    resumeable: status === "playing" && matches > 0,
-  };
+  const matches = useMemoryGame((s) => s.matches);
+  return status === "playing" && matches > 0;
 }
-function useMinesweeperStatus() {
+function useMinesweeperResumeable() {
   const status = useMinesweeper((s) => s.status);
-  const flagCount = useMinesweeper((s) => s.flagCount);
-  const bestMs = useMinesweeper((s) => s.bestMs);
   const grid = useMinesweeper((s) => s.grid);
-  const opened = grid.filter((c) => c.state === "revealed").length;
-  return {
-    line: `flags · ${flagCount}${bestMs > 0 ? ` · best · ${(bestMs / 1000).toFixed(1)}s` : ""}`,
-    resumeable: status === "playing" && opened > 0,
-  };
+  return status === "playing" && grid.some((c) => c.state === "revealed");
 }
-function useConnect4Status() {
-  const status = useConnect4((s) => s.status);
-  const discs = useConnect4((s) => s.discs);
-  const score = useConnect4((s) => s.score);
-  return {
-    line: `wins · ${score.p} · losses · ${score.ai}`,
-    resumeable: status === "playing" && discs.length > 0,
-  };
-}
-function useSlidePuzzleStatus() {
+function useSlidePuzzleResumeable() {
   const status = useSlidePuzzle((s) => s.status);
   const moves = useSlidePuzzle((s) => s.moves);
-  const bestMs = useSlidePuzzle((s) => s.bestMs);
-  const bestMoves = useSlidePuzzle((s) => s.bestMoves);
-  return {
-    line: `moves · ${moves}${bestMoves > 0 ? ` · best · ${bestMoves}` : ""}${
-      bestMs > 0 ? ` · ${(bestMs / 1000).toFixed(1)}s` : ""
-    }`,
-    resumeable: status === "playing" && moves > 0,
-  };
+  return status === "playing" && moves > 0;
+}
+function useConnect4Resumeable() {
+  const status = useConnect4((s) => s.status);
+  const discs = useConnect4((s) => s.discs);
+  return status === "playing" && discs.length > 0;
+}
+function useLightsOutResumeable() {
+  const status = useLightsOut((s) => s.status);
+  const moves = useLightsOut((s) => s.moves);
+  return status === "playing" && moves > 0;
 }
 
 const GAMES: GameMeta[] = [
   {
     id: "tictactoe",
     name: "Tic-Tac-Toe",
-    tagline: "classic vs cute AI",
     iconBg: "bg-gradient-to-br from-accent-info to-accent",
     Icon: Grid3x3,
-    useStatus: useTicTacToeStatus,
+    useResumeable: useTicTacToeResumeable,
   },
   {
     id: "2048",
     name: "2048",
-    tagline: "swipe + merge to gold",
     iconBg: "bg-gradient-to-br from-[#ffd76b] via-[#ff7c93] to-[#7c5cff]",
     Icon: Sparkles,
-    useStatus: useG2048Status,
+    useResumeable: useG2048Resumeable,
   },
   {
     id: "memory",
-    name: "Memory Match",
-    tagline: "flip + find the pair",
+    name: "Memory",
     iconBg: "bg-gradient-to-br from-[#ff9bd5] via-[#cdb6ff] to-[#9bd5ff]",
     Icon: Heart,
-    useStatus: useMemoryStatus,
+    useResumeable: useMemoryResumeable,
   },
   {
     id: "minesweeper",
     name: "Mine Garden",
-    tagline: "flag the bees · pick the petals",
     iconBg: "bg-gradient-to-br from-[#ffd1e4] via-[#c8e7ff] to-[#7c5cff]",
     Icon: Flower2,
-    useStatus: useMinesweeperStatus,
+    useResumeable: useMinesweeperResumeable,
   },
   {
     id: "slidepuzzle",
-    name: "Slide Puzzle",
-    tagline: "tap to sort 1 to 15",
+    name: "Slide",
     iconBg: "bg-gradient-to-br from-[#ffb47c] via-[#ff7c93] to-[#9bd5ff]",
     Icon: LayoutGrid,
-    useStatus: useSlidePuzzleStatus,
+    useResumeable: useSlidePuzzleResumeable,
   },
   {
     id: "connect4",
-    name: "Connect Four",
-    tagline: "drop discs · line up four",
+    name: "Connect 4",
     iconBg: "bg-gradient-to-br from-[#ff8da3] via-[#ffae3d] to-[#ffe27a]",
     Icon: CircleDot,
-    useStatus: useConnect4Status,
+    useResumeable: useConnect4Resumeable,
+  },
+  {
+    id: "lightsout",
+    name: "Lights Out",
+    iconBg: "bg-gradient-to-br from-[#ffd76b] via-[#9b7dff] to-[#1a1135]",
+    Icon: Moon,
+    useResumeable: useLightsOutResumeable,
   },
 ];
 
@@ -145,10 +125,10 @@ export function GameLauncher() {
       <div className="px-1 font-mono text-[11px] uppercase tracking-widest text-ink-dim">
         pick a game
       </div>
-      <ul className="space-y-2">
+      <ul className="grid grid-cols-3 gap-2">
         {GAMES.map((g) => (
           <li key={g.id}>
-            <GameRow
+            <GameTile
               meta={g}
               onPick={() => {
                 setActive(g.id);
@@ -162,46 +142,39 @@ export function GameLauncher() {
   );
 }
 
-function GameRow({ meta, onPick }: { meta: GameMeta; onPick: () => void }) {
-  const status = meta.useStatus();
+function GameTile({ meta, onPick }: { meta: GameMeta; onPick: () => void }) {
+  const resumeable = meta.useResumeable();
   const Icon = meta.Icon;
   return (
     <motion.button
       type="button"
       onClick={onPick}
-      whileHover={{ scale: 1.015 }}
-      whileTap={{ scale: 0.985 }}
-      className="group w-full text-left"
+      whileHover={{ scale: 1.04, y: -2 }}
+      whileTap={{ scale: 0.96 }}
+      transition={{ type: "spring", stiffness: 360, damping: 24 }}
+      className="group block w-full text-left"
     >
-      <Card className="overflow-hidden border-bg-border transition-colors group-hover:border-accent/50">
-        <CardContent className="flex items-center gap-3 p-3">
+      <Card className="relative overflow-hidden border-bg-border transition-colors group-hover:border-accent/50">
+        {resumeable && (
+          <span className="absolute right-1.5 top-1.5 flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-70" />
+            <span className="relative inline-flex size-2 rounded-full bg-accent" />
+          </span>
+        )}
+        <div className="flex flex-col items-center gap-2 px-2 py-3">
           <span
             className={cn(
-              "grid size-10 shrink-0 place-items-center rounded-xl text-white shadow-glass",
+              "grid size-11 place-items-center rounded-xl text-white shadow-glass",
               meta.iconBg
             )}
             aria-hidden
           >
             <Icon className="size-5" aria-hidden />
           </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-medium text-ink">{meta.name}</span>
-              {status.resumeable && (
-                <Badge variant="info" className="gap-1 font-mono text-[9px]">
-                  <span className="relative flex size-1.5">
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-70" />
-                    <span className="relative inline-flex size-1.5 rounded-full bg-accent" />
-                  </span>
-                  in progress
-                </Badge>
-              )}
-            </div>
-            <div className="truncate font-mono text-[11px] text-ink-dim">{meta.tagline}</div>
-            <div className="truncate font-mono text-[10px] text-ink-muted">{status.line}</div>
-          </div>
-          <ChevronRight className="size-4 shrink-0 text-ink-dim transition-transform group-hover:translate-x-0.5 group-hover:text-accent" aria-hidden />
-        </CardContent>
+          <span className="text-center font-mono text-[11px] leading-tight text-ink">
+            {meta.name}
+          </span>
+        </div>
       </Card>
     </motion.button>
   );

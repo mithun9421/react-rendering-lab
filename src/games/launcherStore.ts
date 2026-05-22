@@ -2,7 +2,14 @@
 
 import { create } from "zustand";
 
-export type GameId = "tictactoe" | "2048" | "memory" | "minesweeper" | "slidepuzzle" | "connect4";
+export type GameId =
+  | "tictactoe"
+  | "2048"
+  | "memory"
+  | "minesweeper"
+  | "slidepuzzle"
+  | "connect4"
+  | "lightsout";
 export type LauncherUi = "hidden" | "launcher" | "game" | "pill";
 
 type State = {
@@ -40,15 +47,17 @@ export const useLauncher = create<State & Actions>((set) => ({
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw) as { activeGame?: GameId };
-      if (
-        parsed.activeGame === "tictactoe" ||
-        parsed.activeGame === "2048" ||
-        parsed.activeGame === "memory" ||
-        parsed.activeGame === "minesweeper" ||
-        parsed.activeGame === "slidepuzzle" ||
-        parsed.activeGame === "connect4"
-      ) {
-        set({ activeGame: parsed.activeGame });
+      const valid: GameId[] = [
+        "tictactoe",
+        "2048",
+        "memory",
+        "minesweeper",
+        "slidepuzzle",
+        "connect4",
+        "lightsout",
+      ];
+      if (valid.includes(parsed.activeGame as GameId)) {
+        set({ activeGame: parsed.activeGame as GameId });
       }
     } catch {
       /* ignore */
