@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Sparkles, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -169,34 +169,16 @@ export function SlidePuzzleBoard({ compact = false }: { compact?: boolean }) {
         {/* Tile layer */}
         <div className="pointer-events-none absolute inset-0" style={{ padding: GAP }}>
           <AnimatePresence>
-            {Array.from(positions.entries()).map(([value, pos]) => {
-              const x = pos.col * (CELL + GAP);
-              const y = pos.row * (CELL + GAP);
-              const tileIdx = pos.row * COLS + pos.col;
-              return (
-                <motion.button
-                  key={value}
-                  type="button"
-                  layout
-                  layoutId={`spuzzle-${value}`}
-                  initial={false}
-                  animate={{ x, y, scale: 1 }}
-                  whileHover={status !== "won" ? { scale: 1.04 } : undefined}
-                  whileTap={status !== "won" ? { scale: 0.94 } : undefined}
-                  transition={{ type: "spring", stiffness: 360, damping: 28 }}
-                  onClick={() => slide(tileIdx)}
-                  className={cn(
-                    "pointer-events-auto absolute grid place-items-center rounded-xl font-mono text-lg font-semibold tabular-nums shadow-glass outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                    gradientFor(value),
-                    status === "won" && "ring-1 ring-white/30"
-                  )}
-                  style={{ width: CELL, height: CELL }}
-                  aria-label={`tile ${value}`}
-                >
-                  {value}
-                </motion.button>
-              );
-            })}
+            {Array.from(positions.entries()).map(([value, pos]) => (
+              <PuzzleTile
+                key={value}
+                value={value}
+                row={pos.row}
+                col={pos.col}
+                won={status === "won"}
+                onClick={slide}
+              />
+            ))}
           </AnimatePresence>
         </div>
 
@@ -227,6 +209,52 @@ export function SlidePuzzleBoard({ compact = false }: { compact?: boolean }) {
     </div>
   );
 }
+
+const PuzzleTile = memo(
+  function PuzzleTile({
+    value,
+    row,
+    col,
+    won,
+    onClick,
+  }: {
+    value: number;
+    row: number;
+    col: number;
+    won: boolean;
+    onClick: (idx: number) => void;
+  }) {
+    const x = col * (CELL + GAP);
+    const y = row * (CELL + GAP);
+    const tileIdx = row * COLS + col;
+    return (
+      <motion.button
+        type="button"
+        initial={false}
+        animate={{ x, y, scale: 1 }}
+        whileHover={!won ? { scale: 1.04 } : undefined}
+        whileTap={!won ? { scale: 0.94 } : undefined}
+        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        onClick={() => onClick(tileIdx)}
+        className={cn(
+          "pointer-events-auto absolute grid place-items-center rounded-xl font-mono text-lg font-semibold tabular-nums shadow-glass outline-none will-change-transform focus-visible:ring-2 focus-visible:ring-accent",
+          gradientFor(value),
+          won && "ring-1 ring-white/30"
+        )}
+        style={{ width: CELL, height: CELL }}
+        aria-label={`tile ${value}`}
+      >
+        {value}
+      </motion.button>
+    );
+  },
+  (prev, next) =>
+    prev.value === next.value &&
+    prev.row === next.row &&
+    prev.col === next.col &&
+    prev.won === next.won &&
+    prev.onClick === next.onClick
+);
 
 function useElapsed(startedAt: number | null, endedAt: number | null, status: "playing" | "won") {
   const [now, setNow] = useState(() => Date.now());

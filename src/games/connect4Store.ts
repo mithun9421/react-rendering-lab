@@ -258,8 +258,8 @@ function pickAiCol(board: Cell[]): number {
     next[cellIdx(r, c)] = 1;
     if (checkWinFrom(next, r, c, 1)) return c;
   }
-  // 3. Minimax depth 3 (fast, decent strength).
-  const { col } = minimax(board, 3, -Infinity, Infinity, true);
+  // 3. Minimax depth 2 (~5ms typical, never blocks the frame).
+  const { col } = minimax(board, 2, -Infinity, Infinity, true);
   return col ?? cols[Math.floor(Math.random() * cols.length)];
 }
 

@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useG2048, SIZE, type Direction } from "./g2048Store";
+import { useG2048, SIZE, type Direction, type Tile } from "./g2048Store";
 
 const CELL = 60; // px
 const GAP = 8;
@@ -154,43 +154,9 @@ export function G2048Board({ compact = false }: { compact?: boolean }) {
           <AnimatePresence>
             {tiles
               .filter((t) => t.value > 0)
-              .map((t) => {
-                const style = tileStyle(t.value);
-                return (
-                  <motion.div
-                    key={t.id}
-                    layout
-                    layoutId={`tile-${t.id}`}
-                    initial={
-                      t.isNew
-                        ? { scale: 0.3, opacity: 0, x: t.col * (CELL + GAP), y: t.row * (CELL + GAP) }
-                        : false
-                    }
-                    animate={{
-                      x: t.col * (CELL + GAP),
-                      y: t.row * (CELL + GAP),
-                      scale: t.justMerged ? [1, 1.12, 1] : 1,
-                      opacity: 1,
-                    }}
-                    exit={{ scale: 0.6, opacity: 0 }}
-                    transition={{
-                      x: { type: "spring", stiffness: 320, damping: 28 },
-                      y: { type: "spring", stiffness: 320, damping: 28 },
-                      scale: { duration: t.justMerged ? 0.22 : 0.18 },
-                      opacity: { duration: 0.18 },
-                    }}
-                    className={cn(
-                      "absolute grid place-items-center rounded-lg font-mono font-semibold tabular-nums",
-                      style.bg,
-                      style.text,
-                      style.size
-                    )}
-                    style={{ width: CELL, height: CELL }}
-                  >
-                    {t.value}
-                  </motion.div>
-                );
-              })}
+              .map((t) => (
+                <TileNode key={t.id} tile={t} />
+              ))}
           </AnimatePresence>
         </div>
 
@@ -241,3 +207,44 @@ export function G2048Board({ compact = false }: { compact?: boolean }) {
     </div>
   );
 }
+
+const TileNode = memo(
+  function TileNode({ tile }: { tile: Tile }) {
+    const style = tileStyle(tile.value);
+    const x = tile.col * (CELL + GAP);
+    const y = tile.row * (CELL + GAP);
+    return (
+      <motion.div
+        initial={tile.isNew ? { scale: 0.3, opacity: 0, x, y } : false}
+        animate={{
+          x,
+          y,
+          scale: tile.justMerged ? [1, 1.12, 1] : 1,
+          opacity: 1,
+        }}
+        exit={{ scale: 0.6, opacity: 0 }}
+        transition={{
+          x: { type: "spring", stiffness: 360, damping: 30 },
+          y: { type: "spring", stiffness: 360, damping: 30 },
+          scale: { duration: tile.justMerged ? 0.22 : 0.18 },
+          opacity: { duration: 0.18 },
+        }}
+        className={cn(
+          "absolute grid place-items-center rounded-lg font-mono font-semibold tabular-nums will-change-transform",
+          style.bg,
+          style.text,
+          style.size
+        )}
+        style={{ width: CELL, height: CELL }}
+      >
+        {tile.value}
+      </motion.div>
+    );
+  },
+  (prev, next) =>
+    prev.tile.id === next.tile.id &&
+    prev.tile.row === next.tile.row &&
+    prev.tile.col === next.tile.col &&
+    prev.tile.value === next.tile.value &&
+    !!prev.tile.justMerged === !!next.tile.justMerged
+);

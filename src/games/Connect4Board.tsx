@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useConnect4, COLS, ROWS, type Player } from "./connect4Store";
+import { useConnect4, COLS, ROWS, type Player, type Disc } from "./connect4Store";
 
 const CELL = 36;
 const GAP = 4;
@@ -21,8 +21,6 @@ export function Connect4Board({ compact = false }: { compact?: boolean }) {
   const restart = useConnect4((s) => s.restart);
   const hydrate = useConnect4((s) => s.hydrate);
 
-  const [hoverCol, setHoverCol] = useState<number | null>(null);
-
   useEffect(() => {
     hydrate();
   }, [hydrate]);
@@ -30,8 +28,7 @@ export function Connect4Board({ compact = false }: { compact?: boolean }) {
   const boardW = COLS * CELL + (COLS + 1) * GAP;
   const boardH = ROWS * CELL + (ROWS + 1) * GAP;
 
-  const columnFull = (c: number) => board[c] !== 0; // row 0 of col c
-
+  const columnFull = useCallback((c: number) => board[c] !== 0, [board]);
   const canPlay = status === "playing" && turn === 1;
 
   const banner =
@@ -73,33 +70,7 @@ export function Connect4Board({ compact = false }: { compact?: boolean }) {
       </div>
 
       <div className="relative">
-        {/* Hover ghost row above the board */}
-        <div
-          className="mb-1 flex"
-          style={{ width: boardW, paddingLeft: GAP, paddingRight: GAP, gap: GAP }}
-          aria-hidden
-        >
-          {Array.from({ length: COLS }).map((_, c) => (
-            <div
-              key={c}
-              style={{ width: CELL, height: 16 }}
-              className="grid place-items-center"
-            >
-              <AnimatePresence>
-                {canPlay && hoverCol === c && !columnFull(c) && (
-                  <motion.span
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -2 }}
-                    transition={{ duration: 0.14 }}
-                  >
-                    <DiscDot player={1} size="sm" muted />
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-        </div>
+        <HoverRow boardW={boardW} canPlay={canPlay} columnFull={columnFull} />
 
         <div
           className="relative select-none rounded-2xl border border-[#7c5cff]/30 bg-gradient-to-br from-[#5b4bd6] via-[#3b2fa8] to-[#2a2270] shadow-glass"
@@ -130,53 +101,13 @@ export function Connect4Board({ compact = false }: { compact?: boolean }) {
           <div className="pointer-events-none absolute inset-0" style={{ padding: GAP }}>
             <AnimatePresence>
               {discs.map((d) => (
-                <motion.div
-                  key={d.id}
-                  initial={{ x: d.col * (CELL + GAP), y: -CELL - 4, opacity: 0, scale: 0.9 }}
-                  animate={{
-                    x: d.col * (CELL + GAP),
-                    y: d.row * (CELL + GAP),
-                    opacity: 1,
-                    scale: d.highlighted ? [1, 1.08, 1] : 1,
-                  }}
-                  exit={{ opacity: 0, scale: 0.6 }}
-                  transition={{
-                    y: { type: "spring", stiffness: 240, damping: 14, mass: 0.85 },
-                    scale: d.highlighted
-                      ? { duration: 1.1, repeat: Infinity, repeatType: "loop", ease: "easeInOut" }
-                      : { duration: 0.18 },
-                    opacity: { duration: 0.18 },
-                  }}
-                  className="absolute grid place-items-center rounded-full"
-                  style={{ width: CELL, height: CELL }}
-                >
-                  <DiscDot player={d.player} highlighted={d.highlighted} />
-                </motion.div>
+                <DiscNode key={d.id} disc={d} />
               ))}
             </AnimatePresence>
           </div>
 
           {/* Click columns (overlaid invisible buttons spanning full board height) */}
-          <div className="absolute inset-0 flex" style={{ padding: GAP, gap: GAP }}>
-            {Array.from({ length: COLS }).map((_, c) => (
-              <button
-                key={c}
-                type="button"
-                disabled={!canPlay || columnFull(c)}
-                onMouseEnter={() => setHoverCol(c)}
-                onMouseLeave={() => setHoverCol((v) => (v === c ? null : v))}
-                onFocus={() => setHoverCol(c)}
-                onBlur={() => setHoverCol((v) => (v === c ? null : v))}
-                onClick={() => drop(c)}
-                aria-label={`drop disc in column ${c + 1}`}
-                className={cn(
-                  "flex-1 rounded-md outline-none transition-colors focus-visible:bg-white/5",
-                  canPlay && !columnFull(c) && "hover:bg-white/5"
-                )}
-                style={{ height: ROWS * (CELL + GAP) - GAP }}
-              />
-            ))}
-          </div>
+          <ColumnButtons canPlay={canPlay} columnFull={columnFull} drop={drop} />
 
           <AnimatePresence>
             {(status === "win-p" || status === "win-ai" || status === "draw") && (
@@ -227,6 +158,113 @@ export function Connect4Board({ compact = false }: { compact?: boolean }) {
     </div>
   );
 }
+
+/* ───────────── memoized children ───────────── */
+
+const DiscNode = memo(
+  function DiscNode({ disc }: { disc: Disc }) {
+    return (
+      <motion.div
+        initial={{ x: disc.col * (CELL + GAP), y: -CELL - 4, opacity: 0, scale: 0.9 }}
+        animate={{
+          x: disc.col * (CELL + GAP),
+          y: disc.row * (CELL + GAP),
+          opacity: 1,
+          scale: disc.highlighted ? [1, 1.08, 1] : 1,
+        }}
+        exit={{ opacity: 0, scale: 0.6 }}
+        transition={{
+          y: { type: "spring", stiffness: 260, damping: 16, mass: 0.85 },
+          scale: disc.highlighted
+            ? { duration: 1.1, repeat: Infinity, repeatType: "loop", ease: "easeInOut" }
+            : { duration: 0.18 },
+          opacity: { duration: 0.18 },
+        }}
+        className="absolute grid place-items-center rounded-full will-change-transform"
+        style={{ width: CELL, height: CELL }}
+      >
+        <DiscDot player={disc.player} highlighted={disc.highlighted} />
+      </motion.div>
+    );
+  },
+  (prev, next) =>
+    prev.disc.id === next.disc.id &&
+    prev.disc.row === next.disc.row &&
+    prev.disc.col === next.disc.col &&
+    prev.disc.player === next.disc.player &&
+    !!prev.disc.highlighted === !!next.disc.highlighted
+);
+
+const HoverRow = memo(function HoverRow({
+  boardW,
+  canPlay,
+  columnFull,
+}: {
+  boardW: number;
+  canPlay: boolean;
+  columnFull: (c: number) => boolean;
+}) {
+  const [hoverCol, setHoverCol] = useState<number | null>(null);
+  return (
+    <div
+      className="mb-1 flex"
+      style={{ width: boardW, paddingLeft: GAP, paddingRight: GAP, gap: GAP }}
+      aria-hidden
+      onMouseLeave={() => setHoverCol(null)}
+    >
+      {Array.from({ length: COLS }).map((_, c) => (
+        <div
+          key={c}
+          onMouseEnter={() => setHoverCol(c)}
+          style={{ width: CELL, height: 16 }}
+          className="grid place-items-center"
+        >
+          <AnimatePresence>
+            {canPlay && hoverCol === c && !columnFull(c) && (
+              <motion.span
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -2 }}
+                transition={{ duration: 0.14 }}
+              >
+                <DiscDot player={1} size="sm" muted />
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+const ColumnButtons = memo(function ColumnButtons({
+  canPlay,
+  columnFull,
+  drop,
+}: {
+  canPlay: boolean;
+  columnFull: (c: number) => boolean;
+  drop: (c: number) => void;
+}) {
+  return (
+    <div className="absolute inset-0 flex" style={{ padding: GAP, gap: GAP }}>
+      {Array.from({ length: COLS }).map((_, c) => (
+        <button
+          key={c}
+          type="button"
+          disabled={!canPlay || columnFull(c)}
+          onClick={() => drop(c)}
+          aria-label={`drop disc in column ${c + 1}`}
+          className={cn(
+            "flex-1 rounded-md outline-none transition-colors focus-visible:bg-white/5",
+            canPlay && !columnFull(c) && "hover:bg-white/5"
+          )}
+          style={{ height: ROWS * (CELL + GAP) - GAP }}
+        />
+      ))}
+    </div>
+  );
+});
 
 function DiscDot({
   player,
