@@ -1,9 +1,11 @@
 import { SkelBar } from "@/shell/Skeleton";
+import { LoadingGame } from "@/games/LoadingGame";
 
 /** Fallback for any /lab/* route that doesn't have its own loading.tsx. */
 export default function LabLoading() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 sm:px-6 sm:pt-10">
+      <LoadingGame />
       <SkelBar w={160} h={10} />
       <div className="mt-3 space-y-2">
         <SkelBar w="55%" h={32} />

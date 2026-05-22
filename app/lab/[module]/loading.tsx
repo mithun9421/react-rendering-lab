@@ -1,4 +1,5 @@
 import { SkelBar, SkelCard } from "@/shell/Skeleton";
+import { LoadingGame } from "@/games/LoadingGame";
 
 /**
  * Module page skeleton. Matches the real <Lesson/> layout closely so when the
@@ -8,6 +9,7 @@ import { SkelBar, SkelCard } from "@/shell/Skeleton";
 export default function ModuleLoading() {
   return (
     <article className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 sm:px-6 sm:pt-10">
+      <LoadingGame subtitle="fetching the lesson…" />
       <header className="mb-8 sm:mb-10">
         <SkelBar w={160} h={10} />
         <div className="mt-3 space-y-2">

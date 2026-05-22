@@ -1,8 +1,10 @@
 import { SkelBar, SkelCard } from "@/shell/Skeleton";
+import { LoadingGame } from "@/games/LoadingGame";
 
 export default function JourneyLoading() {
   return (
     <article className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6 sm:px-6 sm:pt-10">
+      <LoadingGame subtitle="loading the journey…" />
       <header className="mb-6">
         <SkelBar w={180} h={10} />
         <div className="mt-3 space-y-2">
