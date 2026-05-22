@@ -13,6 +13,7 @@ import { useMinesweeper } from "./minesweeperStore";
 import { useSlidePuzzle } from "./slidePuzzleStore";
 import { useConnect4 } from "./connect4Store";
 import { useLightsOut } from "./lightsOutStore";
+import { useWordScramble } from "./wordScrambleStore";
 import { useLauncher, type GameId, type LauncherUi } from "./launcherStore";
 import { TicTacToeBoard } from "./TicTacToeBoard";
 import { G2048Board } from "./G2048Board";
@@ -21,6 +22,7 @@ import { MinesweeperBoard } from "./MinesweeperBoard";
 import { SlidePuzzleBoard } from "./SlidePuzzleBoard";
 import { Connect4Board } from "./Connect4Board";
 import { LightsOutBoard } from "./LightsOutBoard";
+import { WordScrambleBoard } from "./WordScrambleBoard";
 import { GameLauncher } from "./GameLauncher";
 
 /**
@@ -48,6 +50,7 @@ export function BoredomBuster() {
   const hydrateSlide = useSlidePuzzle((s) => s.hydrate);
   const hydrateConnect = useConnect4((s) => s.hydrate);
   const hydrateLights = useLightsOut((s) => s.hydrate);
+  const hydrateScramble = useWordScramble((s) => s.hydrate);
 
   const lastPath = useRef<string | null>(pathname);
   const popupTimer = useRef<number | null>(null);
@@ -63,6 +66,7 @@ export function BoredomBuster() {
     hydrateSlide();
     hydrateConnect();
     hydrateLights();
+    hydrateScramble();
     setUi("pill");
   }, [
     hydrateLauncher,
@@ -73,6 +77,7 @@ export function BoredomBuster() {
     hydrateSlide,
     hydrateConnect,
     hydrateLights,
+    hydrateScramble,
     setUi,
   ]);
 
@@ -249,6 +254,7 @@ function GameSurface({ id }: { id: GameId }) {
   if (id === "slidepuzzle") return <SlidePuzzleBoard />;
   if (id === "connect4") return <Connect4Board />;
   if (id === "lightsout") return <LightsOutBoard />;
+  if (id === "wordscramble") return <WordScrambleBoard />;
   return null;
 }
 
@@ -260,6 +266,7 @@ function gameTitle(id: GameId | null): string {
   if (id === "slidepuzzle") return "slide puzzle";
   if (id === "connect4") return "connect four";
   if (id === "lightsout") return "lights out";
+  if (id === "wordscramble") return "scramble";
   return "boredom buster";
 }
 
@@ -301,6 +308,7 @@ function PillIcon({ activeGame }: { activeGame: GameId | null }) {
   if (activeGame === "slidepuzzle") return <SlidePuzzleMini />;
   if (activeGame === "connect4") return <Connect4Mini />;
   if (activeGame === "lightsout") return <LightsOutMini />;
+  if (activeGame === "wordscramble") return <WordScrambleMini />;
   return (
     <span className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
       <Gamepad2 className="size-4" aria-hidden />
@@ -322,6 +330,37 @@ function TicTacToeMini() {
             "rounded-[2px] bg-bg-panel",
             c === "X" && "bg-accent-info/70",
             c === "O" && "bg-accent-warn/70"
+          )}
+        />
+      ))}
+    </span>
+  );
+}
+
+function WordScrambleMini() {
+  const slots = useWordScramble((s) => s.slots);
+  const pool = useWordScramble((s) => s.pool);
+  // Show a 7-pip preview: 5 slots on top, 2 pool indicators on bottom (compressed).
+  return (
+    <span
+      className="grid size-7 shrink-0 grid-cols-5 grid-rows-2 gap-px overflow-hidden rounded-md bg-gradient-to-br from-[#ffc7e0]/30 via-bg-elevated to-[#9bd5ff]/30 p-0.5"
+      aria-hidden
+    >
+      {slots.map((s, i) => (
+        <span
+          key={`s-${i}`}
+          className={cn(
+            "rounded-[1px]",
+            s ? (s.locked ? "bg-[#ffd76b]" : "bg-accent-info/80") : "bg-bg-panel/70"
+          )}
+        />
+      ))}
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span
+          key={`p-${i}`}
+          className={cn(
+            "rounded-[1px]",
+            i < pool.length ? "bg-[#cdb6ff]/80" : "bg-bg-panel/40"
           )}
         />
       ))}

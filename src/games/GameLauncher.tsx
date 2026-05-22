@@ -9,6 +9,7 @@ import {
   LayoutGrid,
   Moon,
   Sparkles,
+  Type,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ import { useMinesweeper } from "./minesweeperStore";
 import { useSlidePuzzle } from "./slidePuzzleStore";
 import { useConnect4 } from "./connect4Store";
 import { useLightsOut } from "./lightsOutStore";
+import { useWordScramble } from "./wordScrambleStore";
 import { useLauncher, type GameId } from "./launcherStore";
 
 type GameMeta = {
@@ -63,6 +65,11 @@ function useLightsOutResumeable() {
   const status = useLightsOut((s) => s.status);
   const moves = useLightsOut((s) => s.moves);
   return status === "playing" && moves > 0;
+}
+function useWordScrambleResumeable() {
+  const status = useWordScramble((s) => s.status);
+  const slots = useWordScramble((s) => s.slots);
+  return status !== "won" && slots.some((s) => s !== null);
 }
 
 const GAMES: GameMeta[] = [
@@ -114,6 +121,13 @@ const GAMES: GameMeta[] = [
     iconBg: "bg-gradient-to-br from-[#ffd76b] via-[#9b7dff] to-[#1a1135]",
     Icon: Moon,
     useResumeable: useLightsOutResumeable,
+  },
+  {
+    id: "wordscramble",
+    name: "Scramble",
+    iconBg: "bg-gradient-to-br from-[#ffc7e0] via-[#cdb6ff] to-[#9bd5ff]",
+    Icon: Type,
+    useResumeable: useWordScrambleResumeable,
   },
 ];
 
