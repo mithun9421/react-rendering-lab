@@ -6,6 +6,7 @@ import { RouteProgress } from "@/shell/RouteProgress";
 import { ProgressBoot } from "@/progress/ProgressBoot";
 import { AchievementToast } from "@/progress/AchievementToast";
 import { EntitlementBoot } from "@/entitlement/EntitlementBoot";
+import { BoredomBuster } from "@/games/BoredomBuster";
 
 export const metadata: Metadata = {
   title: "React Rendering Lab",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <RouteProgress />
         {children}
         <AchievementToast />
+        <BoredomBuster />
         <CookieConsent />
       </body>
     </html>
