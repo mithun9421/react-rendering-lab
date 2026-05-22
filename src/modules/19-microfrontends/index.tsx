@@ -1,21 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { TryIt } from "@/engine/TryIt";
-
-type Team = {
-  id: string;
-  name: string;
-  react: string;
-  bundleKb: number;
-  sharedReact: boolean;
-};
+import { FederationGraph } from "./FederationGraph";
 
 export default function Module19() {
   return (
@@ -159,116 +149,3 @@ new ModuleFederationPlugin({
   );
 }
 
-/* ─────────── federation graph ─────────── */
-
-function FederationGraph({ flags }: { flags: { shared: boolean; v19: boolean } }) {
-  const teams: Team[] = [
-    { id: "host", name: "host", react: "19.0.0", bundleKb: flags.shared ? 142 : 142, sharedReact: true },
-    { id: "A", name: "team-A · profile", react: "19.0.0", bundleKb: flags.shared ? 38 : 84, sharedReact: flags.shared },
-    { id: "B", name: "team-B · search", react: "19.0.0", bundleKb: flags.shared ? 26 : 72, sharedReact: flags.shared },
-    {
-      id: "C",
-      name: "team-C · checkout",
-      react: flags.v19 ? "19.0.0" : "18.3.1",
-      bundleKb: flags.shared && !flags.v19 ? 90 : flags.shared ? 31 : 78,
-      sharedReact: flags.shared && (!flags.v19 ? false : true),
-    },
-  ];
-  const conflict = flags.shared && !flags.v19; // host=19, C=18 with sharing on → mismatch
-  const total = teams.reduce((a, t) => a + t.bundleKb, 0);
-
-  return (
-    <div>
-      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {teams.map((t) => (
-          <TeamCard key={t.id} team={t} shared={flags.shared} conflict={t.id === "C" && conflict} />
-        ))}
-      </div>
-      <div className="rounded-lg border border-bg-border bg-bg-panel p-3">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-ink-dim">
-          <span>
-            total shipped JS: <span className="text-ink">{total} KB</span>{" "}
-            {flags.shared && !conflict && (
-              <span className="ml-2 text-accent-good">↓ {((1 - total / 376) * 100).toFixed(0)}% vs. unshared</span>
-            )}
-          </span>
-          {conflict && (
-            <span className="rounded-md bg-accent-bad/15 px-2 py-1 text-accent-bad">
-              ⨯ runtime contract failed: host React 19, team-C requires React 18 with{" "}
-              <code>singleton: true</code>
-            </span>
-          )}
-        </div>
-        <Edges shared={flags.shared} conflict={conflict} />
-      </div>
-    </div>
-  );
-}
-
-function TeamCard({ team, shared, conflict }: { team: Team; shared: boolean; conflict: boolean }) {
-  return (
-    <motion.div
-      layout
-      className={cn(
-        "rounded-lg border bg-bg-panel p-3",
-        conflict ? "border-accent-bad/40 bg-accent-bad/5" : team.id === "host" ? "border-accent/40 bg-accent/5" : "border-bg-border"
-      )}
-    >
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">{team.id}</span>
-        <span className={cn("font-mono text-[10px]", conflict ? "text-accent-bad" : "text-accent")}>
-          react {team.react}
-        </span>
-      </div>
-      <div className="mt-1 font-mono text-xs">{team.name}</div>
-      <div className="mt-2 flex items-baseline gap-2">
-        <span
-          className={cn(
-            "font-mono text-xl tabular-nums",
-            conflict ? "text-accent-bad" : "text-ink"
-          )}
-        >
-          {team.bundleKb}
-        </span>
-        <span className="font-mono text-[10px] text-ink-dim">KB</span>
-      </div>
-      <div className="mt-1 font-mono text-[10px] text-ink-dim">
-        {shared ? (team.sharedReact ? "uses host React" : "ships its own (mismatch!)") : "ships its own React"}
-      </div>
-    </motion.div>
-  );
-}
-
-function Edges({ shared, conflict }: { shared: boolean; conflict: boolean }) {
-  return (
-    <svg viewBox="0 0 400 90" className="w-full">
-      {/* host node */}
-      <circle cx="200" cy="20" r="6" fill="#7c5cff" />
-      <text x="200" y="14" fontSize="9" fill="#9a9aa6" textAnchor="middle">
-        host
-      </text>
-      {/* remotes */}
-      {["A", "B", "C"].map((id, i) => {
-        const x = 80 + i * 120;
-        const bad = id === "C" && conflict;
-        return (
-          <g key={id}>
-            <line
-              x1="200"
-              y1="20"
-              x2={x}
-              y2="70"
-              stroke={bad ? "#ff5c7a" : shared ? "#3ddc97" : "#26262e"}
-              strokeWidth="1.5"
-              strokeDasharray={shared ? "0" : "3 3"}
-            />
-            <circle cx={x} cy="70" r="6" fill={bad ? "#ff5c7a" : "#15151a"} stroke={bad ? "#ff5c7a" : "#26262e"} />
-            <text x={x} y="88" fontSize="9" fill="#9a9aa6" textAnchor="middle">
-              team-{id}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
