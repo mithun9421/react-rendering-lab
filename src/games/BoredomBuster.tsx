@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gamepad2, Minimize2, X } from "lucide-react";
+import { Gamepad2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTicTacToe } from "./ticTacToeStore";
@@ -33,7 +33,6 @@ export function BoredomBuster() {
   const ui = useTicTacToe((s) => s.ui);
   const hushed = useTicTacToe((s) => s.hushed);
   const setUi = useTicTacToe((s) => s.setUi);
-  const hush = useTicTacToe((s) => s.hush);
   const hydrate = useTicTacToe((s) => s.hydrate);
 
   const lastPath = useRef<string | null>(pathname);
@@ -107,14 +106,10 @@ export function BoredomBuster() {
   return (
     <>
       <AnimatePresence>
-        {ui === "open" && (
-          <OpenPanel onMinimize={() => setUi("pill")} onClose={hush} />
-        )}
+        {ui === "open" && <OpenPanel onMinimize={() => setUi("pill")} />}
       </AnimatePresence>
       <AnimatePresence>
-        {ui === "pill" && (
-          <Pill onOpen={() => setUi("open")} onClose={hush} />
-        )}
+        {ui === "pill" && <Pill onOpen={() => setUi("open")} />}
       </AnimatePresence>
     </>
   );
@@ -122,7 +117,7 @@ export function BoredomBuster() {
 
 /* ───────────── open panel ───────────── */
 
-function OpenPanel({ onMinimize, onClose }: { onMinimize: () => void; onClose: () => void }) {
+function OpenPanel({ onMinimize }: { onMinimize: () => void }) {
   return (
     <motion.div
       key="ttt-open"
@@ -159,30 +154,17 @@ function OpenPanel({ onMinimize, onClose }: { onMinimize: () => void; onClose: (
               <div className="font-mono text-[10px] text-ink-dim">page is loading — pass the time</div>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              onClick={onMinimize}
-              aria-label="minimize"
-              className="size-7"
-              title="Minimize"
-            >
-              <Minimize2 className="size-3.5" aria-hidden />
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              onClick={onClose}
-              aria-label="close"
-              className="size-7"
-              title="Hide for this session"
-            >
-              <X className="size-3.5" aria-hidden />
-            </Button>
-          </div>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={onMinimize}
+            aria-label="minimize"
+            className="size-7"
+            title="Minimize"
+          >
+            <Minimize2 className="size-3.5" aria-hidden />
+          </Button>
         </div>
         <TicTacToeBoard />
       </motion.div>
@@ -192,7 +174,7 @@ function OpenPanel({ onMinimize, onClose }: { onMinimize: () => void; onClose: (
 
 /* ───────────── floating pill ───────────── */
 
-function Pill({ onOpen, onClose }: { onOpen: () => void; onClose: () => void }) {
+function Pill({ onOpen }: { onOpen: () => void }) {
   const board = useTicTacToe((s) => s.board);
   const status = useTicTacToe((s) => s.status);
   const turn = useTicTacToe((s) => s.turn);
@@ -220,34 +202,19 @@ function Pill({ onOpen, onClose }: { onOpen: () => void; onClose: () => void }) 
       transition={{ type: "spring", stiffness: 280, damping: 26 }}
       className="fixed bottom-3 right-3 z-[60] sm:bottom-4 sm:right-4"
     >
-      <motion.div
+      <motion.button
+        type="button"
+        onClick={onOpen}
+        aria-label="open tic-tac-toe game"
         animate={inProgress ? { y: [0, -3, 0] } : undefined}
         transition={inProgress ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" } : undefined}
-        className="flex items-center gap-2 rounded-full border border-bg-border bg-bg-panel/95 py-1.5 pl-1.5 pr-2 shadow-glass backdrop-blur"
+        className="flex items-center gap-2 rounded-full border border-bg-border bg-bg-panel/95 py-1.5 pl-1.5 pr-3 shadow-glass backdrop-blur outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
-        <button
-          type="button"
-          onClick={onOpen}
-          aria-label="open tic-tac-toe game"
-          className="flex items-center gap-2 rounded-full px-1 py-0.5 outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          <MiniBoard board={board} />
-          <span className="hidden font-mono text-[10px] uppercase tracking-widest text-ink-dim sm:inline">
-            {label}
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="hide game"
-          title="Hide for this session"
-          className={cn(
-            "grid size-5 place-items-center rounded-full text-ink-dim transition-colors hover:bg-bg-elevated hover:text-ink"
-          )}
-        >
-          <X className="size-3" aria-hidden />
-        </button>
-      </motion.div>
+        <MiniBoard board={board} />
+        <span className="hidden font-mono text-[10px] uppercase tracking-widest text-ink-dim sm:inline">
+          {label}
+        </span>
+      </motion.button>
     </motion.div>
   );
 }
