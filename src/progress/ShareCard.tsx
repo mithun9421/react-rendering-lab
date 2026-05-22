@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import clsx from "clsx";
+import { Share2, Copy, Download, Check, Twitter, Linkedin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useProgress, levelOf, computeStreak } from "./store";
 
 /**
@@ -75,77 +78,71 @@ export function ShareCard() {
   }
 
   return (
-    <section className="rounded-xl border border-accent/30 bg-gradient-to-b from-accent/[0.04] to-transparent p-5">
-      <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-mono text-xs uppercase tracking-widest text-accent">
-          ⇡ share your progress
+    <Card className="border-accent/30 bg-gradient-to-b from-accent/[0.04] to-transparent">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-3">
+        <h2 className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-accent">
+          <Share2 className="size-3.5" />
+          share your progress
         </h2>
-        <span className="font-mono text-[11px] text-ink-dim">
+        <Badge variant="outline" className="font-mono text-[10px] tabular-nums">
           Level {level} · {streak}🔥 · {lessons}/36
-        </span>
-      </header>
-
-      {/* Card preview */}
-      <div
-        className="relative overflow-hidden rounded-lg border border-bg-border bg-bg-elevated"
-        style={{ aspectRatio: "1200 / 630" }}
-      >
-        {!imgError ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={cardPath}
-            alt="Your React Rendering Lab progress card"
-            loading="lazy"
-            onError={() => setImgError(true)}
-            className="block h-full w-full"
-          />
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
-            <p className="font-mono text-[11px] uppercase tracking-widest text-accent-warn">
-              preview unavailable
-            </p>
-            <p className="text-xs text-ink-muted">
-              The share buttons below still work — the image is generated server-side when X /
-              LinkedIn / your download fetches it.
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <a
-          href={twitterUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-md border border-bg-border bg-bg-panel px-3 py-1.5 font-mono text-[11px] text-ink-muted hover:text-ink"
+        </Badge>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {/* Card preview */}
+        <div
+          className="relative overflow-hidden rounded-lg border border-bg-border bg-bg-elevated"
+          style={{ aspectRatio: "1200 / 630" }}
         >
-          ↗ share on X
-        </a>
-        <a
-          href={linkedinUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-md border border-bg-border bg-bg-panel px-3 py-1.5 font-mono text-[11px] text-ink-muted hover:text-ink"
-        >
-          ↗ share on LinkedIn
-        </a>
-        <button
-          onClick={copy}
-          className={clsx(
-            "rounded-md border border-bg-border bg-bg-panel px-3 py-1.5 font-mono text-[11px]",
-            copied ? "text-accent-good" : "text-ink-muted hover:text-ink"
+          {!imgError ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={cardPath}
+              alt="Your React Rendering Lab progress card"
+              loading="lazy"
+              onError={() => setImgError(true)}
+              className="block h-full w-full"
+            />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-accent-warn">
+                preview unavailable
+              </p>
+              <p className="text-xs text-ink-muted">
+                The share buttons below still work — the image is generated server-side when X /
+                LinkedIn / your download fetches it.
+              </p>
+            </div>
           )}
-        >
-          {copied ? "✓ copied" : "⎘ copy text + link"}
-        </button>
-        <a
-          href={cardAbs}
-          download="react-rendering-lab-progress.png"
-          className="rounded-md border border-bg-border bg-bg-panel px-3 py-1.5 font-mono text-[11px] text-ink-muted hover:text-ink"
-        >
-          ↓ download card
-        </a>
-      </div>
-    </section>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm">
+            <a href={twitterUrl} target="_blank" rel="noreferrer">
+              <Twitter className="size-3.5" /> share on X
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <a href={linkedinUrl} target="_blank" rel="noreferrer">
+              <Linkedin className="size-3.5" /> share on LinkedIn
+            </a>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={copy}
+            className={copied ? "text-accent-good" : undefined}
+          >
+            {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+            {copied ? "copied" : "copy text + link"}
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <a href={cardAbs} download="react-rendering-lab-progress.png">
+              <Download className="size-3.5" /> download card
+            </a>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

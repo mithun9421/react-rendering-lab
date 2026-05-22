@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { BookmarkCheck, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import { useProgress } from "./store";
 import { moduleBySlug } from "@/modules/registry";
 
@@ -58,42 +61,42 @@ export function ContinueReadingBanner({ variant = "inline" }: { variant?: "inlin
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: variant === "sticky" ? -16 : 4 }}
           transition={{ duration: 0.18 }}
-          className={clsx(
+          className={cn(
             variant === "sticky"
               ? "sticky top-0 z-40 border-b border-accent/30 bg-bg-subtle/80 backdrop-blur"
-              : "mb-4 rounded-xl border border-accent/40 bg-accent/[0.06]"
+              : "mb-4 rounded-lg border border-accent/40 bg-accent/[0.06]"
           )}
           role="dialog"
           aria-label="Continue reading"
         >
           <div
-            className={clsx(
+            className={cn(
               "mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6",
               variant === "inline" && "p-4"
             )}
           >
-            <span className="font-mono text-[10px] uppercase tracking-widest text-accent">
-              ⟲ pick up where you left off
+            <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-accent">
+              <BookmarkCheck className="size-3.5" />
+              pick up where you left off
             </span>
             <BannerBody slug={lastReading.slug} pct={lastReading.scrollPct} />
             <div className="ml-auto flex flex-wrap items-center gap-2">
-              <Link
-                href={`/lab/${lastReading.slug}`}
-                className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white shadow-glass active:scale-95 hover:brightness-110"
-              >
-                Resume →
-              </Link>
-              <button
+              <Button asChild size="sm">
+                <Link href={`/lab/${lastReading.slug}`}>Resume →</Link>
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => {
                   setClosing(true);
                   setTimeout(dismiss, 200);
                 }}
-                className="rounded-md border border-bg-border bg-bg-elevated px-2.5 py-1.5 font-mono text-[11px] text-ink-muted hover:text-ink"
                 aria-label="Dismiss continue reading"
+                className="size-8"
               >
-                dismiss
-              </button>
+                <X className="size-4" />
+              </Button>
             </div>
           </div>
         </motion.div>
@@ -109,14 +112,9 @@ function BannerBody({ slug, pct }: { slug: string; pct: number }) {
   return (
     <div className="min-w-0 flex-1">
       <div className="truncate text-sm font-medium text-ink">{title}</div>
-      <div className="mt-0.5 flex items-center gap-2 font-mono text-[11px] text-ink-dim">
-        <span>{percent}% in</span>
-        <span className="h-1 w-24 overflow-hidden rounded-full bg-bg-elevated">
-          <span
-            className="block h-full bg-accent"
-            style={{ width: `${percent}%` }}
-          />
-        </span>
+      <div className="mt-1 flex items-center gap-2 font-mono text-[11px] text-ink-dim">
+        <span className="tabular-nums">{percent}% in</span>
+        <Progress value={percent} className="h-1 w-24" />
       </div>
     </div>
   );

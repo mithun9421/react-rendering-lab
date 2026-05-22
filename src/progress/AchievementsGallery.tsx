@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { Check, Trophy } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { ACHIEVEMENTS, type Achievement, type AchievementTier } from "./achievements";
 import { useProgress } from "./store";
 
@@ -25,29 +29,29 @@ export function AchievementsGallery() {
 
   return (
     <section>
-      <header className="mb-3 flex items-center justify-between gap-3">
+      <header className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-mono text-xs uppercase tracking-widest text-ink-muted">
+          <h2 className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-ink-muted">
+            <Trophy className="size-3.5" />
             Achievements
           </h2>
-          <p className="font-mono text-[11px] text-ink-dim">
+          <p className="mt-1 font-mono text-[11px] tabular-nums text-ink-dim">
             {unlockedCount} / {sorted.length} unlocked · competence-tied, no participation badges
           </p>
         </div>
-        <div className="flex rounded-md bg-bg-elevated p-0.5 text-xs">
-          {(["all", "unlocked", "locked"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={clsx(
-                "rounded px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest",
-                filter === f ? "bg-bg-panel text-ink" : "text-ink-dim hover:text-ink"
-              )}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
+          <TabsList className="h-auto p-0.5">
+            {(["all", "unlocked", "locked"] as const).map((f) => (
+              <TabsTrigger
+                key={f}
+                value={f}
+                className="font-mono text-[10px] uppercase tracking-widest"
+              >
+                {f}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </header>
 
       <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
@@ -65,35 +69,43 @@ function Tile({ a, unlockedAt }: { a: Achievement; unlockedAt?: number }) {
     <motion.li
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className={clsx(
-        "relative overflow-hidden rounded-lg border p-3 transition",
-        locked
-          ? "border-bg-border bg-bg-panel opacity-60"
-          : tierGlow(a.tier)
-      )}
+      transition={{ duration: 0.16, ease: "easeOut" }}
     >
-      <div className="flex items-start gap-2">
-        <span
-          className={clsx(
-            "grid size-9 shrink-0 place-items-center rounded-full text-lg",
-            locked ? "bg-bg-elevated text-ink-dim" : tierBg(a.tier)
-          )}
-        >
-          {a.symbol ?? "★"}
-        </span>
-        <div className="min-w-0">
-          <div className="truncate font-mono text-[10px] uppercase tracking-widest text-ink-dim">
-            {a.tier} · {a.xp} XP
+      <Card
+        className={cn(
+          "relative overflow-hidden",
+          locked ? "opacity-60" : tierGlow(a.tier)
+        )}
+      >
+        <CardContent className="p-3">
+          <div className="flex items-start gap-2">
+            <span
+              className={cn(
+                "grid size-9 shrink-0 place-items-center rounded-full text-lg",
+                locked ? "bg-bg-elevated text-ink-dim" : tierBg(a.tier)
+              )}
+            >
+              {a.symbol ?? "★"}
+            </span>
+            <div className="min-w-0">
+              <Badge
+                variant="outline"
+                className="font-mono text-[9px] uppercase tracking-widest tabular-nums"
+              >
+                {a.tier} · {a.xp} XP
+              </Badge>
+              <div className="mt-1 truncate text-sm font-medium text-ink">{a.title}</div>
+            </div>
           </div>
-          <div className="truncate text-sm font-medium text-ink">{a.title}</div>
-        </div>
-      </div>
-      <p className="mt-2 text-[11px] leading-snug text-ink-muted">{a.criterion}</p>
-      {unlockedAt && (
-        <p className="mt-2 font-mono text-[10px] text-accent-good">
-          ✓ {new Date(unlockedAt).toLocaleDateString()}
-        </p>
-      )}
+          <p className="mt-2 text-[11px] leading-snug text-ink-muted">{a.criterion}</p>
+          {unlockedAt && (
+            <p className="mt-2 flex items-center gap-1 font-mono text-[10px] text-accent-good">
+              <Check className="size-3" />
+              {new Date(unlockedAt).toLocaleDateString()}
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </motion.li>
   );
 }
