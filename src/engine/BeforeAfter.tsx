@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+
+type Mode = "before" | "after";
 
 export function BeforeAfter({
   before,
@@ -15,68 +19,58 @@ export function BeforeAfter({
   after: React.ReactNode;
   labelBefore?: string;
   labelAfter?: string;
-  initial?: "before" | "after";
+  initial?: Mode;
 }) {
-  const [mode, setMode] = useState<"before" | "after">(initial);
+  const [mode, setMode] = useState<Mode>(initial);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-bg-border bg-bg-panel">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-bg-border bg-bg-subtle px-3 py-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">surface</span>
-          <span className="truncate font-mono text-xs text-ink">{mode === "before" ? labelBefore : labelAfter}</span>
+    <Card className="overflow-hidden">
+      <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-bg-border bg-bg-subtle px-3 py-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <Badge variant="secondary" className="font-mono uppercase tracking-widest text-[10px]">
+              surface
+            </Badge>
+            <span className="truncate font-mono text-xs text-ink">
+              {mode === "before" ? labelBefore : labelAfter}
+            </span>
+          </div>
+          <TabsList className="h-auto p-0.5">
+            <TabsTrigger
+              value="before"
+              className="text-xs data-[state=active]:bg-accent-bad/15 data-[state=active]:text-accent-bad"
+            >
+              {labelBefore}
+            </TabsTrigger>
+            <TabsTrigger
+              value="after"
+              className="text-xs data-[state=active]:bg-accent-good/15 data-[state=active]:text-accent-good"
+            >
+              {labelAfter}
+            </TabsTrigger>
+          </TabsList>
         </div>
-        <div className="flex rounded-md bg-bg-elevated p-0.5">
-          <Toggle on={mode === "before"} color="bad" onClick={() => setMode("before")}>
-            {labelBefore}
-          </Toggle>
-          <Toggle on={mode === "after"} color="good" onClick={() => setMode("after")}>
-            {labelAfter}
-          </Toggle>
-        </div>
-      </div>
-      <div className="relative">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={mode}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.18 }}
-            className="p-4"
-          >
-            {mode === "before" ? before : after}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
 
-function Toggle({
-  on,
-  color,
-  onClick,
-  children,
-}: {
-  on: boolean;
-  color: "good" | "bad";
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={clsx(
-        "rounded px-3 py-1 text-xs font-medium transition",
-        on
-          ? color === "bad"
-            ? "bg-accent-bad/15 text-accent-bad"
-            : "bg-accent-good/15 text-accent-good"
-          : "text-ink-muted hover:text-ink"
-      )}
-    >
-      {children}
-    </button>
+        {/*
+          NOTE: We drive the swap animation off `mode` directly rather than letting
+          Radix mount/unmount both <TabsContent> entries. This preserves the existing
+          framer-motion fade-and-slide behaviour without double-mounting children.
+        */}
+        <div className="relative">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.18 }}
+              className="p-4"
+            >
+              {mode === "before" ? before : after}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </Tabs>
+    </Card>
   );
 }

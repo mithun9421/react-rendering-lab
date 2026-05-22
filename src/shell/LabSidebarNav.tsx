@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import clsx from "clsx";
+import {
+  LayoutDashboard,
+  Compass,
+  Brain,
+  CalendarDays,
+  ChevronRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import { FOUNDATIONS, MODULES } from "@/modules/registry";
 
 /**
@@ -21,54 +31,73 @@ export function LabSidebarNav() {
   return (
     <>
       {/* Top buckets */}
-      <TopLink
-        href="/lab"
-        label="Lab hub"
-        tone="accent"
-        active={isExact("/lab")}
-        right="◐"
-      />
-      <TopLink
-        href="/lab/journey"
-        label="Journey · one codebase"
-        tone="accent"
-        active={isExact("/lab/journey")}
-        right="▸"
-      />
-      <TopLink
-        href="/lab/interview"
-        label="Interview · question bank"
-        tone="warn"
-        active={isExact("/lab/interview")}
-        right="▸"
-      />
-      <TopLink
-        href="/lab/daily"
-        label="Daily challenge"
-        tone="warn-soft"
-        active={isExact("/lab/daily")}
-        right="◐"
-      />
+      <div className="flex flex-col gap-2 px-2">
+        <Button
+          asChild
+          variant={isExact("/lab") ? "default" : "outline"}
+          className="w-full justify-start"
+          aria-current={isExact("/lab") ? "page" : undefined}
+        >
+          <Link href="/lab">
+            <LayoutDashboard />
+            <span className="flex-1 text-left">Lab hub</span>
+          </Link>
+        </Button>
+        <Button
+          asChild
+          variant={isExact("/lab/journey") ? "default" : "outline"}
+          className="w-full justify-start"
+          aria-current={isExact("/lab/journey") ? "page" : undefined}
+        >
+          <Link href="/lab/journey">
+            <Compass />
+            <span className="flex-1 text-left">Journey · one codebase</span>
+          </Link>
+        </Button>
+        <Button
+          asChild
+          variant={isExact("/lab/interview") ? "default" : "outline"}
+          className="w-full justify-start"
+          aria-current={isExact("/lab/interview") ? "page" : undefined}
+        >
+          <Link href="/lab/interview">
+            <Brain />
+            <span className="flex-1 text-left">Interview · question bank</span>
+          </Link>
+        </Button>
+        <Button
+          asChild
+          variant={isExact("/lab/daily") ? "default" : "outline"}
+          className="w-full justify-start"
+          aria-current={isExact("/lab/daily") ? "page" : undefined}
+        >
+          <Link href="/lab/daily">
+            <CalendarDays />
+            <span className="flex-1 text-left">Daily challenge</span>
+          </Link>
+        </Button>
+      </div>
 
-      <p className="mt-3 px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">
-        Foundations
-      </p>
-      <ul className="mb-3 space-y-0.5">
+      <Separator className="my-3" />
+
+      <SectionHeader label="Foundations" count={FOUNDATIONS.length} />
+      <ul className="space-y-0.5">
         {FOUNDATIONS.map((m, i) => {
           const active = isInModule(m.slug);
           return (
             <li key={m.slug}>
               <Link
                 href={`/lab/${m.slug}`}
-                className={clsx(
-                  "group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm",
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                   active
                     ? "bg-accent/15 text-accent"
                     : "text-ink-muted hover:bg-bg-elevated hover:text-ink"
                 )}
               >
                 <span
-                  className={clsx(
+                  className={cn(
                     "w-7 font-mono text-[10px]",
                     active ? "text-accent" : "text-ink-dim group-hover:text-accent"
                   )}
@@ -76,8 +105,13 @@ export function LabSidebarNav() {
                   F{String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="flex-1 truncate">{m.title}</span>
-                {active && (
+                {active ? (
                   <span aria-hidden className="size-1.5 rounded-full bg-accent" />
+                ) : (
+                  <ChevronRight
+                    aria-hidden
+                    className="size-3.5 text-ink-dim opacity-0 transition-opacity group-hover:opacity-100"
+                  />
                 )}
               </Link>
             </li>
@@ -85,9 +119,9 @@ export function LabSidebarNav() {
         })}
       </ul>
 
-      <p className="px-2 pb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">
-        Core · 25 modules
-      </p>
+      <Separator className="my-3" />
+
+      <SectionHeader label="Core" count={MODULES.length} suffix="modules" />
       <ul className="space-y-0.5">
         {MODULES.map((m, i) => {
           const active = isInModule(m.slug);
@@ -95,15 +129,16 @@ export function LabSidebarNav() {
             <li key={m.slug}>
               <Link
                 href={`/lab/${m.slug}`}
-                className={clsx(
-                  "group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm",
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                   active
                     ? "bg-accent/15 text-accent"
                     : "text-ink-muted hover:bg-bg-elevated hover:text-ink"
                 )}
               >
                 <span
-                  className={clsx(
+                  className={cn(
                     "w-7 font-mono text-[10px]",
                     active ? "text-accent" : "text-ink-dim group-hover:text-accent"
                   )}
@@ -111,8 +146,13 @@ export function LabSidebarNav() {
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="flex-1 truncate">{m.title}</span>
-                {active && (
+                {active ? (
                   <span aria-hidden className="size-1.5 rounded-full bg-accent" />
+                ) : (
+                  <ChevronRight
+                    aria-hidden
+                    className="size-3.5 text-ink-dim opacity-0 transition-opacity group-hover:opacity-100"
+                  />
                 )}
               </Link>
             </li>
@@ -123,46 +163,22 @@ export function LabSidebarNav() {
   );
 }
 
-function TopLink({
-  href,
-  label,
-  active,
-  tone,
-  right,
-}: {
-  href: string;
+interface SectionHeaderProps {
   label: string;
-  active: boolean;
-  tone: "accent" | "warn" | "warn-soft";
-  right?: string;
-}) {
-  const palette =
-    tone === "accent"
-      ? {
-          base: "border-accent/40 bg-accent/5 text-accent hover:bg-accent/10",
-          active: "border-accent/70 bg-accent/15 text-accent",
-        }
-      : tone === "warn"
-      ? {
-          base: "border-accent-warn/40 bg-accent-warn/5 text-accent-warn hover:bg-accent-warn/10",
-          active: "border-accent-warn/70 bg-accent-warn/15 text-accent-warn",
-        }
-      : {
-          base: "border-accent-warn/30 bg-accent-warn/[0.06] text-accent-warn hover:bg-accent-warn/10",
-          active: "border-accent-warn/60 bg-accent-warn/15 text-accent-warn",
-        };
+  count: number;
+  suffix?: string;
+}
 
+function SectionHeader({ label, count, suffix }: SectionHeaderProps) {
   return (
-    <Link
-      href={href}
-      className={clsx(
-        "mx-2 mb-2 flex items-center justify-between rounded-md border px-2.5 py-2 text-sm",
-        active ? palette.active : palette.base
-      )}
-      aria-current={active ? "page" : undefined}
-    >
-      <span>{label}</span>
-      <span aria-hidden>{active ? "●" : right ?? "▸"}</span>
-    </Link>
+    <div className="mb-2 flex items-center justify-between gap-2 px-2">
+      <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+        {label}
+        {suffix ? ` · ${suffix}` : ""}
+      </span>
+      <Badge variant="secondary" className="font-mono text-[10px]">
+        {count}
+      </Badge>
+    </div>
   );
 }

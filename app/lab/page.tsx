@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
 import { FOUNDATIONS, MODULES } from "@/modules/registry";
 import { QUESTIONS } from "@/modules/interview/questions";
 import { computeStreak, levelOf, useProgress } from "@/progress/store";
@@ -11,9 +10,14 @@ import { SiteFooter } from "@/shell/SiteFooter";
 import { AchievementsGallery } from "@/progress/AchievementsGallery";
 import { ShareCard } from "@/progress/ShareCard";
 import { ContinueReadingBanner } from "@/progress/ContinueReadingBanner";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 /**
- * The lab hub — five buckets with live progress.
+ * The lab hub — five buckets, bento-grid layout, with live progress.
  *
  * Renders client-side because all the numbers come from localStorage. On the
  * server it shows zeros; on hydration the real numbers fade in. ProgressBoot
@@ -64,7 +68,7 @@ export default function LabHub() {
 
         <ContinueReadingBanner variant="inline" />
 
-        <StatsRow
+        <StatsCard
           level={level}
           xp={xp}
           into={into}
@@ -76,8 +80,10 @@ export default function LabHub() {
           setConfirmReset={setConfirmReset}
         />
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        {/* Bento: 6-col grid on lg+, 2 on md, 1 on sm */}
+        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
           <Bucket
+            className="lg:col-span-3"
             tone="foundations"
             href={`/lab/${FOUNDATIONS[0].slug}`}
             tag="foundations"
@@ -88,6 +94,7 @@ export default function LabHub() {
             total={FOUNDATIONS.length}
           />
           <Bucket
+            className="lg:col-span-3"
             tone="core"
             href="/lab/01-reconciliation"
             tag="performance"
@@ -98,6 +105,7 @@ export default function LabHub() {
             total={MODULES.length}
           />
           <Bucket
+            className="lg:col-span-2"
             tone="journey"
             href="/lab/journey"
             tag="journey"
@@ -109,6 +117,7 @@ export default function LabHub() {
             cta="Open the Journey"
           />
           <Bucket
+            className="lg:col-span-2"
             tone="interview"
             href="/lab/interview"
             tag="interview"
@@ -120,10 +129,8 @@ export default function LabHub() {
             cta="Start the bank"
             secondary={quizTaken > 0 ? `${Math.round(quizAvg)}% average best` : undefined}
           />
-        </div>
-
-        <div className="mt-4">
           <Bucket
+            className="lg:col-span-6"
             tone="incident"
             href="/lab/25-incident-simulator"
             tag="oncall"
@@ -131,42 +138,53 @@ export default function LabHub() {
             subtitle="6 scenarios · diagnose / fix / validate / postmortem"
             blurb="The capstone. Pick an incident, walk the on-call playbook, score yourself against the model post-mortem."
             cta="Drop into on-call"
-            wide
           />
         </div>
 
-        <Link
-          href="/lab/daily"
-          className="mt-6 block rounded-xl border border-accent-warn/30 bg-accent-warn/5 p-4 transition hover:border-accent-warn/60"
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-accent-warn">
-              ◐ daily challenge · refresh midnight UTC
-            </span>
-            <span aria-hidden className="font-mono text-accent-warn">▸</span>
-          </div>
-          <h3 className="mt-2 text-sm font-medium text-ink">
-            One curated question per day · don&apos;t break the streak
-          </h3>
-          <p className="mt-1 text-[11px] text-ink-muted">
-            Same question for everyone. Correct answers count toward the &quot;Interview-ready&quot;
-            achievement and your daily streak.
-          </p>
-        </Link>
+        <Card className="mt-6 border-l-4 border-l-accent-warn">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-accent-warn">
+                ◐ daily challenge · refresh midnight UTC
+              </span>
+            </div>
+            <CardTitle className="mt-1 text-sm">
+              One curated question per day · don&apos;t break the streak
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            <p className="text-[11px] text-ink-muted">
+              Same question for everyone. Correct answers count toward the &quot;Interview-ready&quot;
+              achievement and your daily streak.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild size="sm" variant="default">
+              <Link href="/lab/daily">Open today&apos;s challenge →</Link>
+            </Button>
+          </CardFooter>
+        </Card>
 
-        <p className="mt-8 font-mono text-[11px] text-ink-dim">
-          Knowledge checks are sprinkled inside the lessons themselves. Look for the{" "}
-          <span className="rounded bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] text-accent">▦ quick check</span>{" "}
-          card.
+        <p className="mt-8 flex flex-wrap items-center gap-2 font-mono text-[11px] text-ink-dim">
+          <span>Knowledge checks are sprinkled inside the lessons themselves. Look for the</span>
+          <Badge variant="outline" className="font-mono text-[10px] text-accent">
+            ▦ quick check
+          </Badge>
+          <span>card.</span>
         </p>
 
         <div className="mt-12">
           <ShareCard />
         </div>
 
-        <div className="mt-12">
-          <AchievementsGallery />
-        </div>
+        <Card className="mt-12 border-transparent bg-transparent shadow-none">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle className="text-xl">Achievements</CardTitle>
+          </CardHeader>
+          <CardContent className="px-0 pb-0">
+            <AchievementsGallery />
+          </CardContent>
+        </Card>
       </article>
 
       <SiteFooter />
@@ -174,7 +192,7 @@ export default function LabHub() {
   );
 }
 
-function StatsRow({
+function StatsCard({
   level,
   xp,
   into,
@@ -195,57 +213,55 @@ function StatsRow({
   confirmReset: boolean;
   setConfirmReset: (v: boolean) => void;
 }) {
-  // tiny hydration cleanup — render zeros pre-hydration to keep SSR identical to client
   const _xp = hydrated ? xp : 0;
   const _streak = hydrated ? streak : 0;
+
   return (
-    <div className="rounded-xl border border-bg-border bg-bg-panel p-4">
-      <div className="flex flex-wrap items-center gap-6">
-        <div>
-          <div className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">level</div>
-          <div className="mt-1 font-mono text-3xl tabular-nums text-accent">{level}</div>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline justify-between">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">
-              {_xp} XP
-            </span>
-            <span className="font-mono text-[10px] text-ink-dim">
-              {toNext} to level {level + 1}
-            </span>
+    <Card>
+      <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+          your run
+        </CardTitle>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onReset}
+          onBlur={() => setConfirmReset(false)}
+          className={cn(
+            "font-mono text-[10px] uppercase tracking-widest",
+            confirmReset && "text-accent-bad hover:text-accent-bad"
+          )}
+        >
+          {confirmReset ? "click again to confirm" : "reset progress"}
+        </Button>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="flex flex-wrap items-center gap-6">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">level</div>
+            <div className="mt-1 font-mono text-3xl tabular-nums text-accent">{level}</div>
           </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg-elevated">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${into}%` }}
-              transition={{ type: "spring", stiffness: 160, damping: 22 }}
-              className="h-full bg-accent"
-            />
+          <div className="min-w-[200px] flex-1">
+            <div className="flex items-baseline justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+                {_xp} XP
+              </span>
+              <span className="font-mono text-[10px] text-ink-dim">
+                {toNext} to level {level + 1}
+              </span>
+            </div>
+            <Progress value={into} className="mt-2" />
+          </div>
+          <div className="text-center">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">streak</div>
+            <div className="mt-1 flex items-center gap-1 font-mono text-2xl tabular-nums text-accent-warm">
+              <span>{_streak}</span>
+              <span className="text-base">🔥</span>
+            </div>
           </div>
         </div>
-        <div className="text-center">
-          <div className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">streak</div>
-          <div className="mt-1 flex items-center gap-1 font-mono text-2xl tabular-nums text-accent-warm">
-            <span>{_streak}</span>
-            <span className="text-base">🔥</span>
-          </div>
-        </div>
-        <div>
-          <button
-            onClick={onReset}
-            className={clsx(
-              "rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-widest active:scale-95",
-              confirmReset
-                ? "border-accent-bad/40 bg-accent-bad/10 text-accent-bad"
-                : "border-bg-border bg-bg-elevated text-ink-dim hover:text-ink"
-            )}
-            onBlur={() => setConfirmReset(false)}
-          >
-            {confirmReset ? "click again to confirm" : "reset progress"}
-          </button>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -260,7 +276,7 @@ function Bucket({
   total = 0,
   cta = "Open",
   secondary,
-  wide = false,
+  className,
 }: {
   tone: "foundations" | "core" | "journey" | "interview" | "incident";
   href: string;
@@ -272,51 +288,62 @@ function Bucket({
   total?: number;
   cta?: string;
   secondary?: string;
-  wide?: boolean;
+  className?: string;
 }) {
   const palette = TONE[tone];
   const pct = total === 0 ? 0 : Math.round((progress / total) * 100);
+
   return (
-    <Link
-      href={href}
-      className={clsx(
-        "group block rounded-xl border bg-bg-panel p-5 transition hover:-translate-y-0.5",
-        palette.border,
-        palette.hover
-      )}
-    >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className={clsx("flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest", palette.tag)}>
-          <span>{tag}</span>
-          {total > 0 && (
-            <span className="text-ink-dim">
-              · {progress}/{total}
-              {pct > 0 && <span className={palette.tag}> · {pct}%</span>}
+    <Link href={href} className={cn("group block focus-visible:outline-none", className)}>
+      <Card
+        className={cn(
+          "h-full border bg-bg-panel transition hover:-translate-y-0.5",
+          palette.border,
+          palette.hover
+        )}
+      >
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between gap-3">
+            <div
+              className={cn(
+                "flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest",
+                palette.tag
+              )}
+            >
+              <span aria-hidden className={cn("inline-block size-1.5 rounded-full", palette.dot)} />
+              <span>{tag}</span>
+              {total > 0 && (
+                <span className="text-ink-dim">
+                  · {progress}/{total}
+                  {pct > 0 && <span className={palette.tag}> · {pct}%</span>}
+                </span>
+              )}
+            </div>
+            <span aria-hidden className={cn("font-mono", palette.tag)}>
+              ▸
             </span>
+          </div>
+          <CardTitle className="mt-2 text-lg text-ink sm:text-xl">{title}</CardTitle>
+          <p className={cn("mt-0.5 font-mono text-[11px]", palette.subtitle)}>{subtitle}</p>
+        </CardHeader>
+        <CardContent className="pb-3">
+          <p className="text-xs leading-relaxed text-ink-muted">{blurb}</p>
+          {total > 0 && (
+            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-bg-elevated">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ type: "spring", stiffness: 140, damping: 22 }}
+                className={cn("h-full", palette.bar)}
+              />
+            </div>
           )}
-        </div>
-        <span aria-hidden className={clsx("font-mono", palette.tag)}>
-          ▸
-        </span>
-      </div>
-      <h2 className="mt-3 text-lg font-medium text-ink sm:text-xl">{title}</h2>
-      <p className={clsx("mt-0.5 font-mono text-[11px]", palette.subtitle)}>{subtitle}</p>
-      <p className="mt-3 text-xs leading-relaxed text-ink-muted">{blurb}</p>
-      {total > 0 && (
-        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-bg-elevated">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ type: "spring", stiffness: 140, damping: 22 }}
-            className={clsx("h-full", palette.bar)}
-          />
-        </div>
-      )}
-      <div className="mt-4 flex items-center justify-between">
-        <span className={clsx("text-xs font-medium", palette.cta)}>{cta} →</span>
-        {secondary && <span className="font-mono text-[10px] text-ink-dim">{secondary}</span>}
-      </div>
-      {wide && <div className="mt-1 h-0" />}
+        </CardContent>
+        <CardFooter className="flex items-center justify-between pt-0">
+          <span className={cn("text-xs font-medium", palette.cta)}>{cta} →</span>
+          {secondary && <span className="font-mono text-[10px] text-ink-dim">{secondary}</span>}
+        </CardFooter>
+      </Card>
     </Link>
   );
 }
@@ -329,6 +356,7 @@ const TONE = {
     subtitle: "text-accent-info/80",
     bar: "bg-accent-info",
     cta: "text-accent-info",
+    dot: "bg-accent-info",
   },
   core: {
     border: "border-accent/30",
@@ -337,6 +365,7 @@ const TONE = {
     subtitle: "text-accent/80",
     bar: "bg-accent",
     cta: "text-accent",
+    dot: "bg-accent",
   },
   journey: {
     border: "border-accent-good/30",
@@ -345,6 +374,7 @@ const TONE = {
     subtitle: "text-accent-good/80",
     bar: "bg-accent-good",
     cta: "text-accent-good",
+    dot: "bg-accent-good",
   },
   interview: {
     border: "border-accent-warn/30",
@@ -353,6 +383,7 @@ const TONE = {
     subtitle: "text-accent-warn/80",
     bar: "bg-accent-warn",
     cta: "text-accent-warn",
+    dot: "bg-accent-warn",
   },
   incident: {
     border: "border-accent-bad/30",
@@ -361,5 +392,6 @@ const TONE = {
     subtitle: "text-accent-bad/80",
     bar: "bg-accent-bad",
     cta: "text-accent-bad",
+    dot: "bg-accent-bad",
   },
 } as const;

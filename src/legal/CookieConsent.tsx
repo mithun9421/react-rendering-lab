@@ -3,7 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import {
   DEFAULT_DENIED,
   ESSENTIAL_ONLY,
@@ -21,7 +30,7 @@ import {
  *   - Reject non-essential → keeps everything denied; non-personalized ads only
  *   - Manage          → opens a small inline panel with per-category toggles
  *
- * The banner is bottom-pinned so it doesn't disrupt the hero. Mobile-first.
+ * Bottom-pinned card (banners > modals for first-visit consent). Mobile-first.
  */
 export function CookieConsent() {
   const [open, setOpen] = useState(false);
@@ -33,7 +42,6 @@ export function CookieConsent() {
     installConsentDefault();
     const saved = readSavedConsent();
     if (!saved) {
-      // Show banner on next paint so it doesn't fight the hero animation.
       const t = setTimeout(() => setOpen(true), 400);
       return () => clearTimeout(t);
     }
@@ -69,23 +77,25 @@ export function CookieConsent() {
     <AnimatePresence>
       {open && (
         <motion.aside
-          initial={{ y: 80, opacity: 0 }}
+          initial={{ y: 24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 240, damping: 26 }}
+          exit={{ y: 24, opacity: 0 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
           role="dialog"
           aria-label="Cookie consent"
           className="fixed inset-x-2 bottom-2 z-[60] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-w-md"
         >
-          <div className="glass overflow-hidden rounded-xl border border-bg-border shadow-glass">
-            <div className="p-4">
+          <Card className={cn("glass overflow-hidden rounded-lg")}>
+            <CardHeader className="pb-3">
               <p className="font-mono text-[10px] uppercase tracking-widest text-accent">
                 cookies + ads
               </p>
-              <h2 className="mt-1 text-sm font-medium text-ink">
+              <CardTitle className="text-sm">
                 We&apos;d like to use cookies to fund the lab
-              </h2>
-              <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-xs leading-relaxed text-ink-muted">
                 We use Google AdSense to show ads in three spots and pay for hosting. With your
                 permission we&apos;ll let AdSense personalize what you see — otherwise you&apos;ll
                 still see ads, just generic ones. Either way, no personal account is required to
@@ -97,12 +107,13 @@ export function CookieConsent() {
               </p>
 
               {managing && (
-                <div className="mt-3 space-y-2 rounded-md border border-bg-border bg-bg-elevated p-3">
-                  <Toggle
+                <div className="space-y-3 rounded-md border border-bg-border bg-bg-elevated p-3">
+                  <ConsentToggle
+                    id="consent-ads"
                     label="Ad cookies"
                     desc="Lets ads pay better by remembering ad frequency caps and clicks."
                     checked={state.ad_storage === "granted"}
-                    onChange={(v) =>
+                    onCheckedChange={(v) =>
                       setState((s) => ({
                         ...s,
                         ad_storage: v ? "granted" : "denied",
@@ -110,84 +121,98 @@ export function CookieConsent() {
                       }))
                     }
                   />
-                  <Toggle
+                  <ConsentToggle
+                    id="consent-personalization"
                     label="Ad personalization"
                     desc="Tailors ads to topics you've shown interest in."
                     checked={state.ad_personalization === "granted"}
-                    onChange={(v) => setState((s) => ({ ...s, ad_personalization: v ? "granted" : "denied" }))}
+                    onCheckedChange={(v) =>
+                      setState((s) => ({
+                        ...s,
+                        ad_personalization: v ? "granted" : "denied",
+                      }))
+                    }
                   />
-                  <Toggle
+                  <ConsentToggle
+                    id="consent-analytics"
                     label="Analytics"
                     desc="Helps us understand which modules people actually read."
                     checked={state.analytics_storage === "granted"}
-                    onChange={(v) => setState((s) => ({ ...s, analytics_storage: v ? "granted" : "denied" }))}
+                    onCheckedChange={(v) =>
+                      setState((s) => ({
+                        ...s,
+                        analytics_storage: v ? "granted" : "denied",
+                      }))
+                    }
                   />
                 </div>
               )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2 border-t border-bg-border bg-bg-subtle px-4 py-3">
+            </CardContent>
+            <CardFooter className="flex flex-wrap items-center gap-2 border-t border-bg-border bg-bg-subtle px-5 py-3">
               {!managing && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setManaging(true)}
-                  className="rounded-md border border-bg-border bg-bg-elevated px-3 py-1.5 font-mono text-[11px] text-ink-muted hover:text-ink"
+                  className="font-mono text-[11px]"
                 >
                   Manage
-                </button>
+                </Button>
               )}
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={rejectAll}
-                className="rounded-md border border-bg-border bg-bg-elevated px-3 py-1.5 font-mono text-[11px] text-ink-muted hover:text-ink"
+                className="font-mono text-[11px]"
               >
                 Reject non-essential
-              </button>
+              </Button>
               {managing ? (
-                <button onClick={saveCustom} className="ml-auto rounded-md bg-accent px-3 py-1.5 font-mono text-[11px] text-white">
+                <Button
+                  size="sm"
+                  onClick={saveCustom}
+                  className="ml-auto font-mono text-[11px]"
+                >
                   Save preferences
-                </button>
+                </Button>
               ) : (
-                <button onClick={acceptAll} className="ml-auto rounded-md bg-accent px-3 py-1.5 font-mono text-[11px] text-white">
+                <Button
+                  size="sm"
+                  onClick={acceptAll}
+                  className="ml-auto font-mono text-[11px]"
+                >
                   Accept all
-                </button>
+                </Button>
               )}
-            </div>
-          </div>
+            </CardFooter>
+          </Card>
         </motion.aside>
       )}
     </AnimatePresence>
   );
 }
 
-function Toggle({
-  label,
-  desc,
-  checked,
-  onChange,
-}: {
+interface ConsentToggleProps {
+  id: string;
   label: string;
   desc: string;
   checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
+  onCheckedChange: (v: boolean) => void;
+}
+
+function ConsentToggle({ id, label, desc, checked, onCheckedChange }: ConsentToggleProps) {
   return (
-    <label className="flex cursor-pointer items-start justify-between gap-3 rounded-md p-1">
-      <span>
+    <div className="flex items-start justify-between gap-3">
+      <label htmlFor={id} className="flex-1 cursor-pointer">
         <span className="block text-[12px] font-medium text-ink">{label}</span>
         <span className="block text-[11px] text-ink-muted">{desc}</span>
-      </span>
-      <span
-        className={clsx(
-          "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition",
-          checked ? "bg-accent" : "bg-bg-border"
-        )}
-      >
-        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
-        <span
-          className={clsx(
-            "inline-block size-4 transform rounded-full bg-white transition",
-            checked ? "translate-x-4" : "translate-x-0.5"
-          )}
-        />
-      </span>
-    </label>
+      </label>
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-label={label}
+      />
+    </div>
   );
 }

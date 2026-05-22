@@ -4,6 +4,16 @@ import { AdSlot } from "@/ads/AdSlot";
 import { SiteFooter } from "@/shell/SiteFooter";
 import { PendingLink } from "@/shell/PendingLink";
 import { ContinueReadingBanner } from "@/progress/ContinueReadingBanner";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 
 export default function Landing() {
   return (
@@ -40,19 +50,23 @@ function NavBar() {
         <span className="font-mono text-[13px] tracking-wider sm:text-sm">react-rendering-lab</span>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted sm:gap-3">
-        <Link href="/lab" className="text-ink-muted hover:text-ink">
-          Lab hub
-        </Link>
-        <Link href="/lab/journey" className="text-ink-muted hover:text-ink">
-          Journey
-        </Link>
-        <Link href="/pricing" className="text-ink-muted hover:text-ink">
-          Pricing
-        </Link>
-        <a href="https://github.com/mithun9421/react-rendering-lab" target="_blank" rel="noreferrer" className="text-ink-muted hover:text-ink">
-          GitHub
-        </a>
-        <span className="pill">v0.9 · alpha</span>
+        <Button asChild variant="link" size="sm" className="px-2 text-ink-muted hover:text-ink">
+          <Link href="/lab">Lab hub</Link>
+        </Button>
+        <Button asChild variant="link" size="sm" className="px-2 text-ink-muted hover:text-ink">
+          <Link href="/lab/journey">Journey</Link>
+        </Button>
+        <Button asChild variant="link" size="sm" className="px-2 text-ink-muted hover:text-ink">
+          <Link href="/pricing">Pricing</Link>
+        </Button>
+        <Button asChild variant="link" size="sm" className="px-2 text-ink-muted hover:text-ink">
+          <a href="https://github.com/mithun9421/react-rendering-lab" target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+        </Button>
+        <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+          v0.9 · alpha
+        </Badge>
         <PendingLink
           href="/lab/01-reconciliation"
           className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white shadow-glass active:scale-95 hover:brightness-110"
@@ -106,42 +120,46 @@ function Hero() {
         </PendingLink>
       </div>
 
-      <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat n="36" l="lessons" />
-        <Stat n="47" l="interview Qs" />
-        <Stat n="6" l="incident scenarios" />
-        <Stat n="100%" l="client-side · open source" />
-      </dl>
+      <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
+        <StatTile n="36" l="lessons" />
+        <StatTile n="47" l="interview Qs" />
+        <StatTile n="6" l="incident scenarios" />
+        <StatTile n="100%" l="client-side · open source" />
+      </div>
 
-      <Link
-        href="/lab/daily"
-        className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent-warn/30 bg-accent-warn/[0.06] p-4 transition hover:border-accent-warn/60"
-      >
-        <div className="min-w-0">
-          <div className="font-mono text-[10px] uppercase tracking-widest text-accent-warn">
-            ◐ daily challenge · refreshes midnight UTC
-          </div>
-          <h3 className="mt-1 truncate text-sm font-medium text-ink">
-            One curated React / systems question per day — don&apos;t break the streak.
-          </h3>
-        </div>
-        <span
-          aria-hidden
-          className="rounded-md bg-accent-warn px-3 py-1.5 font-mono text-[11px] text-bg"
+      <Card className="mt-6 border-accent-warn/30 bg-accent-warn/[0.06] border-l-4 border-l-accent-warn transition hover:border-accent-warn/60">
+        <Link
+          href="/lab/daily"
+          className="flex flex-wrap items-center justify-between gap-3 p-4"
         >
-          take today&apos;s →
-        </span>
-      </Link>
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-accent-warn">
+              ◐ daily challenge · refreshes midnight UTC
+            </div>
+            <h3 className="mt-1 truncate text-sm font-medium text-ink">
+              One curated React / systems question per day — don&apos;t break the streak.
+            </h3>
+          </div>
+          <span
+            aria-hidden
+            className="rounded-md bg-accent-warn px-3 py-1.5 font-mono text-[11px] text-bg"
+          >
+            take today&apos;s →
+          </span>
+        </Link>
+      </Card>
     </section>
   );
 }
 
-function Stat({ n, l }: { n: string; l: string }) {
+function StatTile({ n, l }: { n: string; l: string }) {
   return (
-    <div className="rounded-lg border border-bg-border bg-bg-panel p-3">
-      <dd className="font-mono text-3xl tabular-nums text-ink">{n}</dd>
-      <dt className="mt-1 font-mono text-[10px] uppercase tracking-widest text-ink-dim">{l}</dt>
-    </div>
+    <Card className="bg-bg-panel">
+      <CardContent className="p-4">
+        <div className="font-mono text-3xl tabular-nums text-ink">{n}</div>
+        <div className="mt-1 font-mono text-[10px] uppercase tracking-widest text-ink-dim">{l}</div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -214,29 +232,33 @@ function Path({
   cta: { href: string; label: string };
 }) {
   const toneCls = {
-    info: "border-accent-info/30 bg-accent-info/5 text-accent-info",
-    accent: "border-accent/40 bg-accent/5 text-accent",
-    warn: "border-accent-warn/30 bg-accent-warn/5 text-accent-warn",
+    info: "border-accent-info/30 bg-accent-info/5",
+    accent: "border-accent/40 bg-accent/5",
+    warn: "border-accent-warn/30 bg-accent-warn/5",
   }[tone];
   return (
-    <div className={"rounded-lg border bg-bg-panel p-4 " + toneCls.split(" ").filter(Boolean).slice(0, 2).join(" ")}>
-      <div className="flex items-baseline justify-between">
-        <h3 className="text-sm font-medium text-ink">{title}</h3>
-        <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">{time}</span>
-      </div>
-      <p className="mt-1 text-xs text-ink-muted">for {forWho}</p>
-      <ol className="mt-3 space-y-1 text-xs text-ink-muted">
-        {steps.map((s, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <span className="font-mono text-[10px] text-ink-dim">{i + 1}.</span>
-            <span>{s}</span>
-          </li>
-        ))}
-      </ol>
-      <Link href={cta.href} className="mt-4 inline-block text-xs font-medium text-accent hover:text-accent">
-        {cta.label}
-      </Link>
-    </div>
+    <Card className={cn("flex h-full flex-col bg-bg-panel", toneCls)}>
+      <CardHeader className="p-4 pb-0">
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-sm font-medium text-ink">{title}</h3>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">{time}</span>
+        </div>
+        <p className="mt-1 text-xs text-ink-muted">for {forWho}</p>
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col p-4 pt-3">
+        <ol className="space-y-1 text-xs text-ink-muted">
+          {steps.map((s, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="font-mono text-[10px] text-ink-dim">{i + 1}.</span>
+              <span>{s}</span>
+            </li>
+          ))}
+        </ol>
+        <Button asChild variant="link" size="sm" className="mt-4 h-auto justify-start p-0 text-xs font-medium text-accent">
+          <Link href={cta.href}>{cta.label}</Link>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -252,19 +274,22 @@ function ModuleList() {
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {MODULES.map((m, i) => (
           <li key={m.slug}>
-            <Link
-              href={`/lab/${m.slug}`}
-              className="group flex h-full flex-col rounded-lg border border-bg-border bg-bg-panel p-4 transition active:scale-[0.99] hover:border-accent/50 hover:bg-bg-elevated"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] text-ink-dim">{String(i + 1).padStart(2, "0")}</span>
-                <span className="pill">{m.tag}</span>
-              </div>
-              <div className="mt-3 text-sm font-medium text-ink">{m.title}</div>
-              <p className="mt-1 text-xs leading-relaxed text-ink-muted">{m.hook}</p>
-              <p className="mt-3 font-mono text-[11px] text-accent/70 transition group-hover:text-accent">
-                next → <span className="text-accent/90">{m.next}</span>
-              </p>
+            <Link href={`/lab/${m.slug}`} className="group block h-full">
+              <Card className="flex h-full flex-col bg-bg-panel transition active:scale-[0.99] group-hover:border-accent/50 group-hover:bg-bg-elevated">
+                <CardHeader className="p-4 pb-0">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[11px] text-ink-dim">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="pill">{m.tag}</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col p-4 pt-3">
+                  <div className="text-sm font-medium text-ink">{m.title}</div>
+                  <p className="mt-1 text-xs leading-relaxed text-ink-muted">{m.hook}</p>
+                  <p className="mt-3 font-mono text-[11px] text-accent/70 transition group-hover:text-accent">
+                    next → <span className="text-accent/90">{m.next}</span>
+                  </p>
+                </CardContent>
+              </Card>
             </Link>
           </li>
         ))}
@@ -281,19 +306,21 @@ function HowItWorks() {
         Every module follows the same six-beat rhythm. The point is muscle memory — by Module 5
         you&apos;re predicting the next callout before you read it.
       </p>
-      <ol className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {BEATS.map((b, i) => (
-          <li key={b.label} className="rounded-lg border border-bg-border bg-bg-panel p-4">
-            <div className="flex items-center gap-2">
-              <span className="grid size-6 place-items-center rounded-full border border-bg-border bg-bg-elevated font-mono text-[10px] text-accent">
-                {i + 1}
-              </span>
-              <h3 className="text-sm font-medium text-ink">{b.label}</h3>
-            </div>
-            <p className="mt-2 text-xs leading-relaxed text-ink-muted">{b.text}</p>
-          </li>
+          <Card key={b.label} className="bg-bg-panel">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <span className="grid size-7 place-items-center rounded-full border border-accent/30 bg-accent/10 font-mono text-[11px] text-accent">
+                  {i + 1}
+                </span>
+                <h3 className="text-sm font-medium text-ink">{b.label}</h3>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-ink-muted">{b.text}</p>
+            </CardContent>
+          </Card>
         ))}
-      </ol>
+      </div>
     </section>
   );
 }
@@ -310,17 +337,22 @@ function FAQ() {
   return (
     <section className="relative mx-auto max-w-6xl px-4 pb-24 sm:px-6">
       <h2 className="font-mono text-xs uppercase tracking-widest text-ink-muted">FAQ</h2>
-      <dl className="mt-4 space-y-3">
-        {Q.map((q) => (
-          <details key={q.q} className="group rounded-lg border border-bg-border bg-bg-panel p-4 open:border-accent/40">
-            <summary className="flex cursor-pointer items-center justify-between text-sm font-medium text-ink">
-              <span>{q.q}</span>
-              <span className="font-mono text-[11px] text-ink-dim group-open:text-accent">+</span>
-            </summary>
-            <dd className="mt-2 text-sm leading-relaxed text-ink-muted">{q.a}</dd>
-          </details>
+      <Accordion type="single" collapsible className="mt-4 w-full space-y-3">
+        {Q.map((q, i) => (
+          <AccordionItem
+            key={q.q}
+            value={`item-${i}`}
+            className="rounded-lg border border-bg-border bg-bg-panel px-4 data-[state=open]:border-accent/40"
+          >
+            <AccordionTrigger className="text-left text-sm font-medium text-ink hover:no-underline">
+              {q.q}
+            </AccordionTrigger>
+            <AccordionContent className="text-sm leading-relaxed text-ink-muted">
+              {q.a}
+            </AccordionContent>
+          </AccordionItem>
         ))}
-      </dl>
+      </Accordion>
     </section>
   );
 }
@@ -350,4 +382,3 @@ const Q = [
     a: "Module 22 (Observability) shows the in-page equivalents — real Web Vitals readouts from PerformanceObserver. The lab is meant to be the bridge from 'read the docs' to 'open DevTools and know what you're looking at.'",
   },
 ];
-
