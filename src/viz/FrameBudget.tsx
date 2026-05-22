@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
+import { Play } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /**
  * A 16.67ms frame visualised as a horizontal bar.
@@ -17,36 +20,38 @@ export function FrameBudget({
   const total = chunks.reduce((a, c) => a + c.ms, 0);
   const over = total > budgetMs;
   return (
-    <div className="rounded-lg border border-bg-border bg-bg-panel p-3">
-      <div className="mb-2 flex items-center justify-between text-xs">
-        <span className="font-mono uppercase tracking-widest text-ink-dim">frame · {budgetMs}ms budget</span>
-        <span className={clsx("font-mono", over ? "text-accent-bad" : "text-accent-good")}>
-          {total.toFixed(1)}ms {over ? "· OVER" : "· ok"}
-        </span>
-      </div>
-      <div className="relative h-7 w-full overflow-hidden rounded border border-bg-border bg-bg-subtle">
-        <div className="absolute left-0 top-0 flex h-full">
-          {chunks.map((c, i) => (
-            <div
-              key={i}
-              title={`${c.label} · ${c.ms.toFixed(1)}ms`}
-              style={{ width: `${(c.ms / budgetMs) * 100}%` }}
-              className={clsx(
-                "flex h-full items-center overflow-hidden border-r border-bg-subtle px-1 text-[9px] font-mono whitespace-nowrap",
-                c.kind === "work" ? "bg-accent/40 text-white" : "bg-accent-good/30 text-accent-good"
-              )}
-            >
-              {c.label}
-            </div>
-          ))}
+    <Card>
+      <CardContent className="p-3">
+        <div className="mb-2 flex items-center justify-between text-xs">
+          <span className="font-mono uppercase tracking-widest text-ink-dim">frame · {budgetMs}ms budget</span>
+          <span className={cn("font-mono", over ? "text-accent-bad" : "text-accent-good")}>
+            {total.toFixed(1)}ms {over ? "· OVER" : "· ok"}
+          </span>
         </div>
-        <div
-          className="pointer-events-none absolute top-0 h-full w-px bg-accent-bad/60"
-          style={{ left: `100%` }}
-          title="budget cutoff"
-        />
-      </div>
-    </div>
+        <div className="relative h-7 w-full overflow-hidden rounded border border-bg-border bg-bg-subtle">
+          <div className="absolute left-0 top-0 flex h-full">
+            {chunks.map((c, i) => (
+              <div
+                key={i}
+                title={`${c.label} · ${c.ms.toFixed(1)}ms`}
+                style={{ width: `${(c.ms / budgetMs) * 100}%` }}
+                className={cn(
+                  "flex h-full items-center overflow-hidden border-r border-bg-subtle px-1 text-[9px] font-mono whitespace-nowrap",
+                  c.kind === "work" ? "bg-accent/40 text-white" : "bg-accent-good/30 text-accent-good"
+                )}
+              >
+                {c.label}
+              </div>
+            ))}
+          </div>
+          <div
+            className="pointer-events-none absolute top-0 h-full w-px bg-accent-bad/60"
+            style={{ left: `100%` }}
+            title="budget cutoff"
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -126,20 +131,23 @@ export function TimeSlicingDemo() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <button
+        <Button
           disabled={running}
           onClick={() => run(false)}
-          className="rounded-md border border-bg-border bg-bg-elevated px-3 py-1.5 font-mono text-ink hover:bg-bg-panel disabled:opacity-50"
+          variant="outline"
+          size="sm"
+          className="gap-1.5 font-mono"
         >
-          ▶ run blocking
-        </button>
-        <button
+          <Play className="size-3" aria-hidden /> run blocking
+        </Button>
+        <Button
           disabled={running}
           onClick={() => run(true)}
-          className="rounded-md bg-accent px-3 py-1.5 font-mono text-white disabled:opacity-50"
+          size="sm"
+          className="gap-1.5 font-mono"
         >
-          ▶ run sliced
-        </button>
+          <Play className="size-3" aria-hidden /> run sliced
+        </Button>
         <span className="font-mono text-ink-muted">progress: {progress.toFixed(0)} / {work}ms</span>
       </div>
     </div>

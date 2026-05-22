@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 /**
  * Step-by-step tour for one journey stage. Six max steps per stage; each step
@@ -73,7 +73,7 @@ export function StageTour({ steps, stageKey }: { steps: TourStep[]; stageKey: st
                   <li key={i}>
                     <button
                       onClick={() => setIdx(i)}
-                      className={clsx(
+                      className={cn(
                         "h-1.5 rounded-full transition",
                         i === idx ? "w-8 bg-accent" : i < idx ? "w-4 bg-accent-good/60" : "w-4 bg-bg-border"
                       )}

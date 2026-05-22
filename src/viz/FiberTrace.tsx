@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 /**
  * Two-phase fiber playback:
@@ -152,14 +152,14 @@ export function FiberTrace() {
                   : "transparent",
               }}
               transition={{ duration: 0.18 }}
-              className={clsx(
+              className={cn(
                 "flex items-center gap-2 rounded px-2 py-1",
                 done ? "text-ink-muted" : active ? "text-ink" : "text-ink-dim"
               )}
               style={{ paddingLeft: 8 + row.depth * 14 }}
             >
               <span
-                className={clsx(
+                className={cn(
                   "size-1.5 rounded-full",
                   active ? "bg-accent animate-pulse_dot" : done ? "bg-accent-good" : "bg-bg-border"
                 )}
@@ -206,7 +206,7 @@ function PhaseChip({
 }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         "flex-1 rounded px-2 py-1.5",
         active && tone === "info" && "bg-accent-info/15 text-accent-info",
         active && tone === "warn" && "bg-accent-warn/15 text-accent-warn",

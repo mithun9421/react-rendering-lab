@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 /**
  * The React scheduler tracks pending work via a 31-bit lane bitmask
@@ -59,7 +59,7 @@ export function LaneBitmask() {
                 key={i}
                 onClick={() => toggle(i)}
                 title={lane?.label ?? `lane ${i}`}
-                className={clsx(
+                className={cn(
                   "h-6 w-3 rounded-sm transition",
                   set ? lane?.color ?? "bg-accent" : "bg-bg-elevated"
                 )}
@@ -82,7 +82,7 @@ export function LaneBitmask() {
               <button
                 key={l.idx}
                 onClick={() => toggle(l.idx)}
-                className={clsx(
+                className={cn(
                   "rounded-md px-2 py-1 font-mono text-[10px] active:scale-95",
                   set ? `${l.color} text-white` : "border border-bg-border text-ink-muted"
                 )}
@@ -98,7 +98,7 @@ export function LaneBitmask() {
         {winner ? (
           <span>
             next to render:{" "}
-            <span className={clsx("rounded px-1.5 py-0.5 text-white", winner.color)}>
+            <span className={cn("rounded px-1.5 py-0.5 text-white", winner.color)}>
               {winner.label}
             </span>{" "}
             <span className="text-ink-dim">(lowest set bit · highest priority)</span>

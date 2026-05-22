@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 type Chunk = { id: string; label: string; delay: number; bytes: number };
@@ -62,7 +62,7 @@ export function StreamChunks() {
                 <motion.li
                   key={c.id}
                   animate={{ opacity: got ? 1 : 0.35 }}
-                  className={clsx("flex items-center justify-between rounded px-2 py-1", got ? "bg-accent/10" : "")}
+                  className={cn("flex items-center justify-between rounded px-2 py-1", got ? "bg-accent/10" : "")}
                 >
                   <span className={got ? "text-ink" : "text-ink-dim"}>{c.label}</span>
                   <span className="text-ink-dim">{c.delay}ms</span>
@@ -108,7 +108,7 @@ function Slot({ ok, fallback, label, lines }: { ok: boolean; fallback?: boolean;
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className={clsx(
+          className={cn(
             "mb-1 h-2 rounded",
             ok ? "bg-accent/30" : fallback ? "bg-accent-warn/30 animate-pulse" : "bg-bg-border"
           )}

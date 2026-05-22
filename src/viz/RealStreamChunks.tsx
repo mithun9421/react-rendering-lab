@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 type Chunk = {
   id: string;
@@ -109,7 +109,7 @@ export function RealStreamChunks() {
             <li key={c.id} className="grid grid-cols-[1fr_auto] gap-3">
               <span className="flex items-center gap-2">
                 <span
-                  className={clsx(
+                  className={cn(
                     "size-1.5 rounded-full",
                     c.kind === "shell" ? "bg-accent-good" : "bg-accent"
                   )}

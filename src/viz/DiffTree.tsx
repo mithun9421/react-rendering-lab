@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export type DiffNode = {
   id: string;
@@ -24,7 +25,7 @@ export function DiffTree({
   title?: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
+    <Card className="overflow-hidden">
       <header className="flex flex-col gap-2 border-b border-bg-border px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between">
         <span className="font-mono uppercase tracking-widest text-ink-dim">{title}</span>
         <span className="flex flex-wrap items-center gap-2 font-mono text-[10px] sm:gap-3">
@@ -38,13 +39,13 @@ export function DiffTree({
         <Column title="Previous tree" items={before} />
         <Column title="Next tree" items={after} highlight />
       </div>
-    </div>
+    </Card>
   );
 }
 
 function Legend({ label, cls }: { label: string; cls: string }) {
   return (
-    <span className={clsx("rounded px-1.5 py-0.5 uppercase tracking-wider", cls)}>{label}</span>
+    <span className={cn("rounded px-1.5 py-0.5 uppercase tracking-wider", cls)}>{label}</span>
   );
 }
 
@@ -59,7 +60,7 @@ function Column({ title, items, highlight }: { title: string; items: DiffNode[];
             layout
             initial={{ opacity: 0, x: highlight ? 4 : -4 }}
             animate={{ opacity: 1, x: 0 }}
-            className={clsx(
+            className={cn(
               "flex items-center justify-between rounded px-2 py-1 font-mono text-xs",
               n.status === "kept" && "bg-bg-elevated text-ink-muted",
               n.status === "moved" && "bg-accent-info/15 text-accent-info",

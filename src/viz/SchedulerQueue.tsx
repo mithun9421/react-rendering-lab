@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 /**
  * Visualises React's scheduler queues as five stacks.
@@ -115,7 +115,7 @@ export function SchedulerQueue() {
                 animate={{ x: 0 }}
                 exit={{ x: "100%", opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className={clsx("absolute inset-0 flex items-center px-3 font-mono text-xs text-white", LANE_META[running.lane].color)}
+                className={cn("absolute inset-0 flex items-center px-3 font-mono text-xs text-white", LANE_META[running.lane].color)}
               >
                 {running.label}
               </motion.div>
@@ -139,7 +139,7 @@ export function SchedulerQueue() {
         {LANE_ORDER.map((lane) => (
           <div key={lane} className="bg-bg-panel p-3">
             <div className="mb-2 flex items-center gap-2">
-              <span className={clsx("size-2 rounded-full", LANE_META[lane].color)} />
+              <span className={cn("size-2 rounded-full", LANE_META[lane].color)} />
               <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">{lane}</span>
             </div>
             <ul className="space-y-1">

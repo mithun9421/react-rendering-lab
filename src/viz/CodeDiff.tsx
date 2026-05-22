@@ -1,6 +1,6 @@
 "use client";
 
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 /**
  * GitHub-style diff renderer for short snippets.
@@ -75,7 +75,7 @@ export function CodeDiff({
           {lines.map((l, i) => (
             <div
               key={i}
-              className={clsx(
+              className={cn(
                 "flex items-start gap-3 whitespace-pre px-3 py-0.5",
                 l.kind === "add" && "bg-accent-good/10",
                 l.kind === "remove" && "bg-accent-bad/10",
@@ -83,7 +83,7 @@ export function CodeDiff({
               )}
             >
               <span
-                className={clsx(
+                className={cn(
                   "select-none text-[10px] tabular-nums",
                   l.kind === "add" && "text-accent-good",
                   l.kind === "remove" && "text-accent-bad",
@@ -93,7 +93,7 @@ export function CodeDiff({
                 {l.kind === "add" ? "+" : l.kind === "remove" ? "−" : " "}
               </span>
               <span
-                className={clsx(
+                className={cn(
                   l.kind === "add" && "text-ink",
                   l.kind === "remove" && "text-ink line-through decoration-accent-bad/40",
                   l.kind === "context" && "text-ink-muted"

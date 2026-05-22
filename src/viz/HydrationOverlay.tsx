@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 type Island = { id: string; label: string; ms: number; priority: number };
 
@@ -69,7 +69,7 @@ export function HydrationOverlay() {
             <button
               key={m}
               onClick={() => setMode(m)}
-              className={clsx(
+              className={cn(
                 "rounded-md px-2 py-1 font-mono text-[11px]",
                 mode === m ? "bg-accent text-white" : "border border-bg-border text-ink-muted hover:text-ink"
               )}
@@ -102,7 +102,7 @@ export function HydrationOverlay() {
                 borderColor: isHydrated ? "rgba(61,220,151,0.6)" : "rgba(255,255,255,0.06)",
                 backgroundColor: isHydrated ? "rgba(61,220,151,0.10)" : "rgba(21,21,26,1)",
               }}
-              className={clsx(
+              className={cn(
                 "rounded-md border p-3",
                 !wouldHydrate && "opacity-50"
               )}

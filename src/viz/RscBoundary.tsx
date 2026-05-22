@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 type Node = { id: string; label: string; kind: "rsc" | "client"; jsKb: number; child?: Node[] };
 
@@ -64,7 +64,7 @@ function TreeNode({
         layout
         whileTap={{ scale: 0.97 }}
         onClick={() => onToggle(node.id)}
-        className={clsx(
+        className={cn(
           "mb-1 flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-0.5 rounded px-2 py-1.5 text-left font-mono text-[11px] sm:flex-nowrap sm:py-1 sm:text-xs",
           isClient
             ? "bg-accent/15 text-accent"

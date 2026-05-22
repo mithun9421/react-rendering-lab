@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 type Phase = "request" | "edge-cache-hit" | "shell-streamed" | "dynamic-arrived" | "done";
 
@@ -63,12 +63,12 @@ export function PprDiagram() {
                 <motion.li
                   key={s.phase}
                   animate={{ opacity: done ? 1 : 0.35 }}
-                  className={clsx(
+                  className={cn(
                     "flex items-center gap-2 rounded px-2 py-1",
                     done ? "bg-accent/10 text-ink" : "text-ink-dim"
                   )}
                 >
-                  <span className={clsx("size-1.5 rounded-full", done ? "bg-accent" : "bg-bg-border")} />
+                  <span className={cn("size-1.5 rounded-full", done ? "bg-accent" : "bg-bg-border")} />
                   <span className="w-12 text-ink-dim">{s.t}ms</span>
                   <span>{s.label}</span>
                 </motion.li>
@@ -107,7 +107,7 @@ export function PprDiagram() {
 function Region({ label, ok, fallback }: { label: string; ok: boolean; fallback?: boolean }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         "rounded border px-2 py-2 font-mono text-[11px] transition",
         ok
           ? "border-accent/40 bg-accent/10 text-ink"
