@@ -1,12 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Grid3x3, Sparkles, ChevronRight } from "lucide-react";
+import { Grid3x3, Sparkles, ChevronRight, Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTicTacToe } from "./ticTacToeStore";
 import { useG2048 } from "./g2048Store";
+import { useMemoryGame } from "./memoryStore";
 import { useLauncher, type GameId } from "./launcherStore";
 
 type GameMeta = {
@@ -39,6 +40,16 @@ function useG2048Status() {
     resumeable: status === "playing" && tiles.length > 2,
   };
 }
+function useMemoryStatus() {
+  const moves = useMemoryGame((s) => s.moves);
+  const matches = useMemoryGame((s) => s.matches);
+  const bestMoves = useMemoryGame((s) => s.bestMoves);
+  const status = useMemoryGame((s) => s.status);
+  return {
+    line: `moves · ${moves}${bestMoves > 0 ? ` · best · ${bestMoves}` : ""}`,
+    resumeable: status === "playing" && matches > 0,
+  };
+}
 
 const GAMES: GameMeta[] = [
   {
@@ -56,6 +67,14 @@ const GAMES: GameMeta[] = [
     iconBg: "bg-gradient-to-br from-[#ffd76b] via-[#ff7c93] to-[#7c5cff]",
     Icon: Sparkles,
     useStatus: useG2048Status,
+  },
+  {
+    id: "memory",
+    name: "Memory Match",
+    tagline: "flip + find the pair",
+    iconBg: "bg-gradient-to-br from-[#ff9bd5] via-[#cdb6ff] to-[#9bd5ff]",
+    Icon: Heart,
+    useStatus: useMemoryStatus,
   },
 ];
 

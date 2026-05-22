@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTicTacToe } from "./ticTacToeStore";
 import { useG2048 } from "./g2048Store";
+import { useMemoryGame } from "./memoryStore";
 import { useLauncher, type GameId, type LauncherUi } from "./launcherStore";
 import { TicTacToeBoard } from "./TicTacToeBoard";
 import { G2048Board } from "./G2048Board";
+import { MemoryBoard } from "./MemoryBoard";
 import { GameLauncher } from "./GameLauncher";
 
 /**
@@ -33,6 +35,7 @@ export function BoredomBuster() {
   const hydrateLauncher = useLauncher((s) => s.hydrate);
   const hydrateTtt = useTicTacToe((s) => s.hydrate);
   const hydrate2048 = useG2048((s) => s.hydrate);
+  const hydrateMemory = useMemoryGame((s) => s.hydrate);
 
   const lastPath = useRef<string | null>(pathname);
   const popupTimer = useRef<number | null>(null);
@@ -43,8 +46,9 @@ export function BoredomBuster() {
     hydrateLauncher();
     hydrateTtt();
     hydrate2048();
+    hydrateMemory();
     setUi("pill");
-  }, [hydrateLauncher, hydrateTtt, hydrate2048, setUi]);
+  }, [hydrateLauncher, hydrateTtt, hydrate2048, hydrateMemory, setUi]);
 
   // When the pathname resolves, tuck the panel back into the pill.
   useEffect(() => {
@@ -214,12 +218,14 @@ function Panel({
 function GameSurface({ id }: { id: GameId }) {
   if (id === "tictactoe") return <TicTacToeBoard />;
   if (id === "2048") return <G2048Board />;
+  if (id === "memory") return <MemoryBoard />;
   return null;
 }
 
 function gameTitle(id: GameId | null): string {
   if (id === "tictactoe") return "tic-tac-toe";
   if (id === "2048") return "2048";
+  if (id === "memory") return "memory match";
   return "boredom buster";
 }
 
@@ -256,6 +262,7 @@ function Pill({ activeGame, onOpen }: { activeGame: GameId | null; onOpen: () =>
 function PillIcon({ activeGame }: { activeGame: GameId | null }) {
   if (activeGame === "tictactoe") return <TicTacToeMini />;
   if (activeGame === "2048") return <G2048Mini />;
+  if (activeGame === "memory") return <MemoryMini />;
   return (
     <span className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
       <Gamepad2 className="size-4" aria-hidden />
@@ -277,6 +284,28 @@ function TicTacToeMini() {
             "rounded-[2px] bg-bg-panel",
             c === "X" && "bg-accent-info/70",
             c === "O" && "bg-accent-warn/70"
+          )}
+        />
+      ))}
+    </span>
+  );
+}
+
+function MemoryMini() {
+  const cards = useMemoryGame((s) => s.cards);
+  return (
+    <span
+      className="grid size-7 shrink-0 grid-cols-4 grid-rows-4 gap-px overflow-hidden rounded-md bg-gradient-to-br from-[#ff9bd5]/40 via-bg-elevated to-[#9bd5ff]/40 p-0.5"
+      aria-hidden
+    >
+      {cards.map((c, i) => (
+        <span
+          key={i}
+          className={cn(
+            "rounded-[1px]",
+            c.state === "matched" && "bg-accent-good/70",
+            c.state === "flipped" && "bg-accent-info/70",
+            c.state === "hidden" && "bg-bg-panel/80"
           )}
         />
       ))}
