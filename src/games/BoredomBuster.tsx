@@ -3,49 +3,50 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gamepad2, Minimize2 } from "lucide-react";
+import { Gamepad2, Minimize2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTicTacToe } from "./ticTacToeStore";
+import { useG2048 } from "./g2048Store";
+import { useLauncher, type GameId, type LauncherUi } from "./launcherStore";
 import { TicTacToeBoard } from "./TicTacToeBoard";
+import { G2048Board } from "./G2048Board";
+import { GameLauncher } from "./GameLauncher";
 
 /**
  * Loading-aware boredom buster.
  *
- * Behavior:
- *   1. Mounted globally. Hydrates persisted state (board, turn, score).
- *   2. Listens for same-origin <a> click — starts a 600ms timer.
- *   3. If the pathname has not changed before 600ms, the game pops up in the
- *      center. As soon as the new path resolves, the panel animates to a
- *      floating pill in the bottom-right.
- *   4. The pill is the always-on resume button — click it any time to restore
- *      the full panel and keep playing.
- *   5. User can ✕ to hush for the session.
- *
- * The pill stays available even if the page loads fast (we just don't auto-pop)
- * so the user can always launch a game manually from the corner.
+ * Floating pill is always present in the bottom-right. Clicking it opens the
+ * game launcher (or directly resumes the last game if one is in progress).
+ * If a route navigation has been pending >600ms, the launcher auto-pops so
+ * the user has something to do while waiting.
  */
 
 const POPUP_DELAY_MS = 600;
 
 export function BoredomBuster() {
   const pathname = usePathname();
-  const ui = useTicTacToe((s) => s.ui);
-  const hushed = useTicTacToe((s) => s.hushed);
-  const setUi = useTicTacToe((s) => s.setUi);
-  const hydrate = useTicTacToe((s) => s.hydrate);
+  const ui = useLauncher((s) => s.ui);
+  const activeGame = useLauncher((s) => s.activeGame);
+  const setUi = useLauncher((s) => s.setUi);
+  const setActive = useLauncher((s) => s.setActiveGame);
+  const hydrateLauncher = useLauncher((s) => s.hydrate);
+  const hydrateTtt = useTicTacToe((s) => s.hydrate);
+  const hydrate2048 = useG2048((s) => s.hydrate);
 
   const lastPath = useRef<string | null>(pathname);
   const popupTimer = useRef<number | null>(null);
   const wasNavigating = useRef(false);
 
-  // Hydrate persisted state once on mount.
+  // Initial hydrate + show pill.
   useEffect(() => {
-    hydrate();
+    hydrateLauncher();
+    hydrateTtt();
+    hydrate2048();
     setUi("pill");
-  }, [hydrate, setUi]);
+  }, [hydrateLauncher, hydrateTtt, hydrate2048, setUi]);
 
-  // When the pathname resolves, demote any open popup back to the pill.
+  // When the pathname resolves, tuck the panel back into the pill.
   useEffect(() => {
     if (lastPath.current !== pathname) {
       lastPath.current = pathname;
@@ -55,24 +56,17 @@ export function BoredomBuster() {
       }
       if (wasNavigating.current) {
         wasNavigating.current = false;
-        // If the user opened the popup automatically, slide it back to the pill.
-        // (If they opened it manually we don't intrude — leave it open.)
-        // We can't distinguish here cheaply, so use a small delay to allow the
-        // new page to paint before tucking the game away.
         window.setTimeout(() => {
-          // Only auto-minimize if it's still in the open state and not hushed.
-          const state = useTicTacToe.getState();
-          if (state.ui === "open" && state.status === "playing") setUi("pill");
+          const state = useLauncher.getState();
+          if (state.ui === "launcher" || state.ui === "game") setUi("pill");
         }, 350);
       }
     }
   }, [pathname, setUi]);
 
-  // Click listener: anytime a same-origin <a> click starts navigation, arm the
-  // popup timer. If the new path doesn't resolve in POPUP_DELAY_MS, pop the game.
+  // <a> click → arm popup timer.
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (hushed) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       if (e.button !== 0) return;
       const target = e.target as HTMLElement | null;
@@ -84,14 +78,16 @@ export function BoredomBuster() {
       if (a.hasAttribute("download")) return;
       if (href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:") || href.startsWith("#")) return;
       if (href.startsWith("http") && !href.includes(location.host)) return;
-      // Same path — no navigation will happen.
       if (href === location.pathname) return;
 
       wasNavigating.current = true;
       if (popupTimer.current != null) clearTimeout(popupTimer.current);
       popupTimer.current = window.setTimeout(() => {
-        const state = useTicTacToe.getState();
-        if (!state.hushed && state.ui !== "open") setUi("open");
+        const state = useLauncher.getState();
+        // Resume the active game if one was in flight; else pop the launcher.
+        if (state.ui === "pill" || state.ui === "hidden") {
+          setUi(state.activeGame ? "game" : "launcher");
+        }
       }, POPUP_DELAY_MS);
     };
     document.addEventListener("click", onClick, { capture: true });
@@ -99,45 +95,71 @@ export function BoredomBuster() {
       document.removeEventListener("click", onClick, { capture: true });
       if (popupTimer.current != null) clearTimeout(popupTimer.current);
     };
-  }, [hushed, setUi]);
-
-  if (hushed) return null;
+  }, [setUi]);
 
   return (
     <>
       <AnimatePresence>
-        {ui === "open" && <OpenPanel onMinimize={() => setUi("pill")} />}
+        {(ui === "launcher" || ui === "game") && (
+          <Panel
+            ui={ui}
+            activeGame={activeGame}
+            onMinimize={() => setUi("pill")}
+            onBack={() => setUi("launcher")}
+            onClear={() => setActive(null)}
+          />
+        )}
       </AnimatePresence>
       <AnimatePresence>
-        {ui === "pill" && <Pill onOpen={() => setUi("open")} />}
+        {ui === "pill" && (
+          <Pill
+            activeGame={activeGame}
+            onOpen={() => setUi(activeGame ? "game" : "launcher")}
+          />
+        )}
       </AnimatePresence>
     </>
   );
 }
 
-/* ───────────── open panel ───────────── */
+/* ───────────── panel (launcher or active game) ───────────── */
 
-function OpenPanel({ onMinimize }: { onMinimize: () => void }) {
+function Panel({
+  ui,
+  activeGame,
+  onMinimize,
+  onBack,
+  onClear,
+}: {
+  ui: LauncherUi;
+  activeGame: GameId | null;
+  onMinimize: () => void;
+  onBack: () => void;
+  onClear: () => void;
+}) {
+  const showingGame = ui === "game" && activeGame !== null;
+  const title = showingGame ? gameTitle(activeGame) : "boredom buster";
+  const subtitle = showingGame ? "page loading — keep playing" : "pick something to play";
+
   return (
     <motion.div
-      key="ttt-open"
+      key="bb-panel"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[80] flex items-end justify-center px-3 pb-3 sm:items-center sm:p-4"
       aria-modal="true"
       role="dialog"
-      aria-label="Tic-Tac-Toe — boredom buster"
+      aria-label={title}
     >
-      {/* dim backdrop — click to minimize */}
       <button
         type="button"
         onClick={onMinimize}
-        aria-label="minimize game"
+        aria-label="minimize"
         className="absolute inset-0 bg-bg/60 backdrop-blur-sm"
       />
       <motion.div
-        layoutId="ttt-surface"
+        layoutId="bb-surface"
         initial={{ y: 24, scale: 0.96, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 24, scale: 0.96, opacity: 0 }}
@@ -146,12 +168,29 @@ function OpenPanel({ onMinimize }: { onMinimize: () => void }) {
       >
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="grid size-7 place-items-center rounded-lg bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
-              <Gamepad2 className="size-4" aria-hidden />
-            </span>
+            {showingGame ? (
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  onClear();
+                  onBack();
+                }}
+                aria-label="back to launcher"
+                title="Pick a different game"
+                className="size-7"
+              >
+                <ArrowLeft className="size-3.5" aria-hidden />
+              </Button>
+            ) : (
+              <span className="grid size-7 place-items-center rounded-lg bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
+                <Gamepad2 className="size-4" aria-hidden />
+              </span>
+            )}
             <div className="leading-tight">
-              <div className="font-mono text-[11px] uppercase tracking-widest text-ink">tic-tac-toe</div>
-              <div className="font-mono text-[10px] text-ink-dim">page is loading — pass the time</div>
+              <div className="font-mono text-[11px] uppercase tracking-widest text-ink">{title}</div>
+              <div className="font-mono text-[10px] text-ink-dim">{subtitle}</div>
             </div>
           </div>
           <Button
@@ -166,36 +205,31 @@ function OpenPanel({ onMinimize }: { onMinimize: () => void }) {
             <Minimize2 className="size-3.5" aria-hidden />
           </Button>
         </div>
-        <TicTacToeBoard />
+        {showingGame ? <GameSurface id={activeGame!} /> : <GameLauncher />}
       </motion.div>
     </motion.div>
   );
 }
 
+function GameSurface({ id }: { id: GameId }) {
+  if (id === "tictactoe") return <TicTacToeBoard />;
+  if (id === "2048") return <G2048Board />;
+  return null;
+}
+
+function gameTitle(id: GameId | null): string {
+  if (id === "tictactoe") return "tic-tac-toe";
+  if (id === "2048") return "2048";
+  return "boredom buster";
+}
+
 /* ───────────── floating pill ───────────── */
 
-function Pill({ onOpen }: { onOpen: () => void }) {
-  const board = useTicTacToe((s) => s.board);
-  const status = useTicTacToe((s) => s.status);
-  const turn = useTicTacToe((s) => s.turn);
-
-  const inProgress = status === "playing" && board.some((c) => c !== null);
-  const label = inProgress
-    ? turn === "X"
-      ? "your move"
-      : "bot thinking"
-    : status === "win-x"
-      ? "you won!"
-      : status === "win-o"
-        ? "rematch?"
-        : status === "draw"
-          ? "rematch?"
-          : "play a round";
-
+function Pill({ activeGame, onOpen }: { activeGame: GameId | null; onOpen: () => void }) {
   return (
     <motion.div
-      key="ttt-pill"
-      layoutId="ttt-surface"
+      key="bb-pill"
+      layoutId="bb-surface"
       initial={{ opacity: 0, y: 12, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 12, scale: 0.9 }}
@@ -205,21 +239,32 @@ function Pill({ onOpen }: { onOpen: () => void }) {
       <motion.button
         type="button"
         onClick={onOpen}
-        aria-label="open tic-tac-toe game"
-        animate={inProgress ? { y: [0, -3, 0] } : undefined}
-        transition={inProgress ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" } : undefined}
+        aria-label="open game launcher"
+        animate={activeGame ? { y: [0, -3, 0] } : undefined}
+        transition={activeGame ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" } : undefined}
         className="flex items-center gap-2 rounded-full border border-bg-border bg-bg-panel/95 py-1.5 pl-1.5 pr-3 shadow-glass backdrop-blur outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
-        <MiniBoard board={board} />
+        <PillIcon activeGame={activeGame} />
         <span className="hidden font-mono text-[10px] uppercase tracking-widest text-ink-dim sm:inline">
-          {label}
+          {activeGame ? `resume · ${gameTitle(activeGame)}` : "play"}
         </span>
       </motion.button>
     </motion.div>
   );
 }
 
-function MiniBoard({ board }: { board: ("X" | "O" | null)[] }) {
+function PillIcon({ activeGame }: { activeGame: GameId | null }) {
+  if (activeGame === "tictactoe") return <TicTacToeMini />;
+  if (activeGame === "2048") return <G2048Mini />;
+  return (
+    <span className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
+      <Gamepad2 className="size-4" aria-hidden />
+    </span>
+  );
+}
+
+function TicTacToeMini() {
+  const board = useTicTacToe((s) => s.board);
   return (
     <span
       className="grid size-7 shrink-0 grid-cols-3 grid-rows-3 gap-px overflow-hidden rounded-md bg-gradient-to-br from-accent/30 via-bg-elevated to-accent-info/20 p-0.5"
@@ -232,6 +277,33 @@ function MiniBoard({ board }: { board: ("X" | "O" | null)[] }) {
             "rounded-[2px] bg-bg-panel",
             c === "X" && "bg-accent-info/70",
             c === "O" && "bg-accent-warn/70"
+          )}
+        />
+      ))}
+    </span>
+  );
+}
+
+function G2048Mini() {
+  const tiles = useG2048((s) => s.tiles);
+  // Build 4x4 grid of values from tiles.
+  const grid: number[][] = Array.from({ length: 4 }, () => Array.from({ length: 4 }, () => 0));
+  for (const t of tiles) if (t.value > 0 && grid[t.row]) grid[t.row][t.col] = t.value;
+  return (
+    <span
+      className="grid size-7 shrink-0 grid-cols-4 grid-rows-4 gap-px overflow-hidden rounded-md bg-gradient-to-br from-[#ffd76b]/30 via-bg-elevated to-[#7c5cff]/30 p-0.5"
+      aria-hidden
+    >
+      {grid.flat().map((v, i) => (
+        <span
+          key={i}
+          className={cn(
+            "rounded-[1px]",
+            v === 0 && "bg-bg-panel/70",
+            v > 0 && v < 32 && "bg-[#ffd6a8]",
+            v >= 32 && v < 256 && "bg-[#ff7c93]",
+            v >= 256 && v < 2048 && "bg-[#7c5cff]",
+            v >= 2048 && "bg-[#ffd76b]"
           )}
         />
       ))}
