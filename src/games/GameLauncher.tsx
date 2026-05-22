@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Grid3x3, Sparkles, ChevronRight, Heart, Flower2, LayoutGrid } from "lucide-react";
+import { Grid3x3, Sparkles, ChevronRight, Heart, Flower2, LayoutGrid, CircleDot } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { useG2048 } from "./g2048Store";
 import { useMemoryGame } from "./memoryStore";
 import { useMinesweeper } from "./minesweeperStore";
 import { useSlidePuzzle } from "./slidePuzzleStore";
+import { useConnect4 } from "./connect4Store";
 import { useLauncher, type GameId } from "./launcherStore";
 
 type GameMeta = {
@@ -61,6 +62,15 @@ function useMinesweeperStatus() {
   return {
     line: `flags · ${flagCount}${bestMs > 0 ? ` · best · ${(bestMs / 1000).toFixed(1)}s` : ""}`,
     resumeable: status === "playing" && opened > 0,
+  };
+}
+function useConnect4Status() {
+  const status = useConnect4((s) => s.status);
+  const discs = useConnect4((s) => s.discs);
+  const score = useConnect4((s) => s.score);
+  return {
+    line: `wins · ${score.p} · losses · ${score.ai}`,
+    resumeable: status === "playing" && discs.length > 0,
   };
 }
 function useSlidePuzzleStatus() {
@@ -116,6 +126,14 @@ const GAMES: GameMeta[] = [
     iconBg: "bg-gradient-to-br from-[#ffb47c] via-[#ff7c93] to-[#9bd5ff]",
     Icon: LayoutGrid,
     useStatus: useSlidePuzzleStatus,
+  },
+  {
+    id: "connect4",
+    name: "Connect Four",
+    tagline: "drop discs · line up four",
+    iconBg: "bg-gradient-to-br from-[#ff8da3] via-[#ffae3d] to-[#ffe27a]",
+    Icon: CircleDot,
+    useStatus: useConnect4Status,
   },
 ];
 

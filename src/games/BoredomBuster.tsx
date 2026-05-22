@@ -11,12 +11,14 @@ import { useG2048 } from "./g2048Store";
 import { useMemoryGame } from "./memoryStore";
 import { useMinesweeper } from "./minesweeperStore";
 import { useSlidePuzzle } from "./slidePuzzleStore";
+import { useConnect4 } from "./connect4Store";
 import { useLauncher, type GameId, type LauncherUi } from "./launcherStore";
 import { TicTacToeBoard } from "./TicTacToeBoard";
 import { G2048Board } from "./G2048Board";
 import { MemoryBoard } from "./MemoryBoard";
 import { MinesweeperBoard } from "./MinesweeperBoard";
 import { SlidePuzzleBoard } from "./SlidePuzzleBoard";
+import { Connect4Board } from "./Connect4Board";
 import { GameLauncher } from "./GameLauncher";
 
 /**
@@ -42,6 +44,7 @@ export function BoredomBuster() {
   const hydrateMemory = useMemoryGame((s) => s.hydrate);
   const hydrateMines = useMinesweeper((s) => s.hydrate);
   const hydrateSlide = useSlidePuzzle((s) => s.hydrate);
+  const hydrateConnect = useConnect4((s) => s.hydrate);
 
   const lastPath = useRef<string | null>(pathname);
   const popupTimer = useRef<number | null>(null);
@@ -55,8 +58,9 @@ export function BoredomBuster() {
     hydrateMemory();
     hydrateMines();
     hydrateSlide();
+    hydrateConnect();
     setUi("pill");
-  }, [hydrateLauncher, hydrateTtt, hydrate2048, hydrateMemory, hydrateMines, hydrateSlide, setUi]);
+  }, [hydrateLauncher, hydrateTtt, hydrate2048, hydrateMemory, hydrateMines, hydrateSlide, hydrateConnect, setUi]);
 
   // When the pathname resolves, tuck the panel back into the pill.
   useEffect(() => {
@@ -229,6 +233,7 @@ function GameSurface({ id }: { id: GameId }) {
   if (id === "memory") return <MemoryBoard />;
   if (id === "minesweeper") return <MinesweeperBoard />;
   if (id === "slidepuzzle") return <SlidePuzzleBoard />;
+  if (id === "connect4") return <Connect4Board />;
   return null;
 }
 
@@ -238,6 +243,7 @@ function gameTitle(id: GameId | null): string {
   if (id === "memory") return "memory match";
   if (id === "minesweeper") return "mine garden";
   if (id === "slidepuzzle") return "slide puzzle";
+  if (id === "connect4") return "connect four";
   return "boredom buster";
 }
 
@@ -263,8 +269,8 @@ function Pill({ activeGame, onOpen }: { activeGame: GameId | null; onOpen: () =>
         className="flex items-center gap-2 rounded-full border border-bg-border bg-bg-panel/95 py-1.5 pl-1.5 pr-3 shadow-glass backdrop-blur outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         <PillIcon activeGame={activeGame} />
-        <span className="hidden font-mono text-[10px] uppercase tracking-widest text-ink-dim sm:inline">
-          {activeGame ? `resume · ${gameTitle(activeGame)}` : "play"}
+        <span className="hidden font-mono text-[10px] tracking-wide text-ink-dim sm:inline">
+          {activeGame ? `resume · ${gameTitle(activeGame)}` : "relax a bit!"}
         </span>
       </motion.button>
     </motion.div>
@@ -277,6 +283,7 @@ function PillIcon({ activeGame }: { activeGame: GameId | null }) {
   if (activeGame === "memory") return <MemoryMini />;
   if (activeGame === "minesweeper") return <MinesweeperMini />;
   if (activeGame === "slidepuzzle") return <SlidePuzzleMini />;
+  if (activeGame === "connect4") return <Connect4Mini />;
   return (
     <span className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
       <Gamepad2 className="size-4" aria-hidden />
@@ -298,6 +305,28 @@ function TicTacToeMini() {
             "rounded-[2px] bg-bg-panel",
             c === "X" && "bg-accent-info/70",
             c === "O" && "bg-accent-warn/70"
+          )}
+        />
+      ))}
+    </span>
+  );
+}
+
+function Connect4Mini() {
+  const board = useConnect4((s) => s.board);
+  return (
+    <span
+      className="grid size-7 shrink-0 grid-cols-7 grid-rows-6 gap-px overflow-hidden rounded-md bg-gradient-to-br from-[#5b4bd6] to-[#2a2270] p-0.5"
+      aria-hidden
+    >
+      {board.map((v, i) => (
+        <span
+          key={i}
+          className={cn(
+            "rounded-full",
+            v === 0 && "bg-bg-panel/80",
+            v === 1 && "bg-[#ff5c7a]",
+            v === 2 && "bg-[#ffae3d]"
           )}
         />
       ))}

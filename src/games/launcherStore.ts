@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 
-export type GameId = "tictactoe" | "2048" | "memory" | "minesweeper" | "slidepuzzle";
+export type GameId = "tictactoe" | "2048" | "memory" | "minesweeper" | "slidepuzzle" | "connect4";
 export type LauncherUi = "hidden" | "launcher" | "game" | "pill";
 
 type State = {
@@ -45,7 +45,8 @@ export const useLauncher = create<State & Actions>((set) => ({
         parsed.activeGame === "2048" ||
         parsed.activeGame === "memory" ||
         parsed.activeGame === "minesweeper" ||
-        parsed.activeGame === "slidepuzzle"
+        parsed.activeGame === "slidepuzzle" ||
+        parsed.activeGame === "connect4"
       ) {
         set({ activeGame: parsed.activeGame });
       }
