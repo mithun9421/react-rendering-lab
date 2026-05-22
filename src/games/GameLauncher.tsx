@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import {
+  Brain,
   CircleDot,
   Flower2,
   Grid3x3,
@@ -21,6 +22,7 @@ import { useSlidePuzzle } from "./slidePuzzleStore";
 import { useConnect4 } from "./connect4Store";
 import { useLightsOut } from "./lightsOutStore";
 import { useWordScramble } from "./wordScrambleStore";
+import { useSimon } from "./simonStore";
 import { useLauncher, type GameId } from "./launcherStore";
 
 type GameMeta = {
@@ -70,6 +72,10 @@ function useWordScrambleResumeable() {
   const status = useWordScramble((s) => s.status);
   const slots = useWordScramble((s) => s.slots);
   return status !== "won" && slots.some((s) => s !== null);
+}
+function useSimonResumeable() {
+  const status = useSimon((s) => s.status);
+  return status === "waiting" || status === "showing";
 }
 
 const GAMES: GameMeta[] = [
@@ -128,6 +134,13 @@ const GAMES: GameMeta[] = [
     iconBg: "bg-gradient-to-br from-[#ffc7e0] via-[#cdb6ff] to-[#9bd5ff]",
     Icon: Type,
     useResumeable: useWordScrambleResumeable,
+  },
+  {
+    id: "simon",
+    name: "Simon",
+    iconBg: "bg-gradient-to-br from-[#3fa9b8] via-[#ffae3d] to-[#9b7dff]",
+    Icon: Brain,
+    useResumeable: useSimonResumeable,
   },
 ];
 

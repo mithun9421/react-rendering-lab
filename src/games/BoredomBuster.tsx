@@ -14,6 +14,7 @@ import { useSlidePuzzle } from "./slidePuzzleStore";
 import { useConnect4 } from "./connect4Store";
 import { useLightsOut } from "./lightsOutStore";
 import { useWordScramble } from "./wordScrambleStore";
+import { useSimon } from "./simonStore";
 import { useLauncher, type GameId, type LauncherUi } from "./launcherStore";
 import { TicTacToeBoard } from "./TicTacToeBoard";
 import { G2048Board } from "./G2048Board";
@@ -23,6 +24,7 @@ import { SlidePuzzleBoard } from "./SlidePuzzleBoard";
 import { Connect4Board } from "./Connect4Board";
 import { LightsOutBoard } from "./LightsOutBoard";
 import { WordScrambleBoard } from "./WordScrambleBoard";
+import { SimonBoard } from "./SimonBoard";
 import { GameLauncher } from "./GameLauncher";
 
 /**
@@ -51,6 +53,7 @@ export function BoredomBuster() {
   const hydrateConnect = useConnect4((s) => s.hydrate);
   const hydrateLights = useLightsOut((s) => s.hydrate);
   const hydrateScramble = useWordScramble((s) => s.hydrate);
+  const hydrateSimon = useSimon((s) => s.hydrate);
 
   const lastPath = useRef<string | null>(pathname);
   const popupTimer = useRef<number | null>(null);
@@ -67,6 +70,7 @@ export function BoredomBuster() {
     hydrateConnect();
     hydrateLights();
     hydrateScramble();
+    hydrateSimon();
     setUi("pill");
   }, [
     hydrateLauncher,
@@ -78,6 +82,7 @@ export function BoredomBuster() {
     hydrateConnect,
     hydrateLights,
     hydrateScramble,
+    hydrateSimon,
     setUi,
   ]);
 
@@ -255,6 +260,7 @@ function GameSurface({ id }: { id: GameId }) {
   if (id === "connect4") return <Connect4Board />;
   if (id === "lightsout") return <LightsOutBoard />;
   if (id === "wordscramble") return <WordScrambleBoard />;
+  if (id === "simon") return <SimonBoard />;
   return null;
 }
 
@@ -267,6 +273,7 @@ function gameTitle(id: GameId | null): string {
   if (id === "connect4") return "connect four";
   if (id === "lightsout") return "lights out";
   if (id === "wordscramble") return "scramble";
+  if (id === "simon") return "simon";
   return "boredom buster";
 }
 
@@ -309,6 +316,7 @@ function PillIcon({ activeGame }: { activeGame: GameId | null }) {
   if (activeGame === "connect4") return <Connect4Mini />;
   if (activeGame === "lightsout") return <LightsOutMini />;
   if (activeGame === "wordscramble") return <WordScrambleMini />;
+  if (activeGame === "simon") return <SimonMini />;
   return (
     <span className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
       <Gamepad2 className="size-4" aria-hidden />
@@ -331,6 +339,34 @@ function TicTacToeMini() {
             c === "X" && "bg-accent-info/70",
             c === "O" && "bg-accent-warn/70"
           )}
+        />
+      ))}
+    </span>
+  );
+}
+
+function SimonMini() {
+  const showingStep = useSimon((s) => s.showingStep);
+  const sequence = useSimon((s) => s.sequence);
+  const flashPad = useSimon((s) => s.flashPad);
+  const active =
+    showingStep >= 0 && showingStep < sequence.length ? sequence[showingStep] : flashPad;
+  // 2x2 mini with the four pad colours; active pad highlights.
+  const tones = ["#3fa9b8", "#ffae3d", "#ff7c93", "#9b7dff"];
+  return (
+    <span
+      className="grid size-7 shrink-0 grid-cols-2 grid-rows-2 gap-px overflow-hidden rounded-md bg-gradient-to-br from-[#1c1a30] to-[#0c0b1c] p-0.5"
+      aria-hidden
+    >
+      {tones.map((tone, i) => (
+        <span
+          key={i}
+          className="rounded-[1px]"
+          style={{
+            background: tone,
+            opacity: active === i ? 1 : 0.45,
+            boxShadow: active === i ? `0 0 4px ${tone}` : undefined,
+          }}
         />
       ))}
     </span>
