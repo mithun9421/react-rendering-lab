@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { useProgress } from "./store";
 import { findAchievement, type AchievementTier } from "./achievements";
 
@@ -51,13 +51,13 @@ export function AchievementToast() {
             <button
               type="button"
               onClick={() => setCurrent(null)}
-              className={clsx(
+              className={cn(
                 "glass flex items-center gap-3 rounded-lg border px-4 py-3 text-left shadow-glass",
                 tierBorder(a.tier)
               )}
             >
               <span
-                className={clsx(
+                className={cn(
                   "grid size-10 shrink-0 place-items-center rounded-full text-xl",
                   tierBg(a.tier)
                 )}
@@ -66,7 +66,7 @@ export function AchievementToast() {
               </span>
               <div className="min-w-0">
                 <div
-                  className={clsx(
+                  className={cn(
                     "font-mono text-[10px] uppercase tracking-widest",
                     tierText(a.tier)
                   )}

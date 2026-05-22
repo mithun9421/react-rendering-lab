@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { useEntitlement } from "@/entitlement/store";
 
 /**
@@ -66,7 +66,7 @@ export function AdSlot({ slotId, format = "fluid", layoutKey, className, minHeig
   if (isPro) return null;
 
   return (
-    <div className={clsx("ad-slot relative w-full", className)} style={{ minHeight }} aria-hidden>
+    <div className={cn("ad-slot relative w-full", className)} style={{ minHeight }} aria-hidden>
       <small
         className="absolute -top-4 right-0 font-mono text-[9px] uppercase tracking-widest text-ink-dim"
         // Required label per AdSense policy

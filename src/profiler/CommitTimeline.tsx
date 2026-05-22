@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { useProfiler, type CommitEvent } from "./store";
-import clsx from "clsx";
 
 /**
  * Chrome-Performance-style commit timeline. Each commit is a colored bar:
@@ -95,5 +94,3 @@ function drawEmpty(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.fillText("no commits recorded yet — interact with the page", 10, h / 2);
 }
 
-// Re-export for convenience
-export const __forClsx = clsx;

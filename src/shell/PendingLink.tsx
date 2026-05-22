@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useLinkStatus } from "next/link";
-import clsx from "clsx";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 /**
  * <PendingLink/> — a Link that shows a tiny spinner while the route is loading.
@@ -44,24 +45,9 @@ function PendingContent({
 }) {
   const { pending } = useLinkStatus();
   return (
-    <span className={clsx("inline-flex items-center gap-2", pending && (pendingClassName ?? "opacity-70"))}>
+    <span className={cn("inline-flex items-center gap-2", pending && (pendingClassName ?? "opacity-70"))}>
       {children}
-      {pending && <Spinner />}
+      {pending && <Loader2 className="size-3.5 animate-spin" aria-hidden />}
     </span>
-  );
-}
-
-function Spinner() {
-  return (
-    <svg
-      className="size-3.5 animate-spin"
-      viewBox="0 0 16 16"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" opacity="0.25" />
-      <path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
   );
 }
