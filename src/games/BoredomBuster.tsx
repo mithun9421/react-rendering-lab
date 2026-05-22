@@ -10,11 +10,13 @@ import { useTicTacToe } from "./ticTacToeStore";
 import { useG2048 } from "./g2048Store";
 import { useMemoryGame } from "./memoryStore";
 import { useMinesweeper } from "./minesweeperStore";
+import { useSlidePuzzle } from "./slidePuzzleStore";
 import { useLauncher, type GameId, type LauncherUi } from "./launcherStore";
 import { TicTacToeBoard } from "./TicTacToeBoard";
 import { G2048Board } from "./G2048Board";
 import { MemoryBoard } from "./MemoryBoard";
 import { MinesweeperBoard } from "./MinesweeperBoard";
+import { SlidePuzzleBoard } from "./SlidePuzzleBoard";
 import { GameLauncher } from "./GameLauncher";
 
 /**
@@ -39,6 +41,7 @@ export function BoredomBuster() {
   const hydrate2048 = useG2048((s) => s.hydrate);
   const hydrateMemory = useMemoryGame((s) => s.hydrate);
   const hydrateMines = useMinesweeper((s) => s.hydrate);
+  const hydrateSlide = useSlidePuzzle((s) => s.hydrate);
 
   const lastPath = useRef<string | null>(pathname);
   const popupTimer = useRef<number | null>(null);
@@ -51,8 +54,9 @@ export function BoredomBuster() {
     hydrate2048();
     hydrateMemory();
     hydrateMines();
+    hydrateSlide();
     setUi("pill");
-  }, [hydrateLauncher, hydrateTtt, hydrate2048, hydrateMemory, hydrateMines, setUi]);
+  }, [hydrateLauncher, hydrateTtt, hydrate2048, hydrateMemory, hydrateMines, hydrateSlide, setUi]);
 
   // When the pathname resolves, tuck the panel back into the pill.
   useEffect(() => {
@@ -224,6 +228,7 @@ function GameSurface({ id }: { id: GameId }) {
   if (id === "2048") return <G2048Board />;
   if (id === "memory") return <MemoryBoard />;
   if (id === "minesweeper") return <MinesweeperBoard />;
+  if (id === "slidepuzzle") return <SlidePuzzleBoard />;
   return null;
 }
 
@@ -232,6 +237,7 @@ function gameTitle(id: GameId | null): string {
   if (id === "2048") return "2048";
   if (id === "memory") return "memory match";
   if (id === "minesweeper") return "mine garden";
+  if (id === "slidepuzzle") return "slide puzzle";
   return "boredom buster";
 }
 
@@ -270,6 +276,7 @@ function PillIcon({ activeGame }: { activeGame: GameId | null }) {
   if (activeGame === "2048") return <G2048Mini />;
   if (activeGame === "memory") return <MemoryMini />;
   if (activeGame === "minesweeper") return <MinesweeperMini />;
+  if (activeGame === "slidepuzzle") return <SlidePuzzleMini />;
   return (
     <span className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
       <Gamepad2 className="size-4" aria-hidden />
@@ -294,6 +301,33 @@ function TicTacToeMini() {
           )}
         />
       ))}
+    </span>
+  );
+}
+
+function SlidePuzzleMini() {
+  const tiles = useSlidePuzzle((s) => s.tiles);
+  return (
+    <span
+      className="grid size-7 shrink-0 grid-cols-4 grid-rows-4 gap-px overflow-hidden rounded-md bg-gradient-to-br from-[#ffd6a8]/35 via-bg-elevated to-[#9bd5ff]/35 p-0.5"
+      aria-hidden
+    >
+      {tiles.map((v, i) => {
+        const row = v === 0 ? -1 : Math.floor((v - 1) / 4);
+        return (
+          <span
+            key={i}
+            className={cn(
+              "rounded-[1px]",
+              v === 0 && "bg-bg-panel/60",
+              row === 0 && "bg-[#ff9b73]/80",
+              row === 1 && "bg-[#ff7ca8]/80",
+              row === 2 && "bg-[#9b7dff]/80",
+              row === 3 && "bg-[#5cb8ff]/80"
+            )}
+          />
+        );
+      })}
     </span>
   );
 }

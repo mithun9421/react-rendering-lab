@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Grid3x3, Sparkles, ChevronRight, Heart, Flower2 } from "lucide-react";
+import { Grid3x3, Sparkles, ChevronRight, Heart, Flower2, LayoutGrid } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ import { useTicTacToe } from "./ticTacToeStore";
 import { useG2048 } from "./g2048Store";
 import { useMemoryGame } from "./memoryStore";
 import { useMinesweeper } from "./minesweeperStore";
+import { useSlidePuzzle } from "./slidePuzzleStore";
 import { useLauncher, type GameId } from "./launcherStore";
 
 type GameMeta = {
@@ -62,6 +63,18 @@ function useMinesweeperStatus() {
     resumeable: status === "playing" && opened > 0,
   };
 }
+function useSlidePuzzleStatus() {
+  const status = useSlidePuzzle((s) => s.status);
+  const moves = useSlidePuzzle((s) => s.moves);
+  const bestMs = useSlidePuzzle((s) => s.bestMs);
+  const bestMoves = useSlidePuzzle((s) => s.bestMoves);
+  return {
+    line: `moves · ${moves}${bestMoves > 0 ? ` · best · ${bestMoves}` : ""}${
+      bestMs > 0 ? ` · ${(bestMs / 1000).toFixed(1)}s` : ""
+    }`,
+    resumeable: status === "playing" && moves > 0,
+  };
+}
 
 const GAMES: GameMeta[] = [
   {
@@ -95,6 +108,14 @@ const GAMES: GameMeta[] = [
     iconBg: "bg-gradient-to-br from-[#ffd1e4] via-[#c8e7ff] to-[#7c5cff]",
     Icon: Flower2,
     useStatus: useMinesweeperStatus,
+  },
+  {
+    id: "slidepuzzle",
+    name: "Slide Puzzle",
+    tagline: "tap to sort 1 to 15",
+    iconBg: "bg-gradient-to-br from-[#ffb47c] via-[#ff7c93] to-[#9bd5ff]",
+    Icon: LayoutGrid,
+    useStatus: useSlidePuzzleStatus,
   },
 ];
 
