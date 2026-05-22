@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import {
   QUESTIONS,
   pickByCategory,
@@ -145,7 +145,7 @@ function Categories({
         <button
           key={c.kind}
           onClick={() => setCat(c.kind)}
-          className={clsx(
+          className={cn(
             "rounded-lg border p-3 text-left text-xs transition active:scale-[0.99]",
             cat === c.kind
               ? "border-accent/50 bg-accent/10"
@@ -153,7 +153,7 @@ function Categories({
           )}
         >
           <div
-            className={clsx(
+            className={cn(
               "font-mono text-[10px] uppercase tracking-widest",
               cat === c.kind ? "text-accent" : "text-ink-dim"
             )}
@@ -186,7 +186,7 @@ function QuestionCard({
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-bg-border bg-bg-subtle px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
           <span
-            className={clsx(
+            className={cn(
               "rounded-md px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest",
               question.kind === "debug" && "bg-accent-bad/15 text-accent-bad",
               question.kind === "design" && "bg-accent-info/15 text-accent-info",
@@ -221,7 +221,7 @@ function QuestionCard({
                 <button
                   onClick={() => commit(c.id)}
                   disabled={revealed}
-                  className={clsx(
+                  className={cn(
                     "w-full rounded-md border px-3 py-2.5 text-left text-sm transition active:scale-[0.99]",
                     !revealed && "border-bg-border bg-bg-elevated hover:border-accent/40 hover:bg-bg-panel text-ink-muted",
                     showCorrect && "border-accent-good/40 bg-accent-good/10 text-ink",
@@ -231,7 +231,7 @@ function QuestionCard({
                 >
                   <span className="flex items-start gap-2">
                     <span
-                      className={clsx(
+                      className={cn(
                         "mt-0.5 font-mono text-[10px] uppercase tracking-widest",
                         showCorrect ? "text-accent-good" : showWrong ? "text-accent-bad" : "text-ink-dim"
                       )}
@@ -257,7 +257,7 @@ function QuestionCard({
 
         {revealed && (
           <div
-            className={clsx(
+            className={cn(
               "mt-4 rounded-md px-3 py-2 font-mono text-[11px] uppercase tracking-widest",
               isCorrect ? "bg-accent-good/15 text-accent-good" : "bg-accent-warn/15 text-accent-warn"
             )}

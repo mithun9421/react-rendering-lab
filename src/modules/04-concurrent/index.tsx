@@ -10,7 +10,7 @@ import { MetricsPanel } from "@/engine/MetricsPanel";
 import { SchedulerQueue } from "@/viz/SchedulerQueue";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import { busy } from "@/lib/sim";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 const HAYSTACK = Array.from({ length: 8000 }, (_, i) => `item-${i.toString(16).padStart(4, "0")}`);
 
@@ -173,7 +173,7 @@ function SearchDemo({ flags }: { flags: { transition: boolean; deferred: boolean
           placeholder="search 8k items…"
           className="flex-1 rounded-md border border-bg-border bg-bg-elevated px-3 py-2 font-mono text-sm placeholder:text-ink-dim focus:outline-none focus:ring-2 focus:ring-accent/40"
         />
-        <span className={clsx("font-mono text-[11px]", isPending ? "text-accent-warn" : "text-ink-dim")}>
+        <span className={cn("font-mono text-[11px]", isPending ? "text-accent-warn" : "text-ink-dim")}>
           {isPending ? "pending…" : "idle"}
         </span>
       </div>

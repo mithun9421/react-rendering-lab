@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -251,7 +251,7 @@ function Waterfall({ reqs, totalDur }: { reqs: Req[]; totalDur: number }) {
               </span>
               <div className="relative h-3 rounded bg-bg-elevated">
                 <div
-                  className={clsx(
+                  className={cn(
                     "absolute top-0 h-3 rounded",
                     r.cache === "hit" ? "bg-accent-good/60" : "bg-accent/60"
                   )}
@@ -285,7 +285,7 @@ function RetrySim() {
               setStrategy(s);
               setRun((r) => r + 1);
             }}
-            className={clsx(
+            className={cn(
               "rounded-md px-2 py-1 font-mono text-[11px]",
               strategy === s ? "bg-accent text-white" : "border border-bg-border text-ink-muted"
             )}
@@ -327,7 +327,7 @@ function RetryViz({ strategy }: { strategy: "naive" | "backoff" | "circuit" }) {
           <div
             key={i}
             title={a.opened ? "circuit opened — no retry" : a.ok ? "success" : "503"}
-            className={clsx(
+            className={cn(
               "absolute top-1 h-4 w-1 rounded-sm",
               a.opened
                 ? "bg-accent-good"

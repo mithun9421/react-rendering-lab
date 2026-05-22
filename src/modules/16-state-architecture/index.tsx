@@ -9,7 +9,7 @@ import { MetricsPanel } from "@/engine/MetricsPanel";
 import { ArchitectGate } from "@/engine/ArchitectGate";
 import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { useRenderCount } from "@/profiler/useRenderCount";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 /**
  * The single evolving dashboard surface used everywhere — re-imagined as a state-architecture lab.
@@ -402,7 +402,7 @@ function Controls({ onTheme, onCart }: { onTheme: () => void; onCart: () => void
 
 function Slot({ label, value, muted }: { label: string; value: string | number; muted?: boolean }) {
   return (
-    <div className={clsx("rounded-md border border-bg-border bg-bg-elevated p-2 font-mono text-[11px]", muted && "opacity-70")}>
+    <div className={cn("rounded-md border border-bg-border bg-bg-elevated p-2 font-mono text-[11px]", muted && "opacity-70")}>
       <div className="text-[10px] uppercase tracking-widest text-ink-dim">{label}</div>
       <div className="mt-1 text-ink">{String(value)}</div>
     </div>

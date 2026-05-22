@@ -9,7 +9,7 @@ import { MetricsPanel } from "@/engine/MetricsPanel";
 import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import { busy } from "@/lib/sim";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 export default function Module11() {
   return (
@@ -294,7 +294,7 @@ function ChildCard({
       <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-ink-dim">
         <span>{label}</span>
         <span
-          className={clsx(
+          className={cn(
             "size-1.5 rounded-full",
             tone === "good" && "bg-accent-good",
             tone === "warn" && "bg-accent-warn",
@@ -303,7 +303,7 @@ function ChildCard({
         />
       </div>
       <div
-        className={clsx(
+        className={cn(
           "mt-2 font-mono text-2xl tabular-nums",
           tone === "good" && "text-accent-good",
           tone === "warn" && "text-accent-warn",

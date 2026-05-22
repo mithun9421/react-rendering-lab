@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -222,7 +222,7 @@ function LongTaskMonitor() {
               .map((t) => (
                 <li key={t.id} className="grid grid-cols-[1fr_2fr] items-center gap-2">
                   <span
-                    className={clsx(
+                    className={cn(
                       "rounded px-2 py-0.5 text-[10px] uppercase tracking-wider",
                       t.duration > 200
                         ? "bg-accent-bad/15 text-accent-bad"
@@ -235,7 +235,7 @@ function LongTaskMonitor() {
                   </span>
                   <div className="relative h-2 rounded bg-bg-elevated">
                     <div
-                      className={clsx(
+                      className={cn(
                         "h-2 rounded",
                         t.duration > 200 ? "bg-accent-bad" : t.duration > 100 ? "bg-accent-warn" : "bg-accent"
                       )}

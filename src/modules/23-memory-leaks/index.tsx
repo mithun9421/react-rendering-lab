@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -188,7 +188,7 @@ function HeapMonitor() {
           <span className="text-ink">{peak.toFixed(1)} MB</span>
         </span>
         <span
-          className={clsx(
+          className={cn(
             slope > 1 ? "text-accent-bad" : slope > 0.2 ? "text-accent-warn" : "text-accent-good"
           )}
         >
@@ -328,7 +328,7 @@ function RetentionPath() {
         ].map(([k, v], i) => (
           <li key={i} className="flex items-start gap-3 font-mono text-[11px]">
             <span className="w-24 text-ink-dim">{k}</span>
-            <span className={clsx(i === 4 ? "text-accent-bad" : "text-ink-muted")}>{v}</span>
+            <span className={cn(i === 4 ? "text-accent-bad" : "text-ink-muted")}>{v}</span>
           </li>
         ))}
       </ol>

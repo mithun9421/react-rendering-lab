@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -209,21 +209,21 @@ function TeamCard({ team, shared, conflict }: { team: Team; shared: boolean; con
   return (
     <motion.div
       layout
-      className={clsx(
+      className={cn(
         "rounded-lg border bg-bg-panel p-3",
         conflict ? "border-accent-bad/40 bg-accent-bad/5" : team.id === "host" ? "border-accent/40 bg-accent/5" : "border-bg-border"
       )}
     >
       <div className="flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">{team.id}</span>
-        <span className={clsx("font-mono text-[10px]", conflict ? "text-accent-bad" : "text-accent")}>
+        <span className={cn("font-mono text-[10px]", conflict ? "text-accent-bad" : "text-accent")}>
           react {team.react}
         </span>
       </div>
       <div className="mt-1 font-mono text-xs">{team.name}</div>
       <div className="mt-2 flex items-baseline gap-2">
         <span
-          className={clsx(
+          className={cn(
             "font-mono text-xl tabular-nums",
             conflict ? "text-accent-bad" : "text-ink"
           )}

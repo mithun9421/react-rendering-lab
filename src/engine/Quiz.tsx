@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { useProgress } from "@/progress/store";
 
 /**
@@ -83,7 +83,7 @@ export function Quiz({ id, prompt, options, code }: QuizProps) {
                   type="button"
                   onClick={() => commit(o.id)}
                   disabled={revealed}
-                  className={clsx(
+                  className={cn(
                     "flex w-full items-start gap-2 rounded-md border px-3 py-2 text-left text-xs transition active:scale-[0.99]",
                     !revealed && "border-bg-border bg-bg-elevated text-ink-muted hover:border-accent/40 hover:text-ink",
                     showRight && "border-accent-good/40 bg-accent-good/10 text-ink",
@@ -92,7 +92,7 @@ export function Quiz({ id, prompt, options, code }: QuizProps) {
                   )}
                 >
                   <span
-                    className={clsx(
+                    className={cn(
                       "mt-0.5 font-mono text-[10px] uppercase tracking-widest",
                       showRight ? "text-accent-good" : showWrong ? "text-accent-bad" : "text-ink-dim"
                     )}
@@ -125,7 +125,7 @@ export function Quiz({ id, prompt, options, code }: QuizProps) {
             className="mt-3 flex items-center justify-between gap-2 rounded-md px-3 py-2 text-xs"
           >
             <span
-              className={clsx(
+              className={cn(
                 "font-mono uppercase tracking-widest",
                 isCorrect ? "text-accent-good" : "text-accent-warn"
               )}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -127,7 +127,7 @@ function IslandsMap() {
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
         <button
           onClick={() => setMode("all")}
-          className={clsx(
+          className={cn(
             "rounded-md px-2 py-1 font-mono text-[11px]",
             mode === "all" ? "bg-accent text-white" : "border border-bg-border text-ink-muted"
           )}
@@ -136,7 +136,7 @@ function IslandsMap() {
         </button>
         <button
           onClick={() => setMode("islands")}
-          className={clsx(
+          className={cn(
             "rounded-md px-2 py-1 font-mono text-[11px]",
             mode === "islands" ? "bg-accent text-white" : "border border-bg-border text-ink-muted"
           )}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 /**
  * <ArchitectGate/> — wraps a "fix" or reveal behind a reflection prompt.
@@ -110,7 +110,7 @@ export function ArchitectGate({
         <button
           disabled={!enoughAnswered}
           onClick={() => setRevealed(true)}
-          className={clsx(
+          className={cn(
             "rounded-md px-3 py-1.5 font-mono text-[11px] active:scale-95",
             enoughAnswered
               ? "bg-accent-good text-bg"
@@ -163,7 +163,7 @@ export function ArchitectModeToggle() {
   return (
     <button
       onClick={toggle}
-      className={clsx(
+      className={cn(
         "rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-widest",
         on ? "border-accent/50 bg-accent/10 text-accent" : "border-bg-border text-ink-muted"
       )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -146,7 +146,7 @@ function PipelinePhases() {
       {PHASES.map((p, i) => (
         <div key={p.id} className="rounded-lg border border-bg-border bg-bg-panel p-3">
           <div className="flex items-center gap-2">
-            <span className={clsx("size-2 rounded-full", p.color)} />
+            <span className={cn("size-2 rounded-full", p.color)} />
             <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">
               {i + 1} · {p.label}
             </span>
@@ -197,7 +197,7 @@ function PropertyTable() {
                 <Cell on={has("C")} />
                 <td className="px-3 py-2">
                   <span
-                    className={clsx(
+                    className={cn(
                       "rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider",
                       row.cost === "low" && "bg-accent-good/15 text-accent-good",
                       row.cost === "med" && "bg-accent-warn/15 text-accent-warn",
@@ -263,7 +263,7 @@ function ThrashDemo({ batched }: { batched: boolean }) {
         </button>
         {duration != null && (
           <span
-            className={clsx(
+            className={cn(
               "font-mono",
               duration > 16 ? "text-accent-bad" : duration > 8 ? "text-accent-warn" : "text-accent-good"
             )}
@@ -281,7 +281,7 @@ function ThrashDemo({ batched }: { batched: boolean }) {
             key={i}
             data-box
             style={{ height: 8 }}
-            className={clsx("rounded-sm bg-accent/30", i % 3 === 0 && "bg-accent/60")}
+            className={cn("rounded-sm bg-accent/30", i % 3 === 0 && "bg-accent/60")}
           />
         ))}
       </div>
@@ -352,7 +352,7 @@ function LayerCount() {
           <button
             key={s}
             onClick={() => setStrategy(s)}
-            className={clsx(
+            className={cn(
               "rounded-md px-2 py-1 font-mono text-[11px]",
               strategy === s ? "bg-accent text-white" : "border border-bg-border text-ink-muted"
             )}
@@ -371,7 +371,7 @@ function LayerCount() {
           return (
             <div
               key={i}
-              className={clsx(
+              className={cn(
                 "h-8 rounded-sm transition",
                 isPromoted ? "bg-accent/40 ring-1 ring-accent" : "bg-bg-elevated"
               )}

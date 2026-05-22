@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -235,7 +235,7 @@ function Treemap({ mods }: { mods: Mod[] }) {
             return (
               <div
                 key={m.id}
-                className={clsx(
+                className={cn(
                   "flex flex-col justify-between p-2 font-mono text-[10px] transition",
                   m.group === "framework" && "bg-accent/20 text-accent",
                   m.group === "lib" && "bg-accent-info/15 text-accent-info",
@@ -264,7 +264,7 @@ function Stat({ label, v, tone }: { label: string; v: string; tone: "good" | "wa
       <div className="flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">{label}</span>
         <span
-          className={clsx(
+          className={cn(
             "size-1.5 rounded-full",
             tone === "good" && "bg-accent-good",
             tone === "warn" && "bg-accent-warn",
@@ -273,7 +273,7 @@ function Stat({ label, v, tone }: { label: string; v: string; tone: "good" | "wa
         />
       </div>
       <div
-        className={clsx(
+        className={cn(
           "mt-2 font-mono text-xl tabular-nums",
           tone === "good" && "text-ink",
           tone === "warn" && "text-accent-warn",

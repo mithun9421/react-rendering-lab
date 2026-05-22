@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -75,7 +75,7 @@ export default function Module25() {
             <button
               onClick={next}
               disabled={stage === "diagnose" && picked == null}
-              className={clsx(
+              className={cn(
                 "rounded-md px-3 py-1.5 font-mono text-[11px] active:scale-95",
                 stage === "diagnose" && picked == null
                   ? "cursor-not-allowed bg-bg-elevated text-ink-dim"
@@ -268,7 +268,7 @@ function Metric({ label, value, tone }: { label: string; value: number; tone: "g
       <div className="flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">{label}</span>
         <span
-          className={clsx(
+          className={cn(
             "size-1.5 rounded-full",
             tone === "good" && "bg-accent-good",
             tone === "warn" && "bg-accent-warn",
@@ -277,7 +277,7 @@ function Metric({ label, value, tone }: { label: string; value: number; tone: "g
         />
       </div>
       <div
-        className={clsx(
+        className={cn(
           "mt-2 font-mono text-2xl tabular-nums",
           tone === "good" && "text-ink",
           tone === "warn" && "text-accent-warn",
@@ -315,7 +315,7 @@ function HypothesisList({
               <button
                 onClick={() => !showCorrect && setPicked(h.id)}
                 disabled={showCorrect && !isPicked}
-                className={clsx(
+                className={cn(
                   "flex w-full items-start gap-2 rounded-md border px-3 py-2 text-left text-sm transition active:scale-[0.99]",
                   isPicked
                     ? reveal
@@ -362,7 +362,7 @@ function RevealCard({
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18 }}
-        className={clsx(
+        className={cn(
           "rounded-lg border p-3 text-sm",
           tone === "good" && "border-accent-good/30 bg-accent-good/5",
           tone === "bad" && "border-accent-bad/30 bg-accent-bad/5",
@@ -370,7 +370,7 @@ function RevealCard({
         )}
       >
         <div
-          className={clsx(
+          className={cn(
             "mb-1 font-mono text-[10px] uppercase tracking-widest",
             tone === "good" && "text-accent-good",
             tone === "bad" && "text-accent-bad",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -259,7 +259,7 @@ function Gauge({
       <div className="flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">{label}</span>
         <span
-          className={clsx(
+          className={cn(
             "size-1.5 rounded-full",
             tone === "good" && "bg-accent-good",
             tone === "warn" && "bg-accent-warn",
@@ -268,7 +268,7 @@ function Gauge({
         />
       </div>
       <div
-        className={clsx(
+        className={cn(
           "mt-2 font-mono text-xl tabular-nums",
           tone === "good" && "text-ink",
           tone === "warn" && "text-accent-warn",
@@ -306,7 +306,7 @@ function TraceFlame() {
             <span className="truncate text-ink-muted">{s.name}</span>
             <div className="relative h-3 rounded bg-bg-elevated">
               <div
-                className={clsx(
+                className={cn(
                   "absolute top-0 h-3 rounded",
                   s.kind === "frontend" ? "bg-accent/60" : "bg-accent-info/60"
                 )}

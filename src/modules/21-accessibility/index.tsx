@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -202,7 +202,7 @@ function FocusPathDemo() {
         ) : (
           <ol className="space-y-1 font-mono text-[11px]">
             {path.map((p, i) => (
-              <li key={i} className={clsx("flex items-center gap-2", i === path.length - 1 ? "text-accent" : "text-ink-muted")}>
+              <li key={i} className={cn("flex items-center gap-2", i === path.length - 1 ? "text-accent" : "text-ink-muted")}>
                 <span className="w-5 text-ink-dim">{i + 1}.</span>
                 {p}
               </li>
@@ -244,13 +244,13 @@ button · "" ← unnamed!
 function Side({ title, tone, children }: { title: string; tone: "info" | "warn"; children: React.ReactNode }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         "rounded-lg border p-3",
         tone === "info" ? "border-accent-info/30 bg-accent-info/5" : "border-accent-warn/30 bg-accent-warn/5"
       )}
     >
       <p
-        className={clsx(
+        className={cn(
           "mb-2 font-mono text-[10px] uppercase tracking-widest",
           tone === "info" ? "text-accent-info" : "text-accent-warn"
         )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -230,7 +230,7 @@ function RenderCard({
 }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         "rounded-lg border p-3",
         tone === "good" && "border-accent-good/30 bg-accent-good/5",
         tone === "info" && "border-accent-info/30 bg-accent-info/5",
@@ -238,7 +238,7 @@ function RenderCard({
       )}
     >
       <p
-        className={clsx(
+        className={cn(
           "mb-2 font-mono text-[10px] uppercase tracking-widest",
           tone === "good" && "text-accent-good",
           tone === "info" && "text-accent-info",
@@ -308,7 +308,7 @@ function CspComparison() {
       {CSPS.map((p) => (
         <div
           key={p.label}
-          className={clsx(
+          className={cn(
             "rounded-lg border p-3",
             p.tone === "good" && "border-accent-good/40 bg-accent-good/5",
             p.tone === "warn" && "border-accent-warn/30 bg-accent-warn/5",
@@ -316,7 +316,7 @@ function CspComparison() {
           )}
         >
           <p
-            className={clsx(
+            className={cn(
               "mb-2 font-mono text-[10px] uppercase tracking-widest",
               p.tone === "good" && "text-accent-good",
               p.tone === "warn" && "text-accent-warn",

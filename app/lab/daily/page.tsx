@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { QUESTIONS } from "@/modules/interview/questions";
 import { useProgress } from "@/progress/store";
 
@@ -81,7 +81,7 @@ export default function DailyChallenge() {
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-bg-border bg-bg-subtle px-4 py-3">
           <div className="flex items-center gap-2">
             <span
-              className={clsx(
+              className={cn(
                 "rounded-md px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest",
                 question.kind === "debug" && "bg-accent-bad/15 text-accent-bad",
                 question.kind === "design" && "bg-accent-info/15 text-accent-info",
@@ -97,7 +97,7 @@ export default function DailyChallenge() {
           </div>
           {priorScore && (
             <span
-              className={clsx(
+              className={cn(
                 "rounded-md px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest",
                 priorScore.bestPct === 100
                   ? "bg-accent-good/15 text-accent-good"
@@ -128,7 +128,7 @@ export default function DailyChallenge() {
                   <button
                     onClick={() => commit(c.id)}
                     disabled={revealed}
-                    className={clsx(
+                    className={cn(
                       "w-full rounded-md border px-3 py-2.5 text-left text-sm transition active:scale-[0.99]",
                       !revealed && "border-bg-border bg-bg-elevated text-ink-muted hover:border-accent/40 hover:text-ink",
                       showCorrect && "border-accent-good/40 bg-accent-good/10 text-ink",
@@ -138,7 +138,7 @@ export default function DailyChallenge() {
                   >
                     <span className="flex items-start gap-2">
                       <span
-                        className={clsx(
+                        className={cn(
                           "mt-0.5 font-mono text-[10px] uppercase tracking-widest",
                           showCorrect ? "text-accent-good" : showWrong ? "text-accent-bad" : "text-ink-dim"
                         )}
@@ -162,7 +162,7 @@ export default function DailyChallenge() {
             <motion.div
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              className={clsx(
+              className={cn(
                 "mt-4 rounded-md p-3 text-sm",
                 isCorrect
                   ? "border border-accent-good/30 bg-accent-good/5 text-ink"
@@ -170,7 +170,7 @@ export default function DailyChallenge() {
               )}
             >
               <div
-                className={clsx(
+                className={cn(
                   "mb-1 font-mono text-[10px] uppercase tracking-widest",
                   isCorrect ? "text-accent-good" : "text-accent-warn"
                 )}

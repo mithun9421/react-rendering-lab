@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Dashboard, type DashboardProps } from "@/dashboard/Dashboard";
 import { useProfiler } from "@/profiler/store";
 import { CodeDiff } from "@/viz/CodeDiff";
@@ -765,7 +765,7 @@ function Controls({ level, setLevel }: { level: number; setLevel: (n: number) =>
           <li key={s.level}>
             <button
               onClick={() => setLevel(s.level)}
-              className={clsx(
+              className={cn(
                 "rounded-md px-2 py-1 font-mono text-[10px] uppercase tracking-widest",
                 level === s.level
                   ? "bg-accent text-white"
@@ -786,7 +786,7 @@ function Controls({ level, setLevel }: { level: number; setLevel: (n: number) =>
 function StagePanel({ stage, dimmed, highlighted }: { stage: Stage; dimmed?: boolean; highlighted?: boolean }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         "rounded-xl border bg-bg-panel transition",
         highlighted ? "border-accent/40" : "border-bg-border",
         dimmed && "opacity-60"
@@ -856,7 +856,7 @@ function Footer({ level }: { level: number }) {
       </Link>
       <Link
         href="/lab/25-incident-simulator"
-        className={clsx(
+        className={cn(
           "rounded-lg border px-4 py-3",
           completed
             ? "border-accent-good/40 bg-accent-good/5 text-accent-good"

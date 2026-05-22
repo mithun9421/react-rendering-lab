@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 
 /**
  * <ArchitectNotes/> — "if a Senior Architect asked you this in an interview"
@@ -138,7 +138,7 @@ export function ArchitectNotes({ framing, followUps, pivots, dontSay }: Architec
                     {dontSay.map((d, i) => (
                       <li
                         key={i}
-                        className={clsx(
+                        className={cn(
                           "rounded-md border border-accent-bad/30 bg-accent-bad/5 px-3 py-2 text-xs"
                         )}
                       >

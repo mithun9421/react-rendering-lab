@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, Suspense, use, useState } from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
@@ -188,7 +188,7 @@ function Fetcher({ label, ms, tone }: { label: string; ms: number; tone: string 
   });
   return (
     <div
-      className={clsx(
+      className={cn(
         "rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-xs transition",
         done ? "" : "animate-pulse"
       )}
