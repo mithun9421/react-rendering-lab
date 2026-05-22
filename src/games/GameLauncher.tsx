@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Grid3x3, Sparkles, ChevronRight, Heart } from "lucide-react";
+import { Grid3x3, Sparkles, ChevronRight, Heart, Flower2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTicTacToe } from "./ticTacToeStore";
 import { useG2048 } from "./g2048Store";
 import { useMemoryGame } from "./memoryStore";
+import { useMinesweeper } from "./minesweeperStore";
 import { useLauncher, type GameId } from "./launcherStore";
 
 type GameMeta = {
@@ -50,6 +51,17 @@ function useMemoryStatus() {
     resumeable: status === "playing" && matches > 0,
   };
 }
+function useMinesweeperStatus() {
+  const status = useMinesweeper((s) => s.status);
+  const flagCount = useMinesweeper((s) => s.flagCount);
+  const bestMs = useMinesweeper((s) => s.bestMs);
+  const grid = useMinesweeper((s) => s.grid);
+  const opened = grid.filter((c) => c.state === "revealed").length;
+  return {
+    line: `flags · ${flagCount}${bestMs > 0 ? ` · best · ${(bestMs / 1000).toFixed(1)}s` : ""}`,
+    resumeable: status === "playing" && opened > 0,
+  };
+}
 
 const GAMES: GameMeta[] = [
   {
@@ -75,6 +87,14 @@ const GAMES: GameMeta[] = [
     iconBg: "bg-gradient-to-br from-[#ff9bd5] via-[#cdb6ff] to-[#9bd5ff]",
     Icon: Heart,
     useStatus: useMemoryStatus,
+  },
+  {
+    id: "minesweeper",
+    name: "Mine Garden",
+    tagline: "flag the bees · pick the petals",
+    iconBg: "bg-gradient-to-br from-[#ffd1e4] via-[#c8e7ff] to-[#7c5cff]",
+    Icon: Flower2,
+    useStatus: useMinesweeperStatus,
   },
 ];
 

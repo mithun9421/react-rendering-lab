@@ -9,10 +9,12 @@ import { cn } from "@/lib/utils";
 import { useTicTacToe } from "./ticTacToeStore";
 import { useG2048 } from "./g2048Store";
 import { useMemoryGame } from "./memoryStore";
+import { useMinesweeper } from "./minesweeperStore";
 import { useLauncher, type GameId, type LauncherUi } from "./launcherStore";
 import { TicTacToeBoard } from "./TicTacToeBoard";
 import { G2048Board } from "./G2048Board";
 import { MemoryBoard } from "./MemoryBoard";
+import { MinesweeperBoard } from "./MinesweeperBoard";
 import { GameLauncher } from "./GameLauncher";
 
 /**
@@ -36,6 +38,7 @@ export function BoredomBuster() {
   const hydrateTtt = useTicTacToe((s) => s.hydrate);
   const hydrate2048 = useG2048((s) => s.hydrate);
   const hydrateMemory = useMemoryGame((s) => s.hydrate);
+  const hydrateMines = useMinesweeper((s) => s.hydrate);
 
   const lastPath = useRef<string | null>(pathname);
   const popupTimer = useRef<number | null>(null);
@@ -47,8 +50,9 @@ export function BoredomBuster() {
     hydrateTtt();
     hydrate2048();
     hydrateMemory();
+    hydrateMines();
     setUi("pill");
-  }, [hydrateLauncher, hydrateTtt, hydrate2048, hydrateMemory, setUi]);
+  }, [hydrateLauncher, hydrateTtt, hydrate2048, hydrateMemory, hydrateMines, setUi]);
 
   // When the pathname resolves, tuck the panel back into the pill.
   useEffect(() => {
@@ -219,6 +223,7 @@ function GameSurface({ id }: { id: GameId }) {
   if (id === "tictactoe") return <TicTacToeBoard />;
   if (id === "2048") return <G2048Board />;
   if (id === "memory") return <MemoryBoard />;
+  if (id === "minesweeper") return <MinesweeperBoard />;
   return null;
 }
 
@@ -226,6 +231,7 @@ function gameTitle(id: GameId | null): string {
   if (id === "tictactoe") return "tic-tac-toe";
   if (id === "2048") return "2048";
   if (id === "memory") return "memory match";
+  if (id === "minesweeper") return "mine garden";
   return "boredom buster";
 }
 
@@ -263,6 +269,7 @@ function PillIcon({ activeGame }: { activeGame: GameId | null }) {
   if (activeGame === "tictactoe") return <TicTacToeMini />;
   if (activeGame === "2048") return <G2048Mini />;
   if (activeGame === "memory") return <MemoryMini />;
+  if (activeGame === "minesweeper") return <MinesweeperMini />;
   return (
     <span className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
       <Gamepad2 className="size-4" aria-hidden />
@@ -284,6 +291,28 @@ function TicTacToeMini() {
             "rounded-[2px] bg-bg-panel",
             c === "X" && "bg-accent-info/70",
             c === "O" && "bg-accent-warn/70"
+          )}
+        />
+      ))}
+    </span>
+  );
+}
+
+function MinesweeperMini() {
+  const grid = useMinesweeper((s) => s.grid);
+  return (
+    <span
+      className="grid size-7 shrink-0 grid-cols-6 grid-rows-6 gap-px overflow-hidden rounded-md bg-gradient-to-br from-[#ffd1e4]/35 via-bg-elevated to-[#c8e7ff]/35 p-0.5"
+      aria-hidden
+    >
+      {grid.map((c) => (
+        <span
+          key={c.id}
+          className={cn(
+            c.state === "hidden" && "bg-[#7c5cff]/60",
+            c.state === "flagged" && "bg-[#ff7cc6]/70",
+            c.state === "revealed" && !c.mine && "bg-bg-panel/80",
+            c.state === "revealed" && c.mine && "bg-accent-bad/80"
           )}
         />
       ))}
