@@ -2,8 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { Send } from "lucide-react";
 import { useRenderCount } from "@/profiler/useRenderCount";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 type Message = { id: number; user: string; text: string; t: number; mine?: boolean };
 
@@ -68,52 +73,57 @@ export function ChatPanel({
   };
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
-        <span className="font-mono uppercase tracking-widest text-ink-dim">chat</span>
-        <span className="font-mono text-ink-dim">{optimistic ? "optimistic send" : "round-trip send"}</span>
-      </header>
-      <div className="max-h-56 flex-1 overflow-y-auto p-3">
-        <ul className="space-y-1.5">
-          {messages.map((m) => (
-            <motion.li
-              key={m.id}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.14 }}
-              className={clsx(
-                "flex max-w-[80%] gap-2 rounded-md px-2 py-1 text-xs",
-                m.mine ? "ml-auto bg-accent/15 text-ink" : "bg-bg-elevated text-ink-muted",
-                m.id < 0 && "italic opacity-70"
-              )}
-            >
-              <span className={clsx("font-mono text-[10px] uppercase tracking-widest", m.mine ? "text-accent" : "text-ink-dim")}>
-                {m.user}
-              </span>
-              <span>{m.text}</span>
-            </motion.li>
-          ))}
-        </ul>
-        <div ref={bottomRef} />
-      </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send();
-        }}
-        className="flex items-center gap-2 border-t border-bg-border bg-bg-subtle p-2"
-      >
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="message…"
-          className="flex-1 rounded-md border border-bg-border bg-bg-elevated px-2 py-1.5 text-xs placeholder:text-ink-dim focus:outline-none focus:ring-2 focus:ring-accent/40"
-        />
-        <button type="submit" className="rounded-md bg-accent px-3 py-1.5 font-mono text-[11px] text-white">
-          send
-        </button>
-      </form>
-    </div>
+    <Card className="flex flex-col overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-bg-border px-3 py-2">
+        <CardTitle className="font-mono text-xs uppercase tracking-widest text-ink-dim">chat</CardTitle>
+        <Badge variant="outline" className="font-mono text-[10px] text-ink-dim">
+          {optimistic ? "optimistic send" : "round-trip send"}
+        </Badge>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-0 p-0">
+        <div className="max-h-56 flex-1 overflow-y-auto p-3">
+          <ul className="space-y-1.5">
+            {messages.map((m) => (
+              <motion.li
+                key={m.id}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.14 }}
+                className={cn(
+                  "flex max-w-[80%] gap-2 rounded-md px-2 py-1 text-xs",
+                  m.mine ? "ml-auto bg-accent/15 text-ink" : "bg-bg-elevated text-ink-muted",
+                  m.id < 0 && "italic opacity-70"
+                )}
+              >
+                <span className={cn("font-mono text-[10px] uppercase tracking-widest", m.mine ? "text-accent" : "text-ink-dim")}>
+                  {m.user}
+                </span>
+                <span>{m.text}</span>
+              </motion.li>
+            ))}
+          </ul>
+          <div ref={bottomRef} />
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send();
+          }}
+          className="flex items-center gap-2 border-t border-bg-border bg-bg-subtle p-2"
+        >
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="message…"
+            className="h-8 flex-1 text-xs"
+          />
+          <Button type="submit" size="sm" className="h-8 gap-1.5">
+            <Send className="size-3.5" aria-hidden />
+            send
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 

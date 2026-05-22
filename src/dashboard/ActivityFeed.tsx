@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
 import { makeActivity, type Activity } from "./data";
 import { useRenderCount } from "@/profiler/useRenderCount";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const ROW_H = 26;
 
@@ -26,15 +28,17 @@ export function ActivityFeed({
   }, [size]);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
-        <span className="font-mono uppercase tracking-widest text-ink-dim">activity</span>
-        <span className="font-mono text-ink-dim">
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-bg-border px-3 py-2">
+        <CardTitle className="font-mono text-xs uppercase tracking-widest text-ink-dim">activity</CardTitle>
+        <Badge variant="outline" className="font-mono text-[10px] text-ink-dim">
           {items.length} items{virtualised ? " · windowed" : ""}
-        </span>
-      </header>
-      {virtualised ? <Windowed items={items} /> : <Naive items={items} />}
-    </div>
+        </Badge>
+      </CardHeader>
+      <CardContent className="p-0">
+        {virtualised ? <Windowed items={items} /> : <Naive items={items} />}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -83,7 +87,7 @@ function Row({ a, fixedHeight }: { a: Activity; fixedHeight?: boolean }) {
   return (
     <div
       style={fixedHeight ? { height: ROW_H } : undefined}
-      className={clsx("flex items-center justify-between border-b border-bg-border px-3 text-xs", !fixedHeight && "py-1.5")}
+      className={cn("flex items-center justify-between border-b border-bg-border px-3 text-xs", !fixedHeight && "py-1.5")}
     >
       <span>
         <span className="font-mono text-accent">{a.user}</span>{" "}

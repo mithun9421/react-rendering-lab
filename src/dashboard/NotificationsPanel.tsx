@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import { rng, pick } from "@/lib/rng";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 type Notification = {
   id: string;
@@ -65,39 +67,41 @@ export function NotificationsPanel({
   );
 
   return (
-    <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
-        <span className="font-mono uppercase tracking-widest text-ink-dim">notifications</span>
-        <span className="font-mono text-ink-dim">
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-bg-border px-3 py-2">
+        <CardTitle className="font-mono text-xs uppercase tracking-widest text-ink-dim">notifications</CardTitle>
+        <Badge variant={bounded ? "outline" : "destructive"} className="font-mono text-[10px]">
           {filtered.length} {bounded ? "" : "(unbounded!)"}
-        </span>
-      </header>
-      <ul className="max-h-56 divide-y divide-bg-border overflow-y-auto">
-        <AnimatePresence initial={false}>
-          {filtered.slice(0, 14).map((n) => (
-            <motion.li
-              key={n.id}
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.14 }}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs"
-            >
-              <span
-                className={clsx(
-                  "size-1.5 shrink-0 rounded-full",
-                  n.level === "info" && "bg-accent",
-                  n.level === "warn" && "bg-accent-warn",
-                  n.level === "alert" && "bg-accent-bad animate-pulse_dot"
-                )}
-              />
-              <span className="flex-1 truncate text-ink-muted">{n.text}</span>
-              <span className="font-mono text-[10px] text-ink-dim">{rel(n.t)}</span>
-            </motion.li>
-          ))}
-        </AnimatePresence>
-      </ul>
-    </div>
+        </Badge>
+      </CardHeader>
+      <CardContent className="p-0">
+        <ul className="max-h-56 divide-y divide-bg-border overflow-y-auto">
+          <AnimatePresence initial={false}>
+            {filtered.slice(0, 14).map((n) => (
+              <motion.li
+                key={n.id}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.14 }}
+                className="flex items-center gap-2 px-3 py-1.5 text-xs"
+              >
+                <span
+                  className={cn(
+                    "size-1.5 shrink-0 rounded-full",
+                    n.level === "info" && "bg-accent",
+                    n.level === "warn" && "bg-accent-warn",
+                    n.level === "alert" && "bg-accent-bad animate-pulse_dot"
+                  )}
+                />
+                <span className="flex-1 truncate text-ink-muted">{n.text}</span>
+                <span className="font-mono text-[10px] text-ink-dim">{rel(n.t)}</span>
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 

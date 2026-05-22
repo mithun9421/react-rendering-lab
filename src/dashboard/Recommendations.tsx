@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import clsx from "clsx";
 import { useRenderCount } from "@/profiler/useRenderCount";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 type Rec = { id: string; title: string; score: number };
 
@@ -43,34 +44,36 @@ export function Recommendations({ streamed = false }: { streamed?: boolean }) {
   }, [streamed]);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
-        <span className="font-mono uppercase tracking-widest text-ink-dim">recommendations</span>
-        <span className="font-mono text-ink-dim">{streamed ? "streamed" : "all-or-nothing"}</span>
-      </header>
-      <ul className="max-h-56 divide-y divide-bg-border overflow-y-auto">
-        {recs.length === 0 &&
-          Array.from({ length: 4 }).map((_, i) => (
-            <li key={i} className="flex items-center justify-between px-3 py-2 text-xs">
-              <span className="h-3 w-2/3 animate-pulse rounded bg-bg-border" />
-              <span className="h-3 w-8 animate-pulse rounded bg-bg-border" />
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-bg-border px-3 py-2">
+        <CardTitle className="font-mono text-xs uppercase tracking-widest text-ink-dim">recommendations</CardTitle>
+        <Badge variant="outline" className="font-mono text-[10px] text-ink-dim">
+          {streamed ? "streamed" : "all-or-nothing"}
+        </Badge>
+      </CardHeader>
+      <CardContent className="p-0">
+        <ul className="max-h-56 divide-y divide-bg-border overflow-y-auto">
+          {recs.length === 0 &&
+            Array.from({ length: 4 }).map((_, i) => (
+              <li key={i} className="flex items-center justify-between px-3 py-2 text-xs">
+                <span className="h-3 w-2/3 animate-pulse rounded bg-bg-border" />
+                <span className="h-3 w-8 animate-pulse rounded bg-bg-border" />
+              </li>
+            ))}
+          {recs.map((r) => (
+            <li key={r.id} className="flex items-center justify-between px-3 py-2 text-xs">
+              <span className="truncate text-ink">{r.title}</span>
+              <Badge
+                variant={r.score > 80 ? "success" : r.score > 50 ? "warn" : "secondary"}
+                className="font-mono text-[10px]"
+              >
+                {r.score}
+              </Badge>
             </li>
           ))}
-        {recs.map((r) => (
-          <li key={r.id} className="flex items-center justify-between px-3 py-2 text-xs">
-            <span className="truncate text-ink">{r.title}</span>
-            <span
-              className={clsx(
-                "rounded px-1.5 py-0.5 font-mono text-[10px]",
-                r.score > 80 ? "bg-accent-good/15 text-accent-good" : r.score > 50 ? "bg-accent-warn/15 text-accent-warn" : "bg-bg-elevated text-ink-muted"
-              )}
-            >
-              {r.score}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 

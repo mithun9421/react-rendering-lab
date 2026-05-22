@@ -1,10 +1,13 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState, useTransition } from "react";
-import clsx from "clsx";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import { busy } from "@/lib/sim";
 import { initialStocks } from "./data";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 /**
  * Search across stocks + activities. Demonstrates the transition story end-to-end.
@@ -51,16 +54,22 @@ export function SearchBar({
   }, [haystack, used, heavyMs, compact]);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
-        <span className="font-mono uppercase tracking-widest text-ink-dim">search</span>
-        <span className="font-mono text-ink-dim">
-          {results.length} / {haystack.length}
-          {isPending && <span className="ml-2 text-accent-warn">· pending</span>}
-        </span>
-      </header>
-      <div className="space-y-2 p-3">
-        <input
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-bg-border px-3 py-2">
+        <CardTitle className="font-mono text-xs uppercase tracking-widest text-ink-dim">search</CardTitle>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="font-mono text-[10px] text-ink-dim">
+            {results.length} / {haystack.length}
+          </Badge>
+          {isPending && (
+            <Badge variant="warn" className="font-mono text-[10px]">
+              pending
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-2 p-3">
+        <Input
           value={q}
           onChange={(e) => {
             const v = e.target.value;
@@ -69,10 +78,10 @@ export function SearchBar({
             else setFilterQ(v);
           }}
           placeholder="filter ticker…"
-          className="w-full rounded-md border border-bg-border bg-bg-elevated px-3 py-2 font-mono text-sm placeholder:text-ink-dim focus:outline-none focus:ring-2 focus:ring-accent/40"
+          className="font-mono"
         />
         <ul
-          className={clsx(
+          className={cn(
             "divide-y divide-bg-border rounded-md border border-bg-border bg-bg-elevated",
             compact ? "max-h-40" : "max-h-56",
             "overflow-y-auto"
@@ -88,7 +97,7 @@ export function SearchBar({
             ))
           )}
         </ul>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

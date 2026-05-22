@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import clsx from "clsx";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import { makeProducts } from "./data";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 /**
  * Grid of products. Demonstrates list pressure + virtualisation potential.
@@ -44,32 +47,34 @@ export function ProductCatalog({
   }, [all, q, tick, compiled]);
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
-        <span className="font-mono uppercase tracking-widest text-ink-dim">products</span>
-        <span className="font-mono text-ink-dim">
+    <Card className="flex flex-col overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-bg-border px-3 py-2">
+        <CardTitle className="font-mono text-xs uppercase tracking-widest text-ink-dim">products</CardTitle>
+        <Badge variant="outline" className="font-mono text-[10px] text-ink-dim">
           {products.length}
           {virtualised && " · virt"}
-        </span>
-      </header>
-      <div className="border-b border-bg-border bg-bg-subtle px-3 py-2">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="filter…"
-          className="w-full rounded-md border border-bg-border bg-bg-elevated px-2 py-1 font-mono text-[11px] placeholder:text-ink-dim focus:outline-none focus:ring-2 focus:ring-accent/40"
-        />
-      </div>
-      {virtualised ? (
-        <Windowed products={products} />
-      ) : (
-        <ul className="grid max-h-60 grid-cols-2 gap-1 overflow-y-auto p-2 sm:grid-cols-3">
-          {products.map((p) => (
-            <Cell key={p.id} p={p} />
-          ))}
-        </ul>
-      )}
-    </div>
+        </Badge>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-0 p-0">
+        <div className="border-b border-bg-border bg-bg-subtle px-3 py-2">
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="filter…"
+            className="h-7 font-mono text-[11px]"
+          />
+        </div>
+        {virtualised ? (
+          <Windowed products={products} />
+        ) : (
+          <ul className="grid max-h-60 grid-cols-2 gap-1 overflow-y-auto p-2 sm:grid-cols-3">
+            {products.map((p) => (
+              <Cell key={p.id} p={p} />
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -108,7 +113,7 @@ function Windowed({ products }: { products: { id: string; name: string; cat: str
             <div
               key={p.id}
               style={{ height: ROW_H }}
-              className={clsx("flex items-center justify-between border-b border-bg-border/40 px-3 text-xs")}
+              className={cn("flex items-center justify-between border-b border-bg-border/40 px-3 text-xs")}
             >
               <span className="truncate text-ink">{p.name}</span>
               <span className="ml-2 font-mono text-[11px] text-accent">${p.price}</span>

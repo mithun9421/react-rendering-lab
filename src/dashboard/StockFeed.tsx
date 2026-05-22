@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { initialStocks, tickStocks, type Stock } from "./data";
 import { useRenderCount } from "@/profiler/useRenderCount";
-import clsx from "clsx";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 /**
  * Intentionally bad baseline:
@@ -29,19 +32,23 @@ export function StockFeed({
   }, [tickMs]);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-bg-border bg-bg-panel">
-      <header className="flex items-center justify-between border-b border-bg-border px-3 py-2 text-xs">
-        <span className="font-mono uppercase tracking-widest text-ink-dim">stock feed</span>
-        <span className="font-mono text-ink-dim">
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-bg-border px-3 py-2">
+        <CardTitle className="font-mono text-xs uppercase tracking-widest text-ink-dim">
+          stock feed
+        </CardTitle>
+        <Badge variant="outline" className="font-mono text-[10px] text-ink-dim">
           tick {tickMs}ms · key={badKeys ? "index" : "sym"}
-        </span>
-      </header>
-      <ul className="divide-y divide-bg-border">
-        {stocks.map((s, i) => (
-          <Row key={badKeys ? i : s.sym} stock={s} flash={rowFlash} />
-        ))}
-      </ul>
-    </div>
+        </Badge>
+      </CardHeader>
+      <CardContent className="p-0">
+        <ul className="divide-y divide-bg-border">
+          {stocks.map((s, i) => (
+            <Row key={badKeys ? i : s.sym} stock={s} flash={rowFlash} />
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -49,15 +56,16 @@ function Row({ stock, flash }: { stock: Stock; flash: boolean }) {
   useRenderCount(`StockRow:${stock.sym}`);
   const up = stock.change >= 0;
   return (
-    <li className={clsx("flex items-center justify-between px-3 py-2 text-sm", flash && "flash-on-render")}>
+    <li className={cn("flex items-center justify-between px-3 py-2 text-sm", flash && "flash-on-render")}>
       <div className="flex items-center gap-3">
         <span className="font-mono text-xs text-ink-dim">{stock.sym}</span>
         <span className="text-ink-muted">{stock.name}</span>
       </div>
       <div className="flex items-center gap-3 font-mono tabular-nums">
         <span>${stock.price.toFixed(2)}</span>
-        <span className={clsx("text-xs", up ? "text-accent-good" : "text-accent-bad")}>
-          {up ? "▲" : "▼"} {Math.abs(stock.change).toFixed(2)}
+        <span className={cn("flex items-center gap-0.5 text-xs", up ? "text-accent-good" : "text-accent-bad")}>
+          {up ? <TrendingUp className="size-3" aria-hidden /> : <TrendingDown className="size-3" aria-hidden />}
+          {Math.abs(stock.change).toFixed(2)}
         </span>
       </div>
     </li>
