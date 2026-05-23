@@ -15,6 +15,7 @@ import { useConnect4 } from "./connect4Store";
 import { useLightsOut } from "./lightsOutStore";
 import { useWordScramble } from "./wordScrambleStore";
 import { useSimon } from "./simonStore";
+import { useStroop } from "./stroopStore";
 import { useLauncher, type GameId, type LauncherUi } from "./launcherStore";
 import { TicTacToeBoard } from "./TicTacToeBoard";
 import { G2048Board } from "./G2048Board";
@@ -25,6 +26,7 @@ import { Connect4Board } from "./Connect4Board";
 import { LightsOutBoard } from "./LightsOutBoard";
 import { WordScrambleBoard } from "./WordScrambleBoard";
 import { SimonBoard } from "./SimonBoard";
+import { StroopBoard } from "./StroopBoard";
 import { GameLauncher } from "./GameLauncher";
 
 /**
@@ -54,6 +56,7 @@ export function BoredomBuster() {
   const hydrateLights = useLightsOut((s) => s.hydrate);
   const hydrateScramble = useWordScramble((s) => s.hydrate);
   const hydrateSimon = useSimon((s) => s.hydrate);
+  const hydrateStroop = useStroop((s) => s.hydrate);
 
   const lastPath = useRef<string | null>(pathname);
   const popupTimer = useRef<number | null>(null);
@@ -71,6 +74,7 @@ export function BoredomBuster() {
     hydrateLights();
     hydrateScramble();
     hydrateSimon();
+    hydrateStroop();
     setUi("pill");
   }, [
     hydrateLauncher,
@@ -83,6 +87,7 @@ export function BoredomBuster() {
     hydrateLights,
     hydrateScramble,
     hydrateSimon,
+    hydrateStroop,
     setUi,
   ]);
 
@@ -261,6 +266,7 @@ function GameSurface({ id }: { id: GameId }) {
   if (id === "lightsout") return <LightsOutBoard />;
   if (id === "wordscramble") return <WordScrambleBoard />;
   if (id === "simon") return <SimonBoard />;
+  if (id === "stroop") return <StroopBoard />;
   return null;
 }
 
@@ -274,6 +280,7 @@ function gameTitle(id: GameId | null): string {
   if (id === "lightsout") return "lights out";
   if (id === "wordscramble") return "scramble";
   if (id === "simon") return "simon";
+  if (id === "stroop") return "stroop";
   return "boredom buster";
 }
 
@@ -317,6 +324,7 @@ function PillIcon({ activeGame }: { activeGame: GameId | null }) {
   if (activeGame === "lightsout") return <LightsOutMini />;
   if (activeGame === "wordscramble") return <WordScrambleMini />;
   if (activeGame === "simon") return <SimonMini />;
+  if (activeGame === "stroop") return <StroopMini />;
   return (
     <span className="grid size-7 place-items-center rounded-md bg-gradient-to-br from-accent to-accent-info text-white shadow-glass">
       <Gamepad2 className="size-4" aria-hidden />
@@ -341,6 +349,42 @@ function TicTacToeMini() {
           )}
         />
       ))}
+    </span>
+  );
+}
+
+function StroopMini() {
+  const prompt = useStroop((s) => s.prompt);
+  const status = useStroop((s) => s.status);
+  const colourHex: Record<string, string> = {
+    red: "#ff5c7a",
+    blue: "#4fa3ff",
+    green: "#4dd498",
+    yellow: "#ffd233",
+  };
+  return (
+    <span
+      className="relative grid size-7 shrink-0 place-items-center overflow-hidden rounded-md bg-gradient-to-br from-[#15131e] to-[#0d0b1c]"
+      aria-hidden
+    >
+      {status === "playing" && prompt ? (
+        <span
+          className="font-mono text-[9px] font-bold uppercase tracking-wider"
+          style={{ color: colourHex[prompt.ink], textShadow: `0 0 4px ${colourHex[prompt.ink]}` }}
+        >
+          {prompt.word.slice(0, 3)}
+        </span>
+      ) : (
+        <span className="flex gap-[1px]">
+          {Object.values(colourHex).map((hex, i) => (
+            <span
+              key={i}
+              className="size-1.5 rounded-[1px]"
+              style={{ backgroundColor: hex, opacity: 0.85 }}
+            />
+          ))}
+        </span>
+      )}
     </span>
   );
 }

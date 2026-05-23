@@ -11,7 +11,8 @@ export type GameId =
   | "connect4"
   | "lightsout"
   | "wordscramble"
-  | "simon";
+  | "simon"
+  | "stroop";
 export type LauncherUi = "hidden" | "launcher" | "game" | "pill";
 
 type State = {
@@ -59,6 +60,7 @@ export const useLauncher = create<State & Actions>((set) => ({
         "lightsout",
         "wordscramble",
         "simon",
+        "stroop",
       ];
       if (valid.includes(parsed.activeGame as GameId)) {
         set({ activeGame: parsed.activeGame as GameId });

@@ -9,6 +9,7 @@ import {
   Heart,
   LayoutGrid,
   Moon,
+  Palette,
   Sparkles,
   Type,
 } from "lucide-react";
@@ -23,6 +24,7 @@ import { useConnect4 } from "./connect4Store";
 import { useLightsOut } from "./lightsOutStore";
 import { useWordScramble } from "./wordScrambleStore";
 import { useSimon } from "./simonStore";
+import { useStroop } from "./stroopStore";
 import { useLauncher, type GameId } from "./launcherStore";
 
 type GameMeta = {
@@ -76,6 +78,10 @@ function useWordScrambleResumeable() {
 function useSimonResumeable() {
   const status = useSimon((s) => s.status);
   return status === "waiting" || status === "showing";
+}
+function useStroopResumeable() {
+  const status = useStroop((s) => s.status);
+  return status === "playing";
 }
 
 const GAMES: GameMeta[] = [
@@ -141,6 +147,13 @@ const GAMES: GameMeta[] = [
     iconBg: "bg-gradient-to-br from-[#3fa9b8] via-[#ffae3d] to-[#9b7dff]",
     Icon: Brain,
     useResumeable: useSimonResumeable,
+  },
+  {
+    id: "stroop",
+    name: "Stroop",
+    iconBg: "bg-gradient-to-br from-[#ff5c7a] via-[#ffd233] to-[#4fa3ff]",
+    Icon: Palette,
+    useResumeable: useStroopResumeable,
   },
 ];
 
