@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
@@ -149,7 +149,19 @@ const tokenStore = (() => {
         ]}
       />
 
-      <Step n={6} kind="next" title="You've covered the entire frontend systems surface.">
+      <Step n={6} kind="profile" title="Iframe sandbox — toggle capabilities, see what survives">
+        <IframeSandboxDemo />
+        <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+          The sandbox attribute starts with EVERYTHING denied. Each <code>allow-*</code> token
+          re-grants one capability. Toggling them here shows what a hostile embedded page can do
+          under each combination. The classic mistake is{" "}
+          <code>allow-scripts allow-same-origin</code> — it gives the embedded JS access to its
+          own origin&apos;s cookies and storage. For untrusted third-party content, leave{" "}
+          <code>allow-same-origin</code> off.
+        </p>
+      </Step>
+
+      <Step n={7} kind="next" title="You've covered the entire frontend systems surface.">
         <Callout tone="next" title="end of the systems arc">
           You now know what to look for in: rendering, scheduling, hydration, state, network,
           microfrontends, build, a11y, observability, memory, security. The last module turns
@@ -157,6 +169,137 @@ const tokenStore = (() => {
         </Callout>
       </Step>
     </Lesson>
+  );
+}
+
+/* ─────────── Iframe sandbox interactive demo ─────────── */
+
+type SandboxFlag = {
+  key: "allow-scripts" | "allow-same-origin" | "allow-forms" | "allow-popups" | "allow-top-navigation";
+  short: string;
+  what: string;
+  risk: "low" | "medium" | "high";
+};
+
+const SANDBOX_FLAGS: SandboxFlag[] = [
+  { key: "allow-scripts", short: "scripts", what: "Run JavaScript inside the iframe", risk: "medium" },
+  {
+    key: "allow-same-origin",
+    short: "same-origin",
+    what: "Iframe content treated as its own origin (cookies, storage, fetch). DANGEROUS with allow-scripts for untrusted content.",
+    risk: "high",
+  },
+  { key: "allow-forms", short: "forms", what: "Submit forms to other origins", risk: "low" },
+  { key: "allow-popups", short: "popups", what: "Open window.open() / target=_blank", risk: "low" },
+  {
+    key: "allow-top-navigation",
+    short: "top-nav",
+    what: "Navigate the parent (your) page via window.top.location",
+    risk: "high",
+  },
+];
+
+function IframeSandboxDemo() {
+  const [enabled, setEnabled] = useState<Set<string>>(new Set(["allow-scripts"]));
+  const sandboxAttr = Array.from(enabled).sort().join(" ");
+
+  const toggle = (key: string) => {
+    setEnabled((s) => {
+      const next = new Set(s);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const dangerousCombo = enabled.has("allow-scripts") && enabled.has("allow-same-origin");
+
+  // Build a self-contained data: URL with content that probes what it can do under sandbox.
+  // We render this via srcDoc, which works regardless of CSP for iframe-src in many configs.
+  const srcDoc = useMemo(
+    () => `<!doctype html><html><head><style>
+  body { font: 11px/1.4 ui-monospace, monospace; padding: 8px; color: #cdd6f4; background: #11111b; margin: 0; }
+  .row { display: flex; gap: 6px; margin: 2px 0; }
+  .k { color: #94a3b8; min-width: 84px; }
+  .ok { color: #4ade80; }
+  .err { color: #f87171; }
+  button, form { font: inherit; margin: 0 4px 0 0; padding: 2px 6px; background: #1e1e2e; color: #cdd6f4; border: 1px solid #313244; border-radius: 4px; cursor: pointer; }
+</style></head><body>
+<div><strong>Embedded page probes</strong></div>
+<div id="js" class="row"><span class="k">scripts:</span><span>—</span></div>
+<div id="origin" class="row"><span class="k">same-origin:</span><span>—</span></div>
+<div id="topnav" class="row"><span class="k">top-nav:</span><span><button onclick="try{top.location='https://example.com';document.querySelector('#topnav span:last-child').innerHTML='<span class=ok>ALLOWED — parent navigated</span>'}catch(e){document.querySelector('#topnav span:last-child').innerHTML='<span class=err>BLOCKED — '+e.name+'</span>'}">try top.location</button></span></div>
+<div id="form" class="row"><span class="k">forms:</span><form action="about:blank" target="_self"><button type="submit">submit form</button></form></div>
+<div id="popup" class="row"><span class="k">popups:</span><button onclick="try{const w=open('about:blank');document.querySelector('#popup span:last-child').innerHTML=w?'<span class=ok>ALLOWED</span>':'<span class=err>BLOCKED (returned null)</span>'}catch(e){document.querySelector('#popup span:last-child').innerHTML='<span class=err>BLOCKED — '+e.name+'</span>'}"></button><span>—</span></div>
+<script>
+  // JS execution probe
+  document.querySelector('#js span:last-child').outerHTML = '<span class="ok">ALLOWED — this text is from inline JS</span>';
+  // Same-origin probe (try to read document.cookie / localStorage)
+  try {
+    const _ = document.cookie; const ls = localStorage; ls.setItem('probe','1'); ls.removeItem('probe');
+    document.querySelector('#origin span:last-child').outerHTML = '<span class="ok">ALLOWED — cookies + storage accessible</span>';
+  } catch (e) {
+    document.querySelector('#origin span:last-child').outerHTML = '<span class="err">BLOCKED — '+e.name+'</span>';
+  }
+  document.querySelectorAll('#popup button')[0].textContent = 'try window.open';
+</script>
+</body></html>`,
+    [],
+  );
+
+  return (
+    <div className="space-y-4 rounded-xl border border-bg-border bg-bg-panel p-4">
+      <div className="flex flex-wrap gap-2">
+        {SANDBOX_FLAGS.map((f) => {
+          const on = enabled.has(f.key);
+          return (
+            <button
+              key={f.key}
+              onClick={() => toggle(f.key)}
+              title={f.what}
+              className={cn(
+                "rounded-md border px-2.5 py-1 font-mono text-[11px] transition active:scale-[0.97]",
+                on
+                  ? f.risk === "high"
+                    ? "border-accent-bad/50 bg-accent-bad/10 text-accent-bad"
+                    : f.risk === "medium"
+                    ? "border-accent-warn/50 bg-accent-warn/10 text-accent-warn"
+                    : "border-accent-good/50 bg-accent-good/10 text-accent-good"
+                  : "border-bg-border bg-bg-elevated text-ink-muted hover:border-accent/30 hover:text-ink",
+              )}
+            >
+              {on ? "✓ " : "  "}
+              {f.short}
+            </button>
+          );
+        })}
+      </div>
+
+      <pre className="overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-2 font-mono text-[11px] text-ink">
+        {`<iframe sandbox="${sandboxAttr}" ... />`}
+      </pre>
+
+      {dangerousCombo && (
+        <div className="rounded-md border border-accent-bad/40 bg-accent-bad/10 px-3 py-2 font-mono text-[11px] text-accent-bad">
+          ⚠ allow-scripts + allow-same-origin is the classic dangerous combo — embedded JS gains
+          access to its origin&apos;s cookies, storage, and same-origin fetch. Never use this
+          combination for untrusted content.
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-md border border-bg-border bg-bg-elevated">
+        <div className="border-b border-bg-border bg-bg-subtle px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+          embedded iframe (live)
+        </div>
+        <iframe
+          // The sandbox attribute is the whole point of this demo.
+          sandbox={sandboxAttr}
+          srcDoc={srcDoc}
+          title="Sandbox capability probe"
+          className="block h-[240px] w-full bg-[#11111b]"
+        />
+      </div>
+    </div>
   );
 }
 
