@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Lesson } from "@/engine/Lesson";
 import { Step } from "@/engine/Step";
@@ -138,7 +138,17 @@ export function dedupedFetch(url: string): Promise<Response> {
         ]}
       />
 
-      <Step n={6} kind="next" title="One app — solved. A hundred apps — the wall.">
+      <Step n={6} kind="profile" title="Slow-network slider — drag RTT and watch the waterfall reflow">
+        <SlowNetworkDemo />
+        <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+          Same six requests as Step 2. Move the slider to simulate real connection profiles —
+          fibre, cable, 4G, 3G, slow 3G, 2G. Notice how a single dependent fetch chain compounds:
+          on slow 3G, sequential is 6× the parallel cost; on fibre, the gap closes. RTT is what
+          waterfalls measure; bandwidth is what your assets need.
+        </p>
+      </Step>
+
+      <Step n={7} kind="next" title="One app — solved. A hundred apps — the wall.">
         <Callout tone="next" title="next bottleneck">
           A single team can deploy cache strategies cleanly. Once you have many teams, runtime
           contracts, version drift, and shared dependencies become the real cost. Module 19.
@@ -348,6 +358,197 @@ function RetryViz({ strategy }: { strategy: "naive" | "backoff" | "circuit" }) {
         {strategy === "circuit" &&
           "3 failures → circuit opens. Subsequent requests short-circuit locally for N seconds, sparing origin."}
       </p>
+    </div>
+  );
+}
+
+/* ─────────── slow-network slider demo ─────────── */
+
+type NetProfile = { name: string; rttMs: number; mbps: number };
+
+const NET_PROFILES: NetProfile[] = [
+  { name: "Fibre", rttMs: 8, mbps: 200 },
+  { name: "Cable", rttMs: 25, mbps: 60 },
+  { name: "4G", rttMs: 70, mbps: 12 },
+  { name: "3G", rttMs: 200, mbps: 1.5 },
+  { name: "Slow 3G", rttMs: 400, mbps: 0.4 },
+  { name: "2G", rttMs: 800, mbps: 0.05 },
+];
+
+function SlowNetworkDemo() {
+  const [rttMs, setRttMs] = useState(70);
+  const urls = useMemo(
+    () => [
+      { url: "/api/me", bytes: 2_000 },
+      { url: "/api/feed", bytes: 18_000 },
+      { url: "/api/recs", bytes: 6_000 },
+      { url: "/api/comments", bytes: 14_000 },
+      { url: "/static/avatar.webp", bytes: 8_000 },
+      { url: "/static/og.png", bytes: 80_000 },
+    ],
+    [],
+  );
+
+  // Closest preset under-or-equal to the current RTT (used to derive bandwidth)
+  const profile = useMemo(() => {
+    let chosen = NET_PROFILES[0];
+    for (const p of NET_PROFILES) {
+      if (p.rttMs <= rttMs) chosen = p;
+    }
+    return chosen;
+  }, [rttMs]);
+
+  // Per-request duration = RTT + (bytes / bandwidth)
+  // bandwidth = mbps * 1e6 / 8 = bytes/sec
+  const bytesPerSec = (profile.mbps * 1_000_000) / 8;
+  const durMs = (bytes: number) => rttMs + (bytes / bytesPerSec) * 1000;
+
+  const serial = urls.reduce((t, u) => t + durMs(u.bytes), 0);
+  const parallel = Math.max(...urls.map((u) => durMs(u.bytes)));
+  const maxBar = Math.max(serial, 1);
+
+  // Cumulative start offsets for serial waterfall
+  let cursor = 0;
+  const serialBars = urls.map((u) => {
+    const start = cursor;
+    const dur = durMs(u.bytes);
+    cursor += dur;
+    return { ...u, start, end: start + dur };
+  });
+  const parallelBars = urls.map((u) => ({ ...u, start: 0, end: durMs(u.bytes) }));
+
+  return (
+    <div className="space-y-4 rounded-xl border border-bg-border bg-bg-panel p-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="flex flex-1 min-w-[200px] items-center gap-3 font-mono text-[11px]">
+          <span className="text-ink-dim">RTT</span>
+          <input
+            type="range"
+            min={5}
+            max={800}
+            step={5}
+            value={rttMs}
+            onChange={(e) => setRttMs(Number(e.target.value))}
+            className="flex-1 accent-[var(--accent)]"
+            aria-label="Round-trip time in milliseconds"
+          />
+          <span className="tabular-nums text-ink">{rttMs}ms</span>
+        </label>
+        <div className="rounded-md border border-bg-border bg-bg-elevated px-2.5 py-1 font-mono text-[11px]">
+          <span className="text-ink-dim">≈ </span>
+          <span className="text-ink">{profile.name}</span>
+          <span className="ml-2 text-ink-dim">{profile.mbps} Mbps</span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {NET_PROFILES.map((p) => (
+          <button
+            key={p.name}
+            onClick={() => setRttMs(p.rttMs)}
+            className={cn(
+              "rounded-md border px-2 py-0.5 font-mono text-[10px] transition active:scale-[0.97]",
+              rttMs === p.rttMs
+                ? "border-accent/50 bg-accent/10 text-accent"
+                : "border-bg-border bg-bg-elevated text-ink-muted hover:border-accent/30 hover:text-ink",
+            )}
+          >
+            {p.name}
+          </button>
+        ))}
+      </div>
+
+      <SlowWaterfall title="serial (waterfall)" bars={serialBars} maxBar={maxBar} totalMs={serial} />
+      <SlowWaterfall
+        title="parallel (Promise.all)"
+        bars={parallelBars}
+        maxBar={maxBar}
+        totalMs={parallel}
+      />
+
+      <div className="grid grid-cols-3 gap-3 border-t border-bg-border pt-3 font-mono text-[11px]">
+        <SlowStat label="serial total" value={`${serial.toFixed(0)}ms`} tone="bad" />
+        <SlowStat label="parallel total" value={`${parallel.toFixed(0)}ms`} tone="good" />
+        <SlowStat
+          label="speedup"
+          value={`${(serial / Math.max(parallel, 1)).toFixed(1)}×`}
+          tone="info"
+        />
+      </div>
+    </div>
+  );
+}
+
+function SlowWaterfall({
+  title,
+  bars,
+  maxBar,
+  totalMs,
+}: {
+  title: string;
+  bars: { url: string; bytes: number; start: number; end: number }[];
+  maxBar: number;
+  totalMs: number;
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-baseline justify-between font-mono text-[10px]">
+        <span className="uppercase tracking-wider text-ink-dim">{title}</span>
+        <span className="tabular-nums text-ink-muted">{totalMs.toFixed(0)}ms</span>
+      </div>
+      <div className="space-y-1">
+        {bars.map((b) => {
+          const leftPct = (b.start / maxBar) * 100;
+          const widthPct = Math.max(0.4, ((b.end - b.start) / maxBar) * 100);
+          return (
+            <div key={b.url} className="flex items-center gap-2 font-mono text-[10px]">
+              <span className="w-32 shrink-0 truncate text-ink-dim">{b.url}</span>
+              <div className="relative h-3 flex-1 overflow-hidden rounded-sm border border-bg-border bg-bg-elevated">
+                <div
+                  className="absolute h-full rounded-sm bg-accent/60"
+                  style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+                />
+              </div>
+              <span className="w-12 shrink-0 tabular-nums text-ink-muted">
+                {(b.end - b.start).toFixed(0)}ms
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SlowStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "good" | "bad" | "info";
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-md border px-2 py-1.5",
+        tone === "good" && "border-accent-good/30 bg-accent-good/5",
+        tone === "bad" && "border-accent-bad/30 bg-accent-bad/5",
+        tone === "info" && "border-accent-info/30 bg-accent-info/5",
+      )}
+    >
+      <div className="text-[9px] uppercase tracking-widest text-ink-dim">{label}</div>
+      <div
+        className={cn(
+          "mt-0.5 tabular-nums",
+          tone === "good" && "text-accent-good",
+          tone === "bad" && "text-accent-bad",
+          tone === "info" && "text-accent-info",
+        )}
+      >
+        {value}
+      </div>
     </div>
   );
 }
