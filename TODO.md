@@ -113,7 +113,7 @@
 - [x] **Real `<Profiler>` API** in the dock — `ProfilerWrap` exists; `actualDuration` / `baseDuration` / `phase` flow into the store and surface in the dock as memo savings %
 - [x] **Real Long Tasks observer** — `PerformanceObserver({ type: 'longtask', buffered: true })` wired into `useFpsLoop`, dock stat shows count
 - [x] **ProfilerDock route-scoping** — hidden on `/lab/daily`, `/lab/interview`, `/lab/journey` where it's noise rather than signal (`a1bb27c`)
-- [ ] **Interview Mode route** — `/lab/interview` rubric-graded prompts on top of `ArchitectGate` and the 200-question bank. Should pick by `kind` (debug / design / tradeoff / internals), present scenario, accept free-text or MCQ, then reveal model answer with per-rationale diff.
+- [x] **Interview Mode route** ✅ — `/lab/interview` ships kind filter (debug/design/tradeoff/internals), difficulty filter (1–5), dynamic pool count, score persistence with reset, model-answer reveal with per-rationale. Rubric-grading for free-text is still TODO (would need model integration).
 - [ ] **Trace recorder** — capture a session's commits + renders + long tasks to JSON, replay deterministically; lets the lab assert "expected metrics" per module and ship golden traces.
 - [ ] **ReactFlow** dependency graph for Module 8 (Suspense boundary tree).
 - [ ] **Service Worker** for the streaming + offline modules; cache the lab shell + foundation routes for offline-first.
@@ -126,22 +126,23 @@
 These ship at least one interactive demo each (so the module pages aren't empty), but the originally-spec'd richness isn't fully there yet:
 
 ### Module 18 — Network & Data
-- [ ] Slow-network slider — `connection.downlink` simulator overlay so the existing `Waterfall` reflows under throttled bandwidth
+- [x] **Slow-network slider** — RTT slider + bandwidth-aware waterfall reflow with profile presets (Fibre/Cable/4G/3G/Slow 3G/2G) — `b1ebba6`
 - [ ] CDN POP heatmap — geographic cache HIT/MISS viz
 
 ### Module 19 — Microfrontends
-- [ ] Version-mismatch sim — host v18 + remote v19 runtime contract failure with the actual "Invalid hook call" error path
-- [ ] Shared event-bus demo — runtime vs build-time integration tradeoff visualised
+- [x] **Shared event-bus demo** — three MFE cards subscribed to a federated singleton bus; dispatch from any, all subscribers re-render — `3a84293`
+- [x] Version-mismatch already covered by the existing FederationGraph `v19` toggle
+- [ ] Standalone version-mismatch sim that surfaces the literal "Invalid hook call" error (nice-to-have polish)
 
-### Module 22 — Observability
-- [ ] Distributed trace graph — frontend span linked to a fake backend span via `traceparent`; render as a flame chart that crosses the service boundary
+### Module 22 — Observability ✅
+- [x] Distributed trace graph already shipped as `TraceFlame` (frontend ↔ backend spans, traceparent narrative)
 - [ ] Session-replay mini-impl — record DOM mutations + clicks, replay in a sandboxed iframe (rrweb-style)
 
 ### Module 23 — Memory
 - [ ] GC timeline — synthetic visualisation of major vs minor collections (the API isn't exposed, so this is illustrative)
 
 ### Module 24 — Security
-- [ ] Iframe sandbox interactive demo — toggle each `allow-*` flag and see what the embedded content can/can't do
+- [x] **Iframe sandbox interactive demo** — toggle each `allow-*` flag, embedded iframe live-probes what's allowed/blocked (scripts, same-origin, top-nav, forms, popups). Dangerous combos flagged — `719a6a1`
 - [ ] Hydration-time injection demo — show how a malicious `__NEXT_DATA__` payload lands between server and client
 
 ### Module 21 — Accessibility
