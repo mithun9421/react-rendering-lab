@@ -1,6 +1,6 @@
 # React Rendering Lab — Coverage Gaps & TODO
 
-> **v0.3 status (2026-05-18 eve):** Registry expanded 15 → 25 modules. The lab is now the "Staff+/Principal frontend systems simulator" the prompt called for. Deep impls: 1, 4, 8, 10-16, 25. Scaffolded (ComingSoon fallback): 17-24. Architect Mode primitive shipped. The remaining work is fleshing out the scaffolded modules with their full interactive demos.
+> **v0.4 status (2026-05-24):** All 36 modules implemented (11 foundations + 25 advanced). No ComingSoon fallbacks remain. Modules 17–24 each ship at least one real interactive demo. Quiz bank expanded to 200+ judgment-call questions across all modules. Profiler hidden on non-module routes (daily/interview/journey) where it's noise rather than signal. The remaining work is depth-polish on specific module demos and engine-level extras (interview mode, trace recorder, service worker, Playwright).
 
 ---
 
@@ -16,59 +16,58 @@
 
 ---
 
-## Scaffolded modules to flesh out
+## Module status — all 25 advanced + 11 foundations implemented
 
-These exist in the registry, link in the bottleneck chain, and route to a ComingSoon fallback. Each is queued with a sketch of the interactive demo:
+### Module 17 — Browser Rendering Pipeline ✅
+- [x] Pipeline phases viz (`PipelinePhases`)
+- [x] Layout thrashing demo (`ThrashDemo`)
+- [x] Composite layer viewer (`LayerCount`)
+- [x] Transform vs top/left animation (`TransformVsTopLeft`)
+- [x] Property → phase table (`PropertyTable`)
 
-### Module 17 — Browser Rendering Pipeline
-- [ ] **Pipeline timeline viz**: style → layout → paint → composite phases as horizontal bars; show which CSS properties land in which phase.
-- [ ] **Layout thrashing demo**: alternating read/write loop vs batched read-then-write. FPS diverges visibly.
-- [ ] **Composite layer viewer**: toggle `transform: translateZ(0)` and watch the layer tree explode.
-- [ ] **Transform vs top/left animation**: side-by-side card animating with each strategy.
+### Module 18 — Network & Data Fetching ✅ (mostly)
+- [x] Request waterfall graph (`Waterfall`)
+- [x] Dedup toggle (`NetworkLab` with `dedup` flag)
+- [x] Retry/backoff visualiser (`RetrySim`, `RetryViz`)
+- [x] Parallel vs serial toggle (`NetworkLab` with `parallel` flag)
+- [ ] Slow-network slider — `connection.downlink` simulator overlay
+- [ ] CDN POP heatmap — geographic cache HIT/MISS viz
 
-### Module 18 — Network & Data Fetching
-- [ ] **Request waterfall graph** (canvas) — colored bars per request, dependencies as arrows.
-- [ ] **Slow-network simulator** — `connection.downlink` override, watch fetch start times shift.
-- [ ] **Dedup vs no-dedup** toggle — fire 5 components requesting the same key, count actual network calls.
-- [ ] **Retry/backoff demo** — drive Module 25's retry-storm incident from this UI.
-- [ ] **CDN edge viz** — map of POPs, cache HIT/MISS heatmap.
+### Module 19 — Microfrontend Architecture ✅ (mostly)
+- [x] React Flow federation topology (shipped `54bc032`)
+- [ ] Version-mismatch sim — host v18 + remote v19 runtime failure
+- [ ] Shared event-bus demo — runtime vs build-time integration
 
-### Module 19 — Microfrontend Architecture
-- [ ] **Module Federation dependency graph** — three "teams" sharing React. Visualise duplicate-React via bundle viewer.
-- [ ] **Version mismatch simulator** — host expects `v18.2.x`, remote ships `v19.0.x` — show the runtime contract failure.
-- [ ] **Shared store / event bus** demo — runtime integration vs build-time integration.
+### Module 20 — Build Systems & Bundling ✅
+- [x] Interactive bundle treemap (`Treemap`)
+- [x] Tree-shake/split/swap/deadcode toggles (`BundleViz`)
+- [x] Webpack vs Turbopack vs Vite mental model section
 
-### Module 20 — Build Systems & Bundling
-- [ ] **Interactive bundle analyzer** — treemap of the lab's own production bundle.
-- [ ] **Tree-shaking demo** — same import statement, two patterns (`import *` vs named), show the chunk size delta.
-- [ ] **Dynamic import playback** — animate which chunk loads when, on which interaction.
-- [ ] **Webpack vs Turbopack vs Vite** mental model viz (no real compile — just the differences in how chunks resolve).
+### Module 21 — Accessibility Engineering ✅
+- [x] Focus path demo (`FocusPathDemo`)
+- [x] AOM-vs-DOM side-by-side (`AccessibilityTree`)
+- [x] Focus trap demo (`ModalDemo`)
+- [x] Hydration a11y section
+- [ ] Screen-reader transcript timeline (nice-to-have)
 
-### Module 21 — Accessibility Engineering
-- [ ] **Accessibility tree viewer** — same DOM, AOM side by side.
-- [ ] **Keyboard navigation map** — animated focus path through the dashboard.
-- [ ] **Screen-reader transcript** — render the announcements as a chat-style timeline as you tab through.
-- [ ] **Async hydration a11y** — what `aria-busy` looks like during Suspense fallback.
-- [ ] **Focus trap demo** — modal that traps focus correctly vs one that doesn't.
+### Module 22 — Observability & Diagnostics ✅ (mostly)
+- [x] Real RUM Web Vitals dashboard (`WebVitalsDashboard`) — uses PerformanceObserver
+- [x] Span flame chart (in module surface)
+- [ ] Distributed trace graph — frontend ↔ backend span linkage
+- [ ] Session-replay mini-impl
 
-### Module 22 — Observability & Diagnostics
-- [ ] **Span timeline viewer** — capture `performance.mark()` + `performance.measure()` in the dashboard surface and render as a flame chart.
-- [ ] **Distributed trace graph** — frontend span linked to a fake backend span via traceparent.
-- [ ] **RUM dashboard** — LCP, FID, CLS, INP gauges that read from the PerformanceObserver.
-- [ ] **Session replay** mini-impl — record DOM mutations + clicks, replay in a sandboxed iframe.
+### Module 23 — Memory & Leak Detection ✅
+- [x] Heap growth chart (`HeapMonitor`) — `performance.memory.usedJSHeapSize`
+- [x] Four leak triggers (`LeakTriggers`): interval, listener, closure, cache
+- [x] Retention path viewer (`RetentionPath`)
+- [ ] GC timeline (synthetic, low priority)
 
-### Module 23 — Memory & Leak Detection
-- [ ] **Heap growth chart** — `performance.memory.usedJSHeapSize` over time, sampled.
-- [ ] **Leak triggers**: detached DOM (orphan ref), stale closure (interval not cleared), event listener leak (window listener added in effect with no cleanup).
-- [ ] **Retention path viewer** — show the chain from a leaked object back to GC root.
-- [ ] **GC timeline** — visualise major vs minor collections (synthetic, since the API isn't exposed).
-
-### Module 24 — Frontend Security
-- [ ] **XSS playground** — input that's rendered three ways (dangerouslySetInnerHTML, JSX, sanitized) — only one detonates.
-- [ ] **Hydration-time injection** — show how a malicious `__NEXT_DATA__` payload can land between server and client.
-- [ ] **CSP enforcement graph** — same script tag, four CSP policies, four outcomes.
-- [ ] **Iframe isolation** — sandbox attribute comparison, `postMessage` boundary.
-- [ ] **Dependency compromise** — npm install graph, highlight the package most-likely-to-be-typosquatted.
+### Module 24 — Frontend Security ✅
+- [x] XSS playground (`XssPlayground`) — 3-way render comparison
+- [x] CSP comparison (`CspComparison`)
+- [x] Secure-by-construction patterns
+- [ ] Iframe sandbox interactive demo
+- [ ] Hydration-time injection demo
 
 ---
 

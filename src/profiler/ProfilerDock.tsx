@@ -67,7 +67,11 @@ function ProfilerDockInner() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const commits = useProfiler((s) => s.commits);
+  const longTasks = useProfiler((s) => s.longTasks);
   const totalRenders = Object.values(renders).reduce((a, b) => a + b, 0);
+  // Long tasks from the W3C Long Tasks API — any main-thread task > 50ms.
+  // We expose just the count; details live in module 22 (Observability).
+  const longTaskCount = longTasks.length;
   const topOffenders = Object.entries(renders)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4);
@@ -148,6 +152,12 @@ function ProfilerDockInner() {
                   label="Renders"
                   value={totalRenders}
                   icon={<Layers className="size-3" />}
+                />
+                <DockStat
+                  label="Long tasks"
+                  value={longTaskCount}
+                  icon={<Cpu className="size-3" />}
+                  className={longTaskCount > 0 ? "text-accent-warn" : "text-ink-muted"}
                 />
                 <DockStat
                   label="Mem"
@@ -269,6 +279,12 @@ function ProfilerDockInner() {
             label="Renders"
             value={totalRenders}
             icon={<Layers className="size-3" />}
+          />
+          <DockStat
+            label="Long tasks"
+            value={longTaskCount}
+            icon={<Cpu className="size-3" />}
+            className={longTaskCount > 0 ? "text-accent-warn" : "text-ink-muted"}
           />
           <DockStat
             label="Mem"

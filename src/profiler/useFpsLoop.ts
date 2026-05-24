@@ -10,6 +10,7 @@ import { useProfiler } from "./store";
 export function useFpsLoop() {
   const setFps = useProfiler((s) => s.setFps);
   const setMem = useProfiler((s) => s.setMem);
+  const pushLongTask = useProfiler((s) => s.pushLongTask);
 
   useEffect(() => {
     let last = performance.now();
@@ -45,9 +46,27 @@ export function useFpsLoop() {
       if (mem) setMem(Math.round(mem.usedJSHeapSize / 1048576));
     }, 1000);
 
+    // Long Tasks API — captures any main-thread task > 50ms (W3C threshold for
+    // "user-perceptible input lag"). buffered:true catches tasks that fired
+    // before this observer attached (e.g., the initial route render).
+    let longTaskObs: PerformanceObserver | null = null;
+    try {
+      if (typeof PerformanceObserver !== "undefined") {
+        longTaskObs = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            pushLongTask({ t: entry.startTime, dur: entry.duration });
+          }
+        });
+        longTaskObs.observe({ type: "longtask", buffered: true });
+      }
+    } catch {
+      // Safari and older browsers don't support 'longtask' — silently skip.
+    }
+
     return () => {
       cancelAnimationFrame(raf);
       clearInterval(memInt);
+      longTaskObs?.disconnect();
     };
-  }, [setFps, setMem]);
+  }, [setFps, setMem, pushLongTask]);
 }
