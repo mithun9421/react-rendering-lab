@@ -139,13 +139,139 @@ new ModuleFederationPlugin({
         ]}
       />
 
-      <Step n={6} kind="next" title="Boundaries set. Now the bundle itself.">
+      <Step n={6} kind="profile" title="Shared event bus — cross-MFE coordination without a shared tree">
+        <EventBusDemo />
+        <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+          Each MFE is its own React root — there&apos;s no provider that spans them. To share
+          state (cart count, auth status, theme) you ship a tiny event bus as a federated
+          singleton. Each MFE imports it; subscribers re-render on dispatch. The bus has no
+          React dependency — just a Map of listeners and a dispatch fn — which is why it can
+          live in a federated module without React version drift breaking it.
+        </p>
+      </Step>
+
+      <Step n={7} kind="next" title="Boundaries set. Now the bundle itself.">
         <Callout tone="next" title="next bottleneck">
-          With shared deps and contracts, you&apos;ve cut the duplicate-React tax. But each team
-          still ships JS that needs to be small. Module 20 attacks bundling head-on.
+          With shared deps, runtime contracts, and a cross-MFE event bus, you&apos;ve cut the
+          duplicate-React tax and the coordination tax. But each team still ships JS that needs
+          to be small. Module 20 attacks bundling head-on.
         </Callout>
       </Step>
     </Lesson>
+  );
+}
+
+/* ─────────── shared event bus demo ─────────── */
+
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+
+/**
+ * The event bus itself — what each MFE would import from a federated singleton.
+ * Zero React, plain Map of listeners. Type-safe via a discriminated union.
+ */
+type BusEvent =
+  | { type: "cart/add"; sku: string }
+  | { type: "auth/login"; user: string }
+  | { type: "auth/logout" };
+
+type Listener = (e: BusEvent) => void;
+
+const busListeners = new Set<Listener>();
+const sharedBus = {
+  on(fn: Listener) {
+    busListeners.add(fn);
+    return () => {
+      busListeners.delete(fn);
+    };
+  },
+  dispatch(e: BusEvent) {
+    busListeners.forEach((fn) => fn(e));
+  },
+};
+
+/** A single MFE's view: subscribes on mount, renders received events. */
+function MfeCard({ name, color }: { name: string; color: string }) {
+  const [received, setReceived] = useState<BusEvent[]>([]);
+  useEffect(() => sharedBus.on((e) => setReceived((r) => [...r.slice(-3), e])), []);
+
+  return (
+    <div className="rounded-lg border border-bg-border bg-bg-elevated p-3">
+      <div className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest">
+        <span className={cn("size-1.5 rounded-full", color)} />
+        <span className="text-ink-muted">mfe</span>
+        <span className="text-ink">{name}</span>
+      </div>
+      <div className="min-h-[80px] space-y-1 font-mono text-[10px]">
+        {received.length === 0 ? (
+          <div className="text-ink-dim">waiting for bus events…</div>
+        ) : (
+          received.map((e, i) => (
+            <div key={i} className="rounded bg-bg-subtle px-2 py-1 text-ink">
+              <span className="text-accent">{e.type}</span>
+              {"sku" in e && <span className="ml-2 text-ink-muted">sku={e.sku}</span>}
+              {"user" in e && <span className="ml-2 text-ink-muted">user={e.user}</span>}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EventBusDemo() {
+  const fire = (e: BusEvent) => sharedBus.dispatch(e);
+  return (
+    <div className="space-y-4 rounded-xl border border-bg-border bg-bg-panel p-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <MfeCard name="header" color="bg-accent" />
+        <MfeCard name="product" color="bg-accent-info" />
+        <MfeCard name="checkout" color="bg-accent-warn" />
+      </div>
+
+      <div className="border-t border-bg-border pt-3">
+        <div className="mb-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+          dispatch from any MFE → all subscribed MFEs receive
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <BusButton onClick={() => fire({ type: "cart/add", sku: "SKU-001" })}>
+            cart/add SKU-001
+          </BusButton>
+          <BusButton onClick={() => fire({ type: "cart/add", sku: "SKU-042" })}>
+            cart/add SKU-042
+          </BusButton>
+          <BusButton onClick={() => fire({ type: "auth/login", user: "mithun" })}>
+            auth/login
+          </BusButton>
+          <BusButton onClick={() => fire({ type: "auth/logout" })}>
+            auth/logout
+          </BusButton>
+        </div>
+      </div>
+
+      <pre className="overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-2 font-mono text-[10px] text-ink-muted">
+{`// shared-bus.ts — federated as a singleton
+export const sharedBus = {
+  on(fn)  { listeners.add(fn);  return () => listeners.delete(fn); },
+  dispatch(e) { listeners.forEach(fn => fn(e)); }
+};
+
+// any MFE's React code
+useEffect(() => sharedBus.on(handleBusEvent), []);
+sharedBus.dispatch({ type: "cart/add", sku });`}
+      </pre>
+    </div>
+  );
+}
+
+function BusButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-md border border-bg-border bg-bg-elevated px-2.5 py-1 font-mono text-[10px] text-ink-muted transition active:scale-[0.97] hover:border-accent/40 hover:bg-bg-panel hover:text-ink"
+    >
+      {children}
+    </button>
   );
 }
 
