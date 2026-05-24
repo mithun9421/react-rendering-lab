@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   Activity,
   Layers,
@@ -38,7 +39,21 @@ import { cn } from "@/lib/utils";
 // same expand-from-bottom affordance, ships with reduced-motion handling, and
 // stays well below the 180ms motion budget without custom animation code.
 
+// Routes where the profiler is noise, not signal. Daily quiz, interview prompts,
+// and the journey overview don't teach profiling — hiding the dock declutters
+// those surfaces and stops the FPS loop from running on read-only pages.
+const PROFILER_HIDDEN_ROUTES = ["/lab/daily", "/lab/interview", "/lab/journey"];
+
 export function ProfilerDock() {
+  const pathname = usePathname();
+  const hidden = PROFILER_HIDDEN_ROUTES.some(
+    (route) => pathname === route || pathname?.startsWith(`${route}/`),
+  );
+  if (hidden) return null;
+  return <ProfilerDockInner />;
+}
+
+function ProfilerDockInner() {
   useFpsLoop();
   const fps = useProfiler((s) => s.fps);
   const dropped = useProfiler((s) => s.droppedFrames);
