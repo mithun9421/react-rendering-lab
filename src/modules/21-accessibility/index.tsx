@@ -137,13 +137,178 @@ export default function Module21() {
         ]}
       />
 
-      <Step n={7} kind="next" title="UX shipped to everyone. But how do you know it stays that way?">
+      <Step n={7} kind="profile" title="Screen-reader transcript — what the user actually hears">
+        <ScreenReaderTranscript />
+        <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+          Click each control. The transcript shows what a screen reader would announce —
+          accessible name, role, state, value. Notice how an unlabelled icon button is just
+          &quot;button&quot;; how a disabled control announces its state; how aria-live regions
+          interrupt the user. The right text in the right role is what makes a UI usable
+          eyes-free.
+        </p>
+      </Step>
+
+      <Step n={8} kind="next" title="UX shipped to everyone. But how do you know it stays that way?">
         <Callout tone="next" title="next bottleneck">
           You can pass every audit on launch day and regress two sprints later. Observability —
           Module 22 — closes the loop with RUM + a11y monitoring in production.
         </Callout>
       </Step>
     </Lesson>
+  );
+}
+
+/* ─────────── screen-reader transcript ─────────── */
+
+type SrEntry = { id: number; text: string; tone: "ok" | "warn" | "bad" };
+
+/** What a screen reader would announce for each control type. */
+function announceFor(kind: string, state?: string): { text: string; tone: SrEntry["tone"] } {
+  switch (kind) {
+    case "labelled-btn":
+      return { text: "Save changes, button", tone: "ok" };
+    case "icon-btn":
+      return { text: "button", tone: "bad" };
+    case "icon-btn-labelled":
+      return { text: "Close, button", tone: "ok" };
+    case "disabled-btn":
+      return { text: "Submit, button, dimmed", tone: "warn" };
+    case "link":
+      return { text: "Documentation, link, visited", tone: "ok" };
+    case "checkbox-on":
+      return { text: "Remember me, checkbox, checked", tone: "ok" };
+    case "checkbox-off":
+      return { text: "Remember me, checkbox, not checked", tone: "ok" };
+    case "live":
+      return { text: state ?? "Region update", tone: "ok" };
+    case "form":
+      return { text: "Email, required, edit text, blank", tone: "ok" };
+    default:
+      return { text: "(no accessible name)", tone: "bad" };
+  }
+}
+
+function ScreenReaderTranscript() {
+  const [log, setLog] = useState<SrEntry[]>([]);
+  const [checked, setChecked] = useState(false);
+  const [tick, setTick] = useState(0);
+
+  const announce = (kind: string, state?: string) => {
+    const { text, tone } = announceFor(kind, state);
+    setLog((l) => [...l.slice(-7), { id: Date.now() + Math.random(), text, tone }]);
+  };
+
+  return (
+    <div className="grid gap-3 lg:grid-cols-[1.1fr_1fr]">
+      {/* Interactive surface */}
+      <div className="space-y-3 rounded-xl border border-bg-border bg-bg-panel p-4">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+          tap a control
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => announce("labelled-btn")}
+            className="rounded-md border border-bg-border bg-bg-elevated px-3 py-1.5 text-xs text-ink hover:border-accent/40"
+          >
+            Save changes
+          </button>
+          <button
+            onClick={() => announce("icon-btn")}
+            aria-label=""
+            className="grid size-8 place-items-center rounded-md border border-accent-bad/30 bg-bg-elevated text-ink hover:bg-bg-subtle"
+            title="Icon-only — no aria-label (bad)"
+          >
+            ✕
+          </button>
+          <button
+            onClick={() => announce("icon-btn-labelled")}
+            aria-label="Close"
+            className="grid size-8 place-items-center rounded-md border border-accent-good/30 bg-bg-elevated text-ink hover:bg-bg-subtle"
+            title="Same icon — with aria-label (good)"
+          >
+            ✕
+          </button>
+          <button
+            onClick={() => announce("disabled-btn")}
+            disabled
+            className="rounded-md border border-bg-border bg-bg-elevated px-3 py-1.5 text-xs text-ink-dim opacity-60"
+          >
+            Submit
+          </button>
+          <button
+            onClick={() => announce("link")}
+            className="rounded-md border border-bg-border bg-bg-elevated px-3 py-1.5 text-xs text-accent-info underline hover:bg-bg-subtle"
+          >
+            Documentation
+          </button>
+          <label className="flex items-center gap-2 rounded-md border border-bg-border bg-bg-elevated px-3 py-1.5 text-xs text-ink">
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={(e) => {
+                setChecked(e.target.checked);
+                announce(e.target.checked ? "checkbox-on" : "checkbox-off");
+              }}
+            />
+            Remember me
+          </label>
+          <input
+            type="email"
+            placeholder="Email"
+            required
+            onFocus={() => announce("form")}
+            className="rounded-md border border-bg-border bg-bg-elevated px-3 py-1.5 text-xs text-ink placeholder:text-ink-dim"
+          />
+          <button
+            onClick={() => {
+              setTick((t) => t + 1);
+              announce("live", `Saved · ${tick + 1}`);
+            }}
+            className="rounded-md border border-accent-info/30 bg-accent-info/10 px-3 py-1.5 text-xs text-accent-info hover:bg-accent-info/15"
+          >
+            Trigger aria-live
+          </button>
+        </div>
+        <div className="border-t border-bg-border pt-2 font-mono text-[10px] text-ink-dim">
+          red border = icon-only, no label (announced just as &quot;button&quot;) · green border = same icon with aria-label
+        </div>
+      </div>
+
+      {/* Transcript */}
+      <div className="rounded-xl border border-bg-border bg-bg-panel">
+        <div className="flex items-center justify-between border-b border-bg-border px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+          <span>screen reader transcript</span>
+          {log.length > 0 && (
+            <button
+              onClick={() => setLog([])}
+              className="text-ink-muted hover:text-accent-bad"
+            >
+              clear
+            </button>
+          )}
+        </div>
+        <div className="max-h-[260px] space-y-1 overflow-y-auto p-3 font-mono text-[11px]">
+          {log.length === 0 ? (
+            <div className="text-ink-dim">tap a control to see the announcement…</div>
+          ) : (
+            log.map((e) => (
+              <div
+                key={e.id}
+                className={cn(
+                  "rounded-md border px-2 py-1.5",
+                  e.tone === "ok" && "border-accent-good/30 bg-accent-good/5 text-ink",
+                  e.tone === "warn" && "border-accent-warn/30 bg-accent-warn/5 text-ink",
+                  e.tone === "bad" && "border-accent-bad/30 bg-accent-bad/5 text-accent-bad",
+                )}
+              >
+                <span className="text-ink-dim">▸ </span>
+                {e.text}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
