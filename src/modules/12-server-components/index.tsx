@@ -5,6 +5,93 @@ import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { RscBoundary } from "@/viz/RscBoundary";
 import { ArchitectNotes } from "@/engine/ArchitectNotes";
+import { PatternGrid, type PatternItem } from "@/engine/PatternGrid";
+
+const RSC_LIMITATIONS: PatternItem[] = [
+  {
+    icon: "🔌",
+    title: "No subscriptions",
+    bad: "useState / useEffect on the server",
+    good: "// push to a client leaf",
+    why: "RSC renders once per request — no fiber persists. State lives behind 'use client'.",
+  },
+  {
+    icon: "🎭",
+    title: "Client context",
+    bad: "// RSC reading client-only context",
+    good: "// flip boundary, or pass via props",
+    why: "RSC can read server-safe context only. Client context needs a client ancestor.",
+  },
+  {
+    icon: "🌐",
+    title: "Browser globals",
+    bad: "document.cookie / localStorage",
+    good: "// cookies() from next/headers",
+    why: "No window/document on the server. Trap: deps that touch them at import time.",
+  },
+  {
+    icon: "🔄",
+    title: "Self re-fetch",
+    bad: "// 'refresh my data' from RSC",
+    good: "revalidatePath / revalidateTag",
+    why: "RSC is request-scoped. Server Action invalidates; next request re-renders.",
+  },
+];
+
+/**
+ * What's possible on each side of the 'use client' boundary. Renders as a
+ * compact two-column matrix instead of yet another bullet list.
+ */
+function CapabilityMatrix() {
+  const rows: { feature: string; server: boolean; client: boolean; note?: string }[] = [
+    { feature: "fs.readFile / db.query()", server: true, client: false },
+    { feature: "process.env / secrets", server: true, client: false },
+    { feature: "async function components", server: true, client: false, note: "renders once per request" },
+    { feature: "useState / useReducer", server: false, client: true },
+    { feature: "useEffect / event handlers", server: false, client: true },
+    { feature: "browser APIs (window, localStorage)", server: false, client: true },
+    { feature: "ship zero JS", server: true, client: false, note: "main RSC superpower" },
+    { feature: "ship interactivity", server: false, client: true },
+  ];
+  return (
+    <div className="not-prose overflow-hidden rounded-xl border border-bg-border bg-bg-panel">
+      <div className="grid grid-cols-[1fr_88px_88px] bg-bg-subtle px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+        <span>capability</span>
+        <span className="text-center text-accent-info">server</span>
+        <span className="text-center text-accent">client</span>
+      </div>
+      <div className="divide-y divide-bg-border">
+        {rows.map((r) => (
+          <div
+            key={r.feature}
+            className="grid grid-cols-[1fr_88px_88px] items-center px-3 py-2 text-xs"
+          >
+            <span className="text-ink">
+              {r.feature}
+              {r.note && (
+                <span className="ml-2 font-mono text-[10px] text-ink-dim">— {r.note}</span>
+              )}
+            </span>
+            <span className="text-center">
+              {r.server ? (
+                <span className="text-accent-good">●</span>
+              ) : (
+                <span className="text-bg-border">○</span>
+              )}
+            </span>
+            <span className="text-center">
+              {r.client ? (
+                <span className="text-accent-good">●</span>
+              ) : (
+                <span className="text-bg-border">○</span>
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Module12() {
   return (
@@ -31,14 +118,8 @@ export default function Module12() {
         </div>
       </Step>
 
-      <Step n={3} kind="explain" title="What you can do in a server component that you can't on the client">
-        <ul>
-          <li>Touch the file system (<code>fs.readFile</code>).</li>
-          <li>Hit the database directly: <code>await db.query(...)</code> inside the component.</li>
-          <li>Read process env, secrets, internal service tokens.</li>
-          <li>Render <em>async</em> functions: <code>export default async function Page() {`{`}...{`}`}</code>.</li>
-        </ul>
-        <p>What you can&apos;t do: <code>useState</code>, <code>useEffect</code>, event handlers, browser APIs. Those are client-only.</p>
+      <Step n={3} kind="explain" title="What server-only buys you (and what it costs)">
+        <CapabilityMatrix />
       </Step>
 
       <Step n={4} kind="fix" title="The pattern: push 'use client' to the leaves">
@@ -82,28 +163,7 @@ export default async function Page() {
       </Step>
 
       <Step n={6} kind="explain" title="What RSC can NOT do (and the workarounds)">
-        <ul>
-          <li>
-            <strong>Subscribe to anything.</strong> No <code>useEffect</code>, no
-            <code>useState</code>. RSC renders once per request — there is no &quot;state&quot;
-            on the server. Push subscriptions down to a small client leaf.
-          </li>
-          <li>
-            <strong>Read context defined in a client component.</strong> RSC can read context
-            <em>only</em> if the context itself is server-safe (no React hooks on the value).
-            For client-only context, the boundary has to be flipped.
-          </li>
-          <li>
-            <strong>Use browser-only globals.</strong> <code>document</code>, <code>localStorage</code>{" "}
-            don&apos;t exist. The compiler error is fast; the trap is when a dependency uses
-            them at import time — gate it behind dynamic import.
-          </li>
-          <li>
-            <strong>Re-fetch on its own.</strong> RSC is request-scoped. To &quot;refresh the
-            data,&quot; you need a Server Action that calls <code>revalidatePath</code> (Module
-            13) or a route-level <code>revalidate</code> hint.
-          </li>
-        </ul>
+        <PatternGrid items={RSC_LIMITATIONS} />
       </Step>
 
       <ArchitectNotes

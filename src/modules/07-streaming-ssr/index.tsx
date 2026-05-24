@@ -6,6 +6,55 @@ import { Callout } from "@/engine/Callout";
 import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { StreamChunks } from "@/viz/StreamChunks";
 import { RealStreamChunks } from "@/viz/RealStreamChunks";
+import { PatternGrid, type PatternItem } from "@/engine/PatternGrid";
+
+const REACT_19_HOISTING: PatternItem[] = [
+  {
+    icon: "🏷️",
+    title: "Document metadata",
+    bad: "// pre-19: react-helmet\n<Helmet><title>...</title></Helmet>",
+    good: "// 19: just write the tag\n<title>{product.name}</title>",
+    why: "Render <title>, <meta>, <link rel='canonical'> anywhere — React hoists to <head>.",
+  },
+  {
+    icon: "🎨",
+    title: "Stylesheet precedence",
+    bad: "// pre-19: import order matters,\n// race conditions, FOUC",
+    good: "<link rel='stylesheet'\n  href='/p.css'\n  precedence='default' />",
+    why: "Deduped, hoisted, ordered by precedence. Renderer waits — no FOUC.",
+  },
+  {
+    icon: "📜",
+    title: "Async scripts",
+    bad: "// pre-19: rendered 3× = loaded 3×",
+    good: "<script async src='analytics.js' />",
+    why: "Deduped + hoisted. Same script in three places loads exactly once.",
+  },
+];
+
+const REACT_19_PRELOAD_APIS: PatternItem[] = [
+  {
+    icon: "⏩",
+    title: "preload",
+    bad: "// browser discovers <link> late",
+    good: "preload(href, { as: 'style' })",
+    why: "Emits <link rel='preload'> into the stream before the boundary that needs it.",
+  },
+  {
+    icon: "⚡",
+    title: "preinit",
+    bad: "// load → wait → execute",
+    good: "preinit(href, { as: 'script' })",
+    why: "Preloads AND executes as soon as it lands. For critical scripts.",
+  },
+  {
+    icon: "🌐",
+    title: "preconnect / prefetchDNS",
+    bad: "// fetch waits for DNS + TCP",
+    good: "preconnect('https://api.x')",
+    why: "Warms TCP and DNS for upcoming fetches to a known origin.",
+  },
+];
 
 export default function Module07() {
   return (
@@ -54,29 +103,11 @@ export default function Module07() {
 
       <Step n={5} kind="fix" title="React 19 — assets and metadata join the stream">
         <p>
-          The streaming renderer doesn&apos;t just emit your component HTML. React 19 also
-          hoists three categories of tag from anywhere in your tree into the document head, in
-          the right order, at the right time:
+          The streaming renderer hoists three categories of tag from anywhere in your tree into
+          the document head, in the right order, at the right time:
         </p>
-        <ul>
-          <li>
-            <strong>Document metadata:</strong> <code>&lt;title&gt;</code>,{" "}
-            <code>&lt;meta&gt;</code>, <code>&lt;link rel=&quot;canonical&quot;&gt;</code>{" "}
-            rendered inside a component get hoisted to <code>&lt;head&gt;</code>. Replaces{" "}
-            <code>next/head</code> and <code>react-helmet</code>.
-          </li>
-          <li>
-            <strong>Stylesheets with precedence:</strong>{" "}
-            <code>&lt;link rel=&quot;stylesheet&quot; href=&quot;...&quot; precedence=&quot;high&quot;&gt;</code>{" "}
-            is dedup&apos;d, hoisted, and ordered by precedence. The renderer suspends the
-            boundary until the sheet is loaded — no FOUC.
-          </li>
-          <li>
-            <strong>Async scripts:</strong>{" "}
-            <code>&lt;script async src=&quot;...&quot;&gt;</code> is also dedup&apos;d and hoisted,
-            so the same analytics tag rendered in three places loads exactly once.
-          </li>
-        </ul>
+        <PatternGrid items={REACT_19_HOISTING} />
+        <p className="mt-3">A real example, all in one component:</p>
         <pre className="not-prose mt-3 overflow-x-auto rounded-md border border-bg-border bg-bg-elevated p-3 font-mono text-[10px] leading-relaxed">
 {`function ProductPage({ product }) {
   return (
@@ -94,23 +125,10 @@ export default function Module07() {
 
       <Step n={6} kind="fix" title="Preloading APIs — tell the stream what's coming">
         <p>
-          Even with streaming, the browser still discovers assets sequentially. React 19 ships
-          three imperative APIs that emit early hints into the stream:
+          Even with streaming, the browser discovers assets sequentially. React 19 ships three
+          imperative APIs that emit early hints into the stream:
         </p>
-        <ul>
-          <li>
-            <code>preload(href, &#123; as: &quot;style&quot; &#125;)</code> — emits a{" "}
-            <code>&lt;link rel=&quot;preload&quot;&gt;</code> before the boundary that needs it.
-          </li>
-          <li>
-            <code>preinit(href, &#123; as: &quot;script&quot; &#125;)</code> — preloads{" "}
-            <em>and</em> executes the script as soon as it lands.
-          </li>
-          <li>
-            <code>preconnect(origin)</code> / <code>prefetchDNS(origin)</code> — warm the TCP /
-            DNS for an upcoming fetch.
-          </li>
-        </ul>
+        <PatternGrid items={REACT_19_PRELOAD_APIS} />
         <p>
           Use them inside the server component that <em>knows</em> the asset will be needed —
           right before the <code>&lt;Suspense&gt;</code> boundary. The browser starts the asset

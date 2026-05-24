@@ -10,6 +10,7 @@ import { Callout } from "@/engine/Callout";
 import { Quiz } from "@/engine/Quiz";
 import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { DiffTree, type DiffNode } from "@/viz/DiffTree";
+import { PatternGrid, type PatternItem } from "@/engine/PatternGrid";
 import { StockFeed } from "@/dashboard/StockFeed";
 import { useRenderCount } from "@/profiler/useRenderCount";
 
@@ -127,40 +128,8 @@ export default function Module01() {
       />
 
       <Step n={6} kind="explain" title="Five anti-patterns that quietly bust reconciliation">
-        <p>
-          Even with stable keys, these patterns will undo your work. Each one shows up
-          weekly in code review:
-        </p>
-        <ul>
-          <li>
-            <strong>Generated keys</strong> — <code>key=&#123;Math.random()&#125;</code>,{" "}
-            <code>key=&#123;Date.now()&#125;</code>. Forces a remount every render. Free
-            real-world example: someone wanted to &quot;force a re-render&quot; and stuck a uuid
-            on a wrapper.
-          </li>
-          <li>
-            <strong>Object/array literals in props</strong> —{" "}
-            <code>style=&#123;&#123; padding: 8 &#125;&#125;</code> and{" "}
-            <code>items=&#123;[1,2,3]&#125;</code> create new identities every render. Anything
-            with <code>React.memo</code> below treats them as &quot;changed.&quot;
-          </li>
-          <li>
-            <strong>Inline event handlers</strong> —{" "}
-            <code>onClick=&#123;() =&gt; doX(id)&#125;</code>. Same story. Either hoist + bind
-            with <code>useCallback</code>, or push the id into the click target via{" "}
-            <code>data-*</code> and read in a single delegated handler.
-          </li>
-          <li>
-            <strong>Nesting keyed lists in the wrong place</strong> — wrapping a keyed list in a
-            div that doesn&apos;t need to exist forces the parent diff to compare wrappers, not
-            children. Result: the diff helps less than you think.
-          </li>
-          <li>
-            <strong>Defining components inside render</strong>. Every parent render produces a
-            new component <em>function</em>, so the diff sees a new type → unmount everything.
-            Almost always accidental; very destructive. Move the inner component out.
-          </li>
-        </ul>
+        <p>Each one shows up weekly in code review.</p>
+        <PatternGrid items={RECONCILIATION_ANTIPATTERNS} />
       </Step>
 
       <Step n={7} kind="explain" title="When NOT to memoize">
@@ -406,3 +375,41 @@ function ThemedSwatch() {
     </div>
   );
 }
+
+const RECONCILIATION_ANTIPATTERNS: PatternItem[] = [
+  {
+    icon: "🎲",
+    title: "Generated keys",
+    bad: "key={Math.random()}",
+    good: "key={item.id}",
+    why: "Random keys break identity every render — full remount, lost focus, lost scroll.",
+  },
+  {
+    icon: "🔄",
+    title: "Inline object props",
+    bad: "style={{ padding: 8 }}",
+    good: "const PAD = { padding: 8 } // hoist",
+    why: "New object identity every render busts memo. Hoist or memoize.",
+  },
+  {
+    icon: "👆",
+    title: "Inline handlers",
+    bad: "onClick={() => doX(id)}",
+    good: "useCallback or data-* delegation",
+    why: "Same problem as inline objects — fresh fn identity every render.",
+  },
+  {
+    icon: "📦",
+    title: "Unnecessary wrappers",
+    bad: "<div><List items={...} /></div>",
+    good: "<List items={...} />",
+    why: "Extra wrappers force the diff to compare wrappers, not children.",
+  },
+  {
+    icon: "💥",
+    title: "Components defined in render",
+    bad: "function Outer() {\n  const Inner = () => ...\n  return <Inner />\n}",
+    good: "// hoist Inner above Outer",
+    why: "New component type every parent render → unmount every child.",
+  },
+];
