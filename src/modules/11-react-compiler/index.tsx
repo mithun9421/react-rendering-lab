@@ -10,6 +10,38 @@ import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import { busy } from "@/lib/sim";
 import { cn } from "@/lib/utils";
+import { PatternGrid, type PatternItem } from "@/engine/PatternGrid";
+
+const COMPILER_BLIND_SPOTS: PatternItem[] = [
+  {
+    icon: "📌",
+    title: "Refs & mutable values",
+    bad: "// compiler can't reason about ref.current",
+    good: "// cache the value yourself",
+    why: "Refs deliberately bypass React's render model — the compiler can't see through them.",
+  },
+  {
+    icon: "🏪",
+    title: "External stores",
+    bad: "useStore(s => s.items.filter(...))",
+    good: "useStore(selector, shallow)",
+    why: "Selector identity is your job. Use the store's equality API, not just the compiler.",
+  },
+  {
+    icon: "🌐",
+    title: "Context fan-out",
+    bad: "// one giant context for everything",
+    good: "// split: AuthContext, ThemeContext...",
+    why: "Compiler caches reads, not subscriptions. Splitting providers still matters.",
+  },
+  {
+    icon: "🎲",
+    title: "Time / random in render",
+    bad: "const id = Math.random()",
+    good: "// move to useEffect or useId",
+    why: "Impure by definition. Compiler skips, lint shouts, your renders aren't memoised.",
+  },
+];
 
 export default function Module11() {
   return (
@@ -87,12 +119,7 @@ function Profile({ user }) {
       </Step>
 
       <Step n={5} kind="fix" title="Where you still need to think">
-        <ul>
-          <li><strong>Refs and mutable values</strong> — the compiler can&apos;t reason about them. Cache them yourself.</li>
-          <li><strong>External stores (Zustand, Redux)</strong> — selectors still need stable references; use the store&apos;s selector API.</li>
-          <li><strong>Context fan-out</strong> — splitting providers still matters. The compiler caches reads, not subscriptions.</li>
-          <li><strong>Render-time work that depends on time/random</strong> — by definition impure. Move to effects.</li>
-        </ul>
+        <PatternGrid items={COMPILER_BLIND_SPOTS} columns={2} />
       </Step>
 
       <Step n={6} kind="explain" title="When the compiler is wrong — debug, opt-out, escape">

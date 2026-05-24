@@ -54,26 +54,7 @@ export default function Module16() {
       </Step>
 
       <Step n={3} kind="explain" title="What each strategy actually does to the render tree">
-        <ul>
-          <li>
-            <strong>Prop drilling</strong> — any parent that owns the state re-renders the
-            whole subtree below it. Pure but blunt.
-          </li>
-          <li>
-            <strong>Single context</strong> — every consumer re-renders on every value change.
-            Inserting <code>useMemo</code> on the value <em>object</em> doesn&apos;t help unless
-            consumers also memo.
-          </li>
-          <li>
-            <strong>Split contexts</strong> — one provider per slice. A cart change no longer
-            re-renders theme consumers. The art is picking the slices.
-          </li>
-          <li>
-            <strong>External store + selector</strong> (Zustand / Redux / Jotai) — consumers
-            subscribe via <code>useSyncExternalStore</code>; React only re-runs them when the{" "}
-            <em>selected</em> slice changes. This is the production answer.
-          </li>
-        </ul>
+        <StateStrategyMatrix />
       </Step>
 
       <Step n={4} kind="explain" title="Server cache vs client state — they aren't the same thing">
@@ -405,6 +386,98 @@ function Slot({ label, value, muted }: { label: string; value: string | number; 
     <div className={cn("rounded-md border border-bg-border bg-bg-elevated p-2 font-mono text-[11px]", muted && "opacity-70")}>
       <div className="text-[10px] uppercase tracking-widest text-ink-dim">{label}</div>
       <div className="mt-1 text-ink">{String(value)}</div>
+    </div>
+  );
+}
+
+/* ─────────── state strategy matrix ─────────── */
+
+function StateStrategyMatrix() {
+  type Row = {
+    name: string;
+    cost: "low" | "med" | "high";
+    rerenderScope: string;
+    bestFor: string;
+    avoidFor: string;
+    icon: string;
+  };
+  const rows: Row[] = [
+    {
+      icon: "🪜",
+      name: "Prop drilling",
+      cost: "low",
+      rerenderScope: "Whole subtree below the owner",
+      bestFor: "Shallow trees, tight scope, < 4 levels",
+      avoidFor: "Deep trees, many sibling consumers",
+    },
+    {
+      icon: "🌐",
+      name: "Single context",
+      cost: "med",
+      rerenderScope: "Every consumer, every change",
+      bestFor: "Truly global, rarely-changing values (theme, locale)",
+      avoidFor: "Hot-path data with multiple unrelated readers",
+    },
+    {
+      icon: "🧩",
+      name: "Split contexts",
+      cost: "med",
+      rerenderScope: "Consumers of the changed slice only",
+      bestFor: "Mixed-concern state — auth + theme + cart kept separate",
+      avoidFor: "Many fine-grained slices (boilerplate explodes)",
+    },
+    {
+      icon: "🏪",
+      name: "External store + selector",
+      cost: "low",
+      rerenderScope: "Consumers whose selected slice changed",
+      bestFor: "Production app state: cross-cutting, frequent updates",
+      avoidFor: "Tiny features that don't need cross-tree access",
+    },
+  ];
+  const costColor: Record<Row["cost"], string> = {
+    low: "text-accent-good",
+    med: "text-accent-warn",
+    high: "text-accent-bad",
+  };
+  return (
+    <div className="not-prose space-y-2">
+      {rows.map((r) => (
+        <div
+          key={r.name}
+          className="grid grid-cols-1 gap-3 rounded-xl border border-bg-border bg-bg-panel p-3 md:grid-cols-[180px_1fr_1fr]"
+        >
+          <div className="flex items-start gap-2">
+            <span className="text-lg leading-none">{r.icon}</span>
+            <div>
+              <div className="text-sm font-medium text-ink">{r.name}</div>
+              <div className={`font-mono text-[10px] uppercase tracking-widest ${costColor[r.cost]}`}>
+                {r.cost} cost
+              </div>
+            </div>
+          </div>
+          <div>
+            <div className="font-mono text-[9px] uppercase tracking-widest text-ink-dim">
+              re-render scope
+            </div>
+            <div className="mt-1 text-[12px] text-ink">{r.rerenderScope}</div>
+          </div>
+          <div className="space-y-1.5">
+            <div>
+              <span className="rounded bg-accent-good/15 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent-good">
+                use
+              </span>
+              <span className="ml-2 text-[12px] text-ink-muted">{r.bestFor}</span>
+            </div>
+            <div>
+              <span className="rounded bg-accent-bad/15 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent-bad">
+                avoid
+              </span>
+              <span className="ml-2 text-[12px] text-ink-muted">{r.avoidFor}</span>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
