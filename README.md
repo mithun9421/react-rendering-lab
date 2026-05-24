@@ -8,7 +8,7 @@ This is not documentation. It is a debugging simulator + architecture lab + perf
 
 ## What's inside
 
-Twenty-five modules wired into a single bottleneck chain — extending from React rendering internals all the way to production incident response:
+**36 modules** — 11 React foundations + 25 advanced modules wired into a single bottleneck chain, extending from React fundamentals through internals all the way to production incident response:
 
 | # | Module | What you fix | The next bottleneck it exposes |
 |---|---|---|---|
@@ -75,12 +75,14 @@ React DevTools shows render reasons after the fact. The lab needs overlays you c
 
 ## Status
 
-This is `v0.6`. All 25 modules + the Journey + landing page are elaborated for depth. The `/lab/journey` route walks the same dashboard through **eleven** evolving stages with growing surface area — stocks → search → notifications → chat → products → settings → recommendations. Each module has anti-patterns, interview-grade depth, and worked examples. See `VISION.md` for the honest audit.
+This is `v0.7` (2026-05-24). **All 36 modules** (11 React foundations + 25 advanced) ship interactive demos — no ComingSoon fallbacks remain. The `/lab/journey` route walks the same dashboard through **eleven** evolving stages with growing surface area — stocks → search → notifications → chat → products → settings → recommendations. Each module has anti-patterns, interview-grade depth, and worked examples. See `VISION.md` for the honest audit and `TODO.md` for the depth-gaps still tracked.
 
 ### Global features
 
 - **Architect Mode** — toggle in the profiler dock. Gates each module's "fix reveal" behind a reflection prompt (why, tradeoffs, next bottleneck). Persists in localStorage.
-- **Custom profiler dock** — FPS, render counts, commit timeline, top offenders. Collapsible on mobile.
+- **Custom profiler dock** — FPS, render counts, commit timeline, **real Long Tasks API** (>50ms main-thread blockers), **real React Profiler API** integration (`actualDuration` / `baseDuration` for memo-savings %), top offenders. Hidden on quiz/journey routes where it's noise. Collapsible on mobile.
+- **Quiz bank** — 200+ Staff+/Principal judgment-call questions across all 36 modules, each with one correct answer, three wrong-with-rationale, and a model-answer narrative. Powers `/lab/daily` (one question per day) and the upcoming `/lab/interview` route.
+- **Boredom-buster** — 10 micro-games (tic-tac-toe, 2048, memory match, mine garden, slide puzzle, connect four, lights out, word scramble, simon, stroop) launch during slow loads to keep the user engaged.
 - **Mobile-first responsive** — drawer nav, collapsible dock, viz stacking, viewport meta.
 
 ## Google AdSense (optional)

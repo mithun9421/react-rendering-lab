@@ -5,25 +5,32 @@
 ## Vision (1-liner)
 A single intentionally-flawed React dashboard that the learner evolves step-by-step — at each step they SEE the broken behavior, profile it, apply a pattern, watch the metrics improve, and discover the new bottleneck the fix exposes.
 
-## Phase status
+## Phase status (current: v0.4 — 2026-05-24)
+
+All 36 modules implemented (11 foundations + 25 advanced). Quiz bank at 200+ questions across all modules. Profiler scoped to lesson routes.
 
 | # | Phase | Status | Notes |
 |---|---|---|---|
-| 0 | Project bootstrap (Next.js 15, TS, Tailwind, deps, theme) | ☐ | |
-| 1 | App shell — sidebar, module nav, profiler dock | ☐ | |
-| 2 | Teaching engine — `<Lesson/>`, `<Step/>`, `<BeforeAfter/>`, `<TryIt/>` | ☐ | The reusable framework all modules consume |
-| 3 | Profiler infrastructure — FPS, render counter, commit timeline, scheduler trace | ☐ | Custom; not React DevTools |
-| 4 | Shared "Dashboard" surface — stock feed, activity, charts, chat, products (intentionally bad baseline) | ☐ | The ONE codebase everything evolves around |
-| 5 | Module 1 — Reconciliation (keys, identity, remounts) | ☐ | Reference module — full template |
-| 6 | Module 2 — Diffing algorithm | ☐ | |
-| 7 | Module 3 — Fiber internals | ☐ | |
-| 8 | Module 4 — Concurrent rendering | ☐ | |
-| 9 | Module 5 — Time slicing | ☐ | |
-| 10 | Module 6 — Hydration | ☐ | |
-| 11 | Module 7 — Streaming SSR | ☐ | |
-| 12 | Module 8 — Suspense architecture | ☐ | |
-| 13 | Module 9 — Island architecture | ☐ | |
-| 14 | Module 10 — Virtualization | ☐ | |
+| 0 | Project bootstrap (Next.js 15, TS, Tailwind, deps, theme) | ✅ | |
+| 1 | App shell — sidebar, module nav, profiler dock | ✅ | Profiler hidden on quiz/journey routes |
+| 2 | Teaching engine — `<Lesson/>`, `<Step/>`, `<BeforeAfter/>`, `<TryIt/>`, `<ArchitectNotes/>`, `<ArchitectGate/>` | ✅ | All modules consume it |
+| 3 | Profiler infrastructure — FPS, render counter, commit timeline, scheduler trace, Long Tasks API, real Profiler-API wrap | ✅ | Custom; not React DevTools |
+| 4 | Shared "Dashboard" surface — stock feed, activity, charts, chat, products | ✅ | The ONE codebase modules evolve around |
+| 5 | Foundations F01–F11 (components → rules of React) | ✅ | 11 foundation modules ship |
+| 6 | Modules 01–10 (reconciliation → virtualization) | ✅ | Deep impls |
+| 7 | Modules 11–16 (compiler → state architecture) | ✅ | Deep impls |
+| 8 | Modules 17–24 (browser pipeline → security) | ✅ | All ship interactive demos; some have depth-gaps tracked in TODO.md |
+| 9 | Module 25 — Production Incident Simulator | ✅ | 6 incidents · intake → diagnose → fix → validate → postmortem |
+| 10 | Architect Mode primitive (reflection gate before fix reveal) | ✅ | |
+| 11 | Interview Quiz bank — 200+ questions covering all 36 modules | ✅ | Powers `/lab/daily` and the upcoming `/lab/interview` route |
+| 12 | Mobile-first responsive across all 36 routes | ✅ | |
+| 13 | Boredom-buster — 10 micro-games during slow loads | ✅ | Picks: tic-tac-toe, 2048, memory, mine, slide, connect4, lights-out, scramble, simon, stroop |
+| 14 | Monetisation scaffolding (AdSense readiness, Pro tier) | ✅ | See `MONETISATION.md`, `ADSENSE_READINESS.md` |
+| 15 | Interview Mode route — rubric-graded prompts | ☐ | Backlog: see TODO.md |
+| 16 | Trace recorder — JSON snapshots + deterministic replay | ☐ | Backlog: see TODO.md |
+| 17 | Service Worker + offline shell | ☐ | Backlog: see TODO.md |
+| 18 | Playwright smoke test — all 36 routes, mobile + desktop | ☐ | Backlog: see TODO.md |
+| 19 | Real toolchain integration for M11–15 (Compiler plugin, PPR, cache()) | ☐ | Currently illustrative; backlog: see TODO.md |
 
 ## Architectural decisions
 - **Next.js 15 App Router** — required for streaming SSR / Suspense / hydration modules.

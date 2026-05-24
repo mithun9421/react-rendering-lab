@@ -6,7 +6,7 @@
 
 | Requirement | Status | Notes |
 |---|---|---|
-| Original, substantive content | ✅ done | 25 modules + Journey, all original technical writing |
+| Original, substantive content | ✅ done | 36 modules (11 foundations + 25 advanced) + Journey, all original technical writing |
 | Privacy policy | ✅ this PR | `/privacy` — covers cookies, AdSense, third parties, user rights |
 | Cookie consent (EEA/UK) | ✅ this PR | First-visit banner + Google Consent Mode v2 — required since Jan 2024 |
 | Terms of Service | ✅ this PR | `/terms` — educational disclaimer, MIT code license, "as is" |
@@ -16,7 +16,7 @@
 | `ads.txt` at site root | ⚠️ placeholder | `public/ads.txt` ships; **replace `pub-0000000000000000` with your real ID before deploying** |
 | Site verification meta tag | ✅ this PR | env-gated `<meta name="google-adsense-account">` slot |
 | robots.txt | ✅ this PR | allows all crawlers + points at sitemap |
-| Dynamic sitemap | ✅ this PR | generated from the module registry |
+| Dynamic sitemap | ✅ this PR | generated from the module registry — all 36 routes covered |
 | Per-page metadata (title + description) | ✅ this PR | each module gets keyword-rich metadata |
 | HTTPS | ✅ done | Vercel default |
 | Mobile responsive | ✅ done | v0.5 mobile pass |
@@ -45,7 +45,7 @@ Covers AdSense data collection, cookies (ad personalization + functional), third
 
 ### SEO foundation
 - `robots.txt` allowing all bots, with `Sitemap:` line.
-- Dynamic sitemap from the module registry → all 27 routes get indexed.
+- Dynamic sitemap from the module registry → all 36 module routes plus landing/journey/daily/about/contact get indexed.
 - Per-module `generateMetadata` produces unique `<title>` and `<meta description>` using each module's `title` + `hook` from the registry. Replaces the previous single page-level title.
 
 ## The application flow (what you actually do)
@@ -54,7 +54,7 @@ Covers AdSense data collection, cookies (ad personalization + functional), third
 2. Visit https://www.google.com/adsense and **apply**.
 3. Google's bot crawls your site. They look for:
    - Privacy policy → linked from footer ✓
-   - Original content → 25 modules ✓
+   - Original content → 36 modules (11 foundations + 25 advanced) ✓
    - ads.txt at root ✓
 4. AdSense shows you a **verification meta tag**. Drop it into `NEXT_PUBLIC_ADSENSE_VERIFICATION_TAG` and redeploy.
 5. **Wait.** Anywhere from a few hours to a few weeks. Most approvals come in 3-7 days for sites with original technical content.
