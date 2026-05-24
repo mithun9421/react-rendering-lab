@@ -6,12 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   QUESTIONS,
-  pickByCategory,
   type Question,
   type QuestionKind,
 } from "@/modules/interview/questions";
 
 type Score = { correct: number; total: number };
+type Difficulty = 1 | 2 | 3 | 4 | 5;
+type DifficultyFilter = "all" | Difficulty;
 
 const STORAGE_KEY = "rrl:interview-score";
 const CATS: { kind: QuestionKind | "all"; label: string; blurb: string }[] = [
@@ -22,8 +23,33 @@ const CATS: { kind: QuestionKind | "all"; label: string; blurb: string }[] = [
   { kind: "internals", label: "Internals", blurb: "Why does React do it this way?" },
 ];
 
+const DIFFS: { v: DifficultyFilter; label: string; tone: string }[] = [
+  { v: "all", label: "Any", tone: "text-ink-muted" },
+  { v: 1, label: "1", tone: "text-accent-good" },
+  { v: 2, label: "2", tone: "text-accent-good" },
+  { v: 3, label: "3", tone: "text-accent-warn" },
+  { v: 4, label: "4", tone: "text-accent-bad" },
+  { v: 5, label: "5", tone: "text-accent-bad" },
+];
+
+/** Filter and deterministically pick from the bank. */
+function pickFiltered(
+  kind: QuestionKind | "all",
+  difficulty: DifficultyFilter,
+  seed: number,
+): Question | null {
+  const pool = QUESTIONS.filter((q) => {
+    if (kind !== "all" && q.kind !== kind) return false;
+    if (difficulty !== "all" && q.difficulty !== difficulty) return false;
+    return true;
+  });
+  if (pool.length === 0) return null;
+  return pool[seed % pool.length];
+}
+
 export default function InterviewPage() {
   const [cat, setCat] = useState<QuestionKind | "all">("all");
+  const [diff, setDiff] = useState<DifficultyFilter>("all");
   const [seed, setSeed] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [score, setScore] = useState<Score>({ correct: 0, total: 0 });
@@ -38,10 +64,30 @@ export default function InterviewPage() {
     }
   }, []);
 
-  const question = useMemo(() => pickByCategory(cat, seed), [cat, seed]);
-  const correctChoice = useMemo(() => question.choices.find((c) => c.correct === true), [question]);
+  const question = useMemo(() => pickFiltered(cat, diff, seed), [cat, diff, seed]);
+  const filteredCount = useMemo(
+    () =>
+      QUESTIONS.filter((q) => {
+        if (cat !== "all" && q.kind !== cat) return false;
+        if (diff !== "all" && q.difficulty !== diff) return false;
+        return true;
+      }).length,
+    [cat, diff],
+  );
+  const correctChoice = useMemo(
+    () => question?.choices.find((c) => c.correct === true),
+    [question],
+  );
   const revealed = picked !== null;
   const isCorrect = revealed && picked === correctChoice?.id;
+  const resetScore = () => {
+    setScore({ correct: 0, total: 0 });
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* no-op */
+    }
+  };
 
   const commit = (id: string) => {
     if (revealed) return;
@@ -65,34 +111,45 @@ export default function InterviewPage() {
 
   return (
     <article className="mx-auto w-full max-w-4xl px-4 pb-24 pt-6 sm:px-6 sm:pt-10">
-      <Header score={score} />
+      <Header score={score} resetScore={resetScore} />
       <Categories cat={cat} setCat={(c) => { setCat(c); setSeed(0); setPicked(null); }} />
+      <DifficultyFilterRow
+        diff={diff}
+        setDiff={(d) => { setDiff(d); setSeed(0); setPicked(null); }}
+        filteredCount={filteredCount}
+      />
 
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={question.id + seed}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.18 }}
-        >
-          <QuestionCard
-            question={question}
-            picked={picked}
-            correctId={correctChoice?.id ?? ""}
-            commit={commit}
-            isCorrect={isCorrect}
-          />
-        </motion.div>
-      </AnimatePresence>
+      {question === null ? (
+        <EmptyState onReset={() => { setCat("all"); setDiff("all"); }} />
+      ) : (
+        <>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={question.id + seed}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+            >
+              <QuestionCard
+                question={question}
+                picked={picked}
+                correctId={correctChoice?.id ?? ""}
+                commit={commit}
+                isCorrect={isCorrect}
+              />
+            </motion.div>
+          </AnimatePresence>
 
-      {revealed && (
-        <Reveal
-          question={question}
-          picked={picked!}
-          correctId={correctChoice?.id ?? ""}
-          onNext={nextQuestion}
-        />
+          {revealed && (
+            <Reveal
+              question={question}
+              picked={picked!}
+              correctId={correctChoice?.id ?? ""}
+              onNext={nextQuestion}
+            />
+          )}
+        </>
       )}
 
       <Footer />
@@ -100,7 +157,58 @@ export default function InterviewPage() {
   );
 }
 
-function Header({ score }: { score: Score }) {
+function DifficultyFilterRow({
+  diff,
+  setDiff,
+  filteredCount,
+}: {
+  diff: DifficultyFilter;
+  setDiff: (d: DifficultyFilter) => void;
+  filteredCount: number;
+}) {
+  return (
+    <div className="mb-6 flex flex-wrap items-center gap-2">
+      <span className="font-mono text-[10px] uppercase tracking-widest text-ink-dim">
+        difficulty
+      </span>
+      {DIFFS.map((d) => (
+        <button
+          key={String(d.v)}
+          onClick={() => setDiff(d.v)}
+          className={cn(
+            "rounded-md border px-2.5 py-1 font-mono text-[11px] tabular-nums transition active:scale-[0.97]",
+            diff === d.v
+              ? "border-accent/50 bg-accent/10 text-accent"
+              : "border-bg-border bg-bg-panel hover:border-accent/30 hover:bg-bg-elevated " + d.tone,
+          )}
+        >
+          {d.label}
+        </button>
+      ))}
+      <span className="ml-auto font-mono text-[10px] text-ink-dim">
+        {filteredCount} {filteredCount === 1 ? "question" : "questions"} in pool
+      </span>
+    </div>
+  );
+}
+
+function EmptyState({ onReset }: { onReset: () => void }) {
+  return (
+    <div className="rounded-xl border border-dashed border-bg-border bg-bg-panel p-8 text-center">
+      <p className="text-sm text-ink-muted">
+        No questions match this category + difficulty combo yet.
+      </p>
+      <button
+        onClick={onReset}
+        className="mt-3 rounded-md border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs text-accent hover:bg-accent/20"
+      >
+        Clear filters
+      </button>
+    </div>
+  );
+}
+
+function Header({ score, resetScore }: { score: Score; resetScore: () => void }) {
   const pct = score.total === 0 ? 0 : Math.round((score.correct / score.total) * 100);
   return (
     <header className="mb-6">
@@ -113,9 +221,9 @@ function Header({ score }: { score: Score }) {
         Spar with the question bank
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-muted sm:text-base">
-        Twelve scenarios drawn from real React / frontend systems interview rounds. Commit to an
-        answer before reading the model — the rationale rewards the pause. Score persists locally;
-        clear it any time.
+        {QUESTIONS.length}+ scenarios drawn from real React / frontend systems interview rounds —
+        debugging, design, trade-offs, internals. Commit to an answer before reading the model:
+        the rationale rewards the pause. Score persists locally; clear it any time.
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-bg-border bg-bg-panel p-3">
         <div className="flex items-baseline gap-1.5 font-mono">
@@ -123,6 +231,15 @@ function Header({ score }: { score: Score }) {
           <span className="text-xl tabular-nums text-accent">{score.correct}</span>
           <span className="text-sm text-ink-muted">/ {score.total}</span>
           <span className="ml-1 text-[10px] text-ink-dim">({pct}%)</span>
+          {score.total > 0 && (
+            <button
+              onClick={resetScore}
+              className="ml-2 rounded-md border border-bg-border bg-bg-elevated px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-ink-dim hover:border-accent-bad/40 hover:text-accent-bad"
+              aria-label="Reset score"
+            >
+              reset
+            </button>
+          )}
         </div>
         <span className="ml-auto font-mono text-[10px] text-ink-dim">
           {QUESTIONS.length} questions in bank
