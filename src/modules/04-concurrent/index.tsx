@@ -10,6 +10,31 @@ import { MetricsPanel } from "@/engine/MetricsPanel";
 import { SchedulerQueue } from "@/viz/SchedulerQueue";
 import { useRenderCount } from "@/profiler/useRenderCount";
 import { busy } from "@/lib/sim";
+import { PatternGrid, type PatternItem } from "@/engine/PatternGrid";
+
+const TRANSITION_LIMITS: PatternItem[] = [
+  {
+    icon: "⏰",
+    title: "Single-component blocking",
+    bad: "// 200ms computeFilter inside one component",
+    good: "// time-slice via rAF / postTask (M5)",
+    why: "Transitions yield BETWEEN fibers, not inside one. Long-running fn body can't be interrupted.",
+  },
+  {
+    icon: "💫",
+    title: "Effects",
+    bad: "startTransition(() => { /* affects useEffect? */ })",
+    good: "// effects run after commit regardless",
+    why: "useEffect callbacks aren't part of the lane system. Different scheduler.",
+  },
+  {
+    icon: "🌐",
+    title: "Network prioritisation",
+    bad: "startTransition(() => fetch(...))",
+    good: "// see Module 18 (request prioritisation)",
+    why: "Transitions are CPU schedulers. The browser, not React, schedules network.",
+  },
+];
 import { cn } from "@/lib/utils";
 
 const HAYSTACK = Array.from({ length: 8000 }, (_, i) => `item-${i.toString(16).padStart(4, "0")}`);
@@ -78,23 +103,8 @@ export default function Module04() {
           <code>startTransition</code> only helps if the work it wraps is interruptible
           render-phase work. It does <em>not</em>:
         </p>
-        <ul>
-          <li>
-            <strong>Yield inside a single component</strong>. If <code>computeFilter()</code>{" "}
-            takes 200ms in one component, wrapping its result-setting <em>state</em> in a
-            transition doesn&apos;t help — the work still runs synchronously when that
-            component renders. Time-slice the work itself (Module 5).
-          </li>
-          <li>
-            <strong>Help with effects</strong>. <code>useEffect</code> callbacks aren&apos;t
-            part of the lane system; they run after commit regardless.
-          </li>
-          <li>
-            <strong>Help with the network</strong>. Transitions are CPU schedulers, not network
-            schedulers. For request prioritisation see Module 18.
-          </li>
-        </ul>
-        <p>
+        <PatternGrid items={TRANSITION_LIMITS} />
+        <p className="mt-3">
           The rule: <code>startTransition</code> for &quot;this state update is allowed to be
           stale.&quot; Everything else is a different tool.
         </p>

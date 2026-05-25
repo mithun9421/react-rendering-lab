@@ -5,6 +5,108 @@ import { Step } from "@/engine/Step";
 import { Callout } from "@/engine/Callout";
 import { ArchitectNotes } from "@/engine/ArchitectNotes";
 import { HydrationOverlay } from "@/viz/HydrationOverlay";
+import { PatternGrid, type PatternItem } from "@/engine/PatternGrid";
+
+const HYDRATION_MISMATCH_CAUSES: PatternItem[] = [
+  {
+    icon: "⏱️",
+    title: "Time / random in render",
+    bad: "<span>{Date.now()}</span>",
+    good: "// server-render, hydrate client-side",
+    why: "Server and client run at different instants. Use render-stable values only.",
+  },
+  {
+    icon: "🪟",
+    title: "typeof window branches",
+    bad: "typeof window !== 'undefined'\n  ? <Client/> : <Server/>",
+    good: "useEffect(() => setMounted(true), [])",
+    why: "Different DOM on each side. Use a mounted flag toggled in useEffect.",
+  },
+  {
+    icon: "🌍",
+    title: "Locale-sensitive format",
+    bad: "date.toLocaleString()",
+    good: "// preformat on server, pass as string",
+    why: "Server in UTC, browser in local — every render diverges.",
+  },
+  {
+    icon: "🔑",
+    title: "Auth-conditional UI",
+    bad: "user ? <Avatar/> : <SignIn/>\n  // resolved at module load",
+    good: "// fetch in effect, gate with isLoading",
+    why: "Server saw unauthenticated; client cookie says otherwise. Defer the branch.",
+  },
+];
+
+/**
+ * Visual comparison of the four hydration modes, showing what each blocks
+ * and what it unlocks. Compact replacement for the bullet list.
+ */
+function HydrationModesGrid() {
+  const modes = [
+    {
+      icon: "🧱",
+      name: "Full",
+      tag: "synchronous",
+      tone: "bad" as const,
+      what: "One sync walk over the entire tree",
+      cost: "380ms chart blocks the 60ms search",
+    },
+    {
+      icon: "📊",
+      name: "Progressive",
+      tag: "priority-sorted",
+      tone: "warn" as const,
+      what: "Same walk, sorted by importance",
+      cost: "Search hydrates first; chart still blocks the rest",
+    },
+    {
+      icon: "🎯",
+      name: "Selective",
+      tag: "boundary-scoped",
+      tone: "info" as const,
+      what: "Mark some boundaries non-interactive",
+      cost: "Footer + comments never hydrate at all",
+    },
+    {
+      icon: "🏝️",
+      name: "Islands",
+      tag: "parallel",
+      tone: "good" as const,
+      what: "Selective AND independent per island",
+      cost: "Every island hydrates in parallel",
+    },
+  ];
+  const toneClass = {
+    bad: "border-accent-bad/30 bg-accent-bad/5",
+    warn: "border-accent-warn/30 bg-accent-warn/5",
+    info: "border-accent-info/30 bg-accent-info/5",
+    good: "border-accent-good/30 bg-accent-good/5",
+  };
+  const tagClass = {
+    bad: "text-accent-bad",
+    warn: "text-accent-warn",
+    info: "text-accent-info",
+    good: "text-accent-good",
+  };
+  return (
+    <div className="not-prose grid gap-3 md:grid-cols-2">
+      {modes.map((m) => (
+        <div key={m.name} className={`rounded-xl border bg-bg-panel p-3 ${toneClass[m.tone]}`}>
+          <div className="flex items-center gap-2">
+            <span className="text-xl leading-none">{m.icon}</span>
+            <span className="text-sm font-medium text-ink">{m.name}</span>
+            <span className={`ml-auto font-mono text-[9px] uppercase tracking-widest ${tagClass[m.tone]}`}>
+              {m.tag}
+            </span>
+          </div>
+          <p className="mt-2 text-[12px] text-ink">{m.what}</p>
+          <p className="mt-1 font-mono text-[10px] text-ink-muted">→ {m.cost}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Module06() {
   return (
@@ -25,12 +127,7 @@ export default function Module06() {
       </Step>
 
       <Step n={3} kind="explain" title="What each mode actually changes">
-        <ul>
-          <li><strong>Full</strong> — one synchronous walk. The 380ms chart blocks the 60ms search.</li>
-          <li><strong>Progressive</strong> — same walk, sorted by priority. The search hydrates first, but the chart still blocks the rest.</li>
-          <li><strong>Selective</strong> — only mark some boundaries as interactive. Footer + comments never hydrate.</li>
-          <li><strong>Islands</strong> — selective <em>and</em> independent. Each island hydrates in parallel because nothing depends on its siblings.</li>
-        </ul>
+        <HydrationModesGrid />
       </Step>
 
       <Step n={4} kind="explain" title="Hydration mismatches — the most common production bug">
@@ -40,25 +137,7 @@ export default function Module06() {
           the tree and re-renders it client-side, costing time + visible flicker.
         </p>
         <p>The four classic causes:</p>
-        <ul>
-          <li>
-            <code>Date.now()</code> / <code>Math.random()</code> in render — server and client run
-            at different instants. Render-stable values only.
-          </li>
-          <li>
-            <code>typeof window !== &quot;undefined&quot;</code> branches — pure poison, different
-            DOM on each side. Use <code>useEffect</code> + a <code>useState(false)</code> flag.
-          </li>
-          <li>
-            Locale-sensitive formatting (<code>toLocaleString</code>) — server in UTC, browser in
-            local. Pass a stable preformatted string from the server or render client-only.
-          </li>
-          <li>
-            Auth-conditional UI rendered at module load time — server saw an unauthenticated user,
-            the client cookie says otherwise. Tag the boundary with{" "}
-            <code>suppressHydrationWarning</code> only if you control both sides.
-          </li>
-        </ul>
+        <PatternGrid items={HYDRATION_MISMATCH_CAUSES} />
         <p>
           React 19&apos;s <code>onRecoverableError</code> (Module 8) surfaces these — wire it
           into your error tracker so the mismatches don&apos;t hide.
